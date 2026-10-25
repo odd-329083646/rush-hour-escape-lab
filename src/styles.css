@@ -231,3 +231,4 @@
 .car[data-hidden="true"] { opacity: 0; box-shadow: none; }
 .car[data-hidden="true"][data-selected="true"] { opacity: 1; background: transparent !important; color: transparent; }
 .car[data-ghost="true"] { opacity: .45; outline: 2px dashed var(--foreground); outline-offset: -4px; }
+:root { --car-brown: oklch(0.55 0.09 55); --car-navy: oklch(0.45 0.12 260); --car-sky: oklch(0.78 0.1 230); }
