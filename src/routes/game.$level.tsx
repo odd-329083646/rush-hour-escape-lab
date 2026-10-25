@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Home, RotateCcw } from "lucide-react";
-import { applyMove, LEVELS, type Car, type Level, type Move } from "@/lib/puzzles";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Eye, EyeOff, Home, RotateCcw } from "lucide-react";
+import { applyMove, LEVELS, pickHidden, type Car, type Level, type Move } from "@/lib/puzzles";
 
 export const Route = createFileRoute("/game/$level")({
   beforeLoad: ({ params }) => {
@@ -40,9 +40,19 @@ function Game() {
   const [moves, setMoves] = useState(0);
   const [msg, setMsg] = useState("Select a car to begin");
   const [warn, setWarn] = useState<{ text: string; key: number } | null>(null);
+  const [started, setStarted] = useState(false);
+  const [hidden, setHidden] = useState<Set<string>>(new Set());
+  const [reveal, setReveal] = useState(false);
+  const needsStart = level !== "beginner";
   const won = !cars.some((c) => c.id === "X");
 
-  const reset = () => { setCars(cfg.cars); setSel(null); setMove(null); setSteps(1); setMoves(0); setMsg("Select a car to begin"); setWarn(null); };
+  const reset = () => { setCars(cfg.cars); setSel(null); setMove(null); setSteps(1); setMoves(0); setMsg("Select a car to begin"); setWarn(null); setStarted(false); setHidden(new Set()); setReveal(false); };
+
+  const start = () => {
+    setHidden(pickHidden(cfg.cars, level));
+    setStarted(true);
+    setMsg(level === "champions" ? "All cars vanished. Good luck!" : "Some cars vanished — they still block!");
+  };
 
   const flash = (text: string) => {
     const key = Date.now();
@@ -51,6 +61,7 @@ function Game() {
   };
 
   const execute = () => {
+    if (needsStart && !started) return flash("Press Start Game first");
     if (!sel) return flash("Select a car first");
     if (!move) return flash("Choose a direction");
     const r = applyMove(cars, sel, move, steps);
@@ -62,10 +73,17 @@ function Game() {
 
   return (
     <main className="lot-bg min-h-screen px-4 py-6">
-      <header className="mx-auto flex max-w-6xl items-center justify-between">
+      <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
         <Link to="/" className="chip"><Home className="h-4 w-4" /> Back to Home</Link>
         <h1 className="font-display text-lg font-bold md:text-2xl">{cfg.title} <span className="text-muted-foreground">· {cfg.he}</span></h1>
-        <button onClick={reset} className="chip"><RotateCcw className="h-4 w-4" /> Reset</button>
+        <div className="flex gap-2">
+          {started && hidden.size > 0 && (
+            <button onClick={() => setReveal((v) => !v)} data-active={reveal} className="chip">
+              {reveal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {reveal ? "Hide cars" : "Reveal cars"}
+            </button>
+          )}
+          <button onClick={reset} className="chip"><RotateCcw className="h-4 w-4" /> Reset</button>
+        </div>
       </header>
 
       <div className="mx-auto mt-8 grid max-w-6xl gap-6 lg:grid-cols-[220px_1fr_220px]">
@@ -108,6 +126,9 @@ function Game() {
                 onClick={() => setSel(c.id)}
                 data-shake={sel === c.id && !!warn}
                 data-selected={sel === c.id}
+                data-hidden={hidden.has(c.id) && !reveal}
+                data-ghost={hidden.has(c.id) && reveal}
+                aria-label={hidden.has(c.id) && !reveal ? "Hidden car" : c.name}
                 className="car"
                 style={{
                   background: c.color,
@@ -118,6 +139,14 @@ function Game() {
                 {c.id}
               </button>
             ))}
+            {needsStart && !started && (
+              <div className="win flex-col gap-3">
+                <span className="text-base text-muted-foreground">
+                  {level === "champions" ? "Memorize the lot — every car will vanish." : "Memorize the lot — some cars will vanish."}
+                </span>
+                <button onClick={start} className="execute px-8">Start Game · התחל משחק</button>
+              </div>
+            )}
             {won && <div className="win">🏁 You escaped in {moves} moves!</div>}
           </div>
         </section>
