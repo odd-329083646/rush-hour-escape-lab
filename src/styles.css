@@ -219,3 +219,12 @@
   position: absolute; inset: 0; z-index: 2; display: flex; align-items: center; justify-content: center;
   border-radius: 1.25rem; background: oklch(0.16 0.01 260 / .85); font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--primary);
 }
+@keyframes shake { 0%,100% { translate: 0 } 25% { translate: -4px 0 } 75% { translate: 4px 0 } }
+@keyframes warn-fade { 0% { opacity: 0; translate: -50% -6px } 12%,80% { opacity: 1; translate: -50% 0 } 100% { opacity: 0 } }
+@utility warn {
+  position: absolute; top: -2.75rem; left: 50%; z-index: 3; white-space: nowrap;
+  padding: .4rem .9rem; border-radius: 999px; font-size: .85rem;
+  background: color-mix(in oklab, var(--car-red) 22%, var(--card)); border: 1px solid color-mix(in oklab, var(--car-red) 55%, transparent);
+  animation: warn-fade 1.8s ease forwards;
+}
+.car[data-shake="true"] { animation: shake .3s ease 2; outline-color: var(--car-red); }

@@ -99,12 +99,14 @@ function Game() {
         {/* Center: board */}
         <section className="order-1 flex justify-center lg:order-2">
           <div className="board">
+            {warn && <div key={warn.key} className="warn" role="alert">{warn.text}</div>}
             {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" />)}
             <div className="exit" style={{ gridRow: 3 }} />
             {cars.map((c) => (
               <button
-                key={c.id}
+                key={sel === c.id && warn ? `${c.id}-${warn.key}` : c.id}
                 onClick={() => setSel(c.id)}
+                data-shake={sel === c.id && !!warn}
                 data-selected={sel === c.id}
                 className="car"
                 style={{
