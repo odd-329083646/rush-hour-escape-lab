@@ -142,7 +142,7 @@ function Game() {
         <section className="order-1 flex justify-center lg:order-2">
           <div className="board">
             {warn && <div key={warn.key} className="warn" role="alert">{warn.text}</div>}
-            {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" />)}
+            {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" style={{ gridRow: Math.floor(i / 6) + 1, gridColumn: (i % 6) + 1 }} />)}
             <div className="exit" style={{ gridRow: 3 }} />
             {cars.map((c) => (
               <button
