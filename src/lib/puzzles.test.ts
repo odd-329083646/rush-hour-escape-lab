@@ -16,7 +16,7 @@ describe("applyMove", () => {
     expect(applyMove(cars, "X", "left", 1).cars.find((c) => c.id === "X")?.col).toBe(0);
   });
   it("red car escapes through the right exit", () => {
-    const solo = [{ ...cars[0], col: 4 }];
+    const solo = [{ ...cars[0]!, col: 4 }];
     expect(applyMove(solo, "X", "right", 1).vanished).toBe(true);
   });
 });
