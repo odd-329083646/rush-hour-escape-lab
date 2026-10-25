@@ -191,7 +191,7 @@
 }
 @utility board {
   position: relative; display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(6, 1fr);
-  gap: 6px; padding: 10px; width: min(90vw, 480px); aspect-ratio: 1; border-radius: 1.25rem;
+  gap: 6px; padding: 10px; width: min(90vw, 480px); aspect-ratio: 1; align-self: flex-start; border-radius: 1.25rem;
   background: oklch(0.16 0.01 260); border: 2px solid var(--border);
 }
 @utility cell {
