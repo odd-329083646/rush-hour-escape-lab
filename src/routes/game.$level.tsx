@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useState } from "react";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Eye, EyeOff, Home, RotateCcw } from "lucide-react";
-import { applyMove, LEVELS, pickHidden, type Car, type Level, type Move } from "@/lib/puzzles";
+import { useEffect, useState } from "react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, Eye, EyeOff, Home, RotateCcw, Timer, Trophy } from "lucide-react";
+import { applyMove, isSolved, LEVELS, pickHidden, type Car, type Level, type Move } from "@/lib/puzzles";
 
 export const Route = createFileRoute("/game/$level")({
   beforeLoad: ({ params }) => {
@@ -43,15 +43,27 @@ function Game() {
   const [started, setStarted] = useState(false);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
   const [reveal, setReveal] = useState(false);
-  const needsStart = level !== "beginner";
-  const won = !cars.some((c) => c.id === "X");
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [now, setNow] = useState(0);
+  const [wonAt, setWonAt] = useState<number | null>(null);
+  const won = wonAt !== null;
+  const elapsed = startedAt ? Math.floor(((wonAt ?? now) - startedAt) / 1000) : 0;
+  const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
 
-  const reset = () => { setCars(cfg.cars); setSel(null); setMove(null); setSteps(1); setMoves(0); setMsg("Select a car to begin"); setWarn(null); setStarted(false); setHidden(new Set()); setReveal(false); };
+  useEffect(() => {
+    if (!startedAt || won) return;
+    setNow(Date.now());
+    const t = setInterval(() => setNow(Date.now()), 500);
+    return () => clearInterval(t);
+  }, [startedAt, won]);
+
+  const reset = () => { setCars(cfg.cars); setSel(null); setMove(null); setSteps(1); setMoves(0); setMsg("Select a car to begin"); setWarn(null); setStarted(false); setHidden(new Set()); setReveal(false); setStartedAt(null); setWonAt(null); };
 
   const start = () => {
     setHidden(pickHidden(cfg.cars, level));
     setStarted(true);
-    setMsg(level === "champions" ? "All cars vanished. Good luck!" : "Some cars vanished — they still block!");
+    setStartedAt(Date.now());
+    setMsg(level === "champions" ? "All cars vanished. Good luck!" : level === "advanced" ? "Some cars vanished — they still block!" : "Clock's running — free the red car!");
   };
 
   const flash = (text: string) => {
@@ -61,14 +73,20 @@ function Game() {
   };
 
   const execute = () => {
-    if (needsStart && !started) return flash("Press Start Game first");
+    if (!started) return flash("Press Start Solving first");
     if (!sel) return flash("Select a car first");
     if (!move) return flash("Choose a direction");
     const r = applyMove(cars, sel, move, steps);
     if (r.error) return flash(r.error);
     setCars(r.cars); setMoves((n) => n + 1); setWarn(null);
-    if (r.vanished) { setMsg("The red car escaped! You win!"); setSel(null); }
+    if (isSolved(r.cars)) { setWonAt(Date.now()); setMsg("Solved!"); setSel(null); }
     else setMsg("Moved!");
+  };
+
+  const finish = () => {
+    if (!started) return flash("Press Start Solving first");
+    if (isSolved(cars)) setWonAt(Date.now());
+    else flash("Not solved yet — the red car must reach the exit");
   };
 
   return (
@@ -107,9 +125,15 @@ function Game() {
               ))}
             </div>
           </div>
-          <button onClick={execute} disabled={won} className="execute">Execute · בצע</button>
+          <button onClick={execute} disabled={won || !started} className="execute">Execute · בצע</button>
+          <button onClick={finish} disabled={won || !started} className="chip justify-center py-2.5">
+            <CheckCircle2 className="h-4 w-4" /> Finished · סיימתי
+          </button>
           <div className="text-sm text-muted-foreground">
-            <p>Moves: <span className="font-display text-foreground">{moves}</span></p>
+            <p className="flex justify-between">
+              <span>Moves: <span className="font-display text-foreground">{moves}</span></span>
+              <span className="flex items-center gap-1"><Timer className="h-4 w-4" /><span className="font-display text-foreground">{clock}</span></span>
+            </p>
             <p className="mt-1">{msg}</p>
           </div>
         </aside>
@@ -118,7 +142,7 @@ function Game() {
         <section className="order-1 flex justify-center lg:order-2">
           <div className="board">
             {warn && <div key={warn.key} className="warn" role="alert">{warn.text}</div>}
-            {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" />)}
+            {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" style={{ gridRow: Math.floor(i / 6) + 1, gridColumn: (i % 6) + 1 }} />)}
             <div className="exit" style={{ gridRow: 3 }} />
             {cars.map((c) => (
               <button
@@ -139,15 +163,25 @@ function Game() {
                 {c.id}
               </button>
             ))}
-            {needsStart && !started && (
-              <div className="win flex-col gap-3">
+            {!started && (
+              <div className="win veil flex-col gap-3">
                 <span className="text-base text-muted-foreground">
-                  {level === "champions" ? "Memorize the lot — every car will vanish." : "Memorize the lot — some cars will vanish."}
+                  {level === "champions" ? "Memorize the lot — every car will vanish." : level === "advanced" ? "Memorize the lot — some cars will vanish." : "Free the red car to the yellow exit."}
                 </span>
-                <button onClick={start} className="execute px-8">Start Game · התחל משחק</button>
+                <button onClick={start} className="execute px-8">Start Solving · התחל פתירה</button>
               </div>
             )}
-            {won && <div className="win">🏁 You escaped in {moves} moves!</div>}
+            {won && (
+              <div className="win flex-col gap-2 text-center">
+                <Trophy className="h-12 w-12" />
+                <span className="text-3xl">Victory! · ניצחון</span>
+                <span className="text-base text-muted-foreground">{moves} moves · {clock} · best possible {cfg.par}</span>
+                <div className="mt-3 flex gap-2">
+                  <button onClick={reset} className="chip"><RotateCcw className="h-4 w-4" /> Play again</button>
+                  <Link to="/" className="chip"><Home className="h-4 w-4" /> Home</Link>
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
@@ -156,15 +190,14 @@ function Game() {
           <h2 className="panel-title">Cars</h2>
           <ul className="flex flex-col gap-2">
             {cfg.cars.map((c) => {
-              const gone = !cars.some((x) => x.id === c.id);
               return (
                 <li key={c.id}>
-                  <button disabled={gone} onClick={() => setSel(c.id)} data-active={sel === c.id} className="palette-item">
+                  <button onClick={() => setSel(c.id)} data-active={sel === c.id} className="palette-item">
                     <span className="flex gap-0.5">
                       {Array.from({ length: c.len }).map((_, i) => <span key={i} className="h-3 w-3 rounded-sm" style={{ background: c.color }} />)}
                     </span>
                     <span className="flex-1 text-left">{c.name}</span>
-                    <span className="text-xs text-muted-foreground">{gone ? "vanished" : c.dir === "h" ? "↔" : "↕"}</span>
+                    <span className="text-xs text-muted-foreground">{c.dir === "h" ? "↔" : "↕"}</span>
                   </button>
                 </li>
               );
