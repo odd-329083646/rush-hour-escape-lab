@@ -9,9 +9,14 @@ describe("applyMove", () => {
   it("blocks when another car is in the way", () => {
     expect(applyMove(cars, "X", "right", 1).error).toBe("Blocked by another car");
   });
-  it("car vanishes when driven off the edge", () => {
-    const r = applyMove(cars, "X", "left", 2);
-    expect(r.vanished).toBe(true);
-    expect(r.cars.find((c) => c.id === "X")).toBeUndefined();
+  it("cars can't leave the grid", () => {
+    expect(applyMove(cars, "X", "left", 2).error).toBe("Can't leave the parking lot");
+  });
+  it("moves exactly the chosen steps", () => {
+    expect(applyMove(cars, "X", "left", 1).cars.find((c) => c.id === "X")?.col).toBe(0);
+  });
+  it("red car escapes through the right exit", () => {
+    const solo = [{ ...cars[0], col: 4 }];
+    expect(applyMove(solo, "X", "right", 1).vanished).toBe(true);
   });
 });

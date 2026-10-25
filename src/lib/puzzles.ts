@@ -48,7 +48,7 @@ export function cells(c: Car): [number, number][] {
   return Array.from({ length: c.len }, (_, i) => (c.dir === "h" ? [c.row, c.col + i] : [c.row + i, c.col]));
 }
 
-/** Moves car up to `steps`. Cars that drive off the grid edge vanish. */
+/** Moves car exactly `steps`. Only the red car (X) may leave, through the right exit on row 2. */
 export function applyMove(cars: Car[], id: string, move: Move, steps: number): { cars: Car[]; error?: string; vanished?: boolean } {
   const car = cars.find((c) => c.id === id);
   if (!car) return { cars, error: "Select a car first" };
@@ -62,7 +62,8 @@ export function applyMove(cars: Car[], id: string, move: Move, steps: number): {
     const nr = horiz ? row : row + (d > 0 ? lead : -1);
     const nc = horiz ? col + (d > 0 ? lead : -1) : col;
     if (nr < 0 || nr > 5 || nc < 0 || nc > 5) {
-      return { cars: cars.filter((c) => c.id !== id), vanished: true };
+      if (id === "X" && move === "right" && row === 2) return { cars: cars.filter((c) => c.id !== id), vanished: true };
+      return { cars, error: "Can't leave the parking lot" };
     }
     if (occ.has(`${nr},${nc}`)) return { cars, error: "Blocked by another car" };
     if (horiz) col += d; else row += d;
