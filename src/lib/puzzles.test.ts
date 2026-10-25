@@ -20,3 +20,14 @@ describe("applyMove", () => {
     expect(applyMove(solo, "X", "right", 1).vanished).toBe(true);
   });
 });
+
+import { pickHidden } from "./puzzles";
+describe("pickHidden", () => {
+  it("beginner hides nothing", () => expect(pickHidden(LEVELS.beginner.cars, "beginner").size).toBe(0));
+  it("champions hides all cars", () => expect(pickHidden(LEVELS.champions.cars, "champions").size).toBe(LEVELS.champions.cars.length));
+  it("advanced hides some but not all, never the red car", () => {
+    const h = pickHidden(LEVELS.advanced.cars, "advanced");
+    expect(h.size).toBe(3);
+    expect(h.has("X")).toBe(false);
+  });
+});

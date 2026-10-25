@@ -70,3 +70,11 @@ export function applyMove(cars: Car[], id: string, move: Move, steps: number): {
   }
   return { cars: cars.map((c) => (c.id === id ? { ...c, row, col } : c)) };
 }
+
+/** Beginner: none. Advanced: random half of the non-red cars. Champions: every car. */
+export function pickHidden(cars: Car[], level: Level, rand: () => number = Math.random): Set<string> {
+  if (level === "beginner") return new Set();
+  if (level === "champions") return new Set(cars.map((c) => c.id));
+  const pool = cars.filter((c) => c.id !== "X").map((c) => c.id).sort(() => rand() - 0.5);
+  return new Set(pool.slice(0, Math.ceil(pool.length / 2)));
+}

@@ -228,3 +228,6 @@
   animation: warn-fade 1.8s ease forwards;
 }
 .car[data-shake="true"] { animation: shake .3s ease 2; outline-color: var(--car-red); }
+.car[data-hidden="true"] { opacity: 0; box-shadow: none; }
+.car[data-hidden="true"][data-selected="true"] { opacity: 1; background: transparent !important; color: transparent; }
+.car[data-ghost="true"] { opacity: .45; outline: 2px dashed var(--foreground); outline-offset: -4px; }
