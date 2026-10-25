@@ -39,16 +39,24 @@ function Game() {
   const [steps, setSteps] = useState(1);
   const [moves, setMoves] = useState(0);
   const [msg, setMsg] = useState("Select a car to begin");
+  const [warn, setWarn] = useState<{ text: string; key: number } | null>(null);
   const won = !cars.some((c) => c.id === "X");
 
-  const reset = () => { setCars(cfg.cars); setSel(null); setMove(null); setSteps(1); setMoves(0); setMsg("Select a car to begin"); };
+  const reset = () => { setCars(cfg.cars); setSel(null); setMove(null); setSteps(1); setMoves(0); setMsg("Select a car to begin"); setWarn(null); };
+
+  const flash = (text: string) => {
+    const key = Date.now();
+    setWarn({ text, key });
+    setTimeout(() => setWarn((w) => (w?.key === key ? null : w)), 1800);
+  };
 
   const execute = () => {
-    if (!sel || !move) return setMsg("Pick a car and a direction");
+    if (!sel) return flash("Select a car first");
+    if (!move) return flash("Choose a direction");
     const r = applyMove(cars, sel, move, steps);
-    if (r.error) return setMsg(r.error);
-    setCars(r.cars); setMoves((n) => n + 1);
-    if (r.vanished) { setMsg(sel === "X" ? "The red car escaped! You win!" : "Poof! A car vanished."); setSel(null); }
+    if (r.error) return flash(r.error);
+    setCars(r.cars); setMoves((n) => n + 1); setWarn(null);
+    if (r.vanished) { setMsg("The red car escaped! You win!"); setSel(null); }
     else setMsg("Moved!");
   };
 
@@ -91,12 +99,14 @@ function Game() {
         {/* Center: board */}
         <section className="order-1 flex justify-center lg:order-2">
           <div className="board">
+            {warn && <div key={warn.key} className="warn" role="alert">{warn.text}</div>}
             {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" />)}
             <div className="exit" style={{ gridRow: 3 }} />
             {cars.map((c) => (
               <button
-                key={c.id}
+                key={sel === c.id && warn ? `${c.id}-${warn.key}` : c.id}
                 onClick={() => setSel(c.id)}
+                data-shake={sel === c.id && !!warn}
                 data-selected={sel === c.id}
                 className="car"
                 style={{
