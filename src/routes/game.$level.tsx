@@ -34,22 +34,14 @@ function Game() {
   const { level } = Route.useParams() as { level: Level };
   const cfg = LEVELS[level];
 
-  // פונקציה לשליפת השלב הבא בתור בסבב מחזורי ושמירתו ב-localStorage
-  const getNextPuzzleIndex = () => {
-    const storageKey = `rush_hour_puzzle_index_${level}`;
+  // שליפת האינדקס השמור או התחלה מ-0
+  const storageKey = `rush_hour_puzzle_index_${level}`;
+  const [currentPuzzleIndex, setCurrentPuzzleIndex] = useState(() => {
     const saved = localStorage.getItem(storageKey);
-    const currentIndex = saved ? parseInt(saved, 10) || 0 : 0;
-    
-    // קביעת האינדקס של השלב הבא (וחזרה להתחלה אם הגענו לסוף המאגר)
-    const nextIndex = (currentIndex + 1) % DEFAULT_PUZZLES.length;
-    localStorage.setItem(storageKey, nextIndex.toString());
-    
-    return currentIndex;
-  };
+    return saved ? parseInt(saved, 10) || 0 : 0;
+  });
 
-  // אתחול השלב הנוכחי בתור
-  const [currentPuzzleIndex, setCurrentPuzzleIndex] = useState(() => getNextPuzzleIndex());
-  const currentPuzzle = DEFAULT_PUZZLES[currentPuzzleIndex];
+  const currentPuzzle = DEFAULT_PUZZLES[currentPuzzleIndex] || DEFAULT_PUZZLES[0];
   const [cars, setCars] = useState<Car[]>(currentPuzzle.cars);
 
   const [sel, setSel] = useState<string | null>(null);
@@ -75,14 +67,30 @@ function Game() {
     return () => clearInterval(t);
   }, [startedAt, won]);
 
-  // בעת איפוס (Reset) או מעבר לשחק שוב - טעינת השלב הבא בתור ברצף
-  const reset = () => { 
-    const nextIdx = getNextPuzzleIndex();
+  // מעבר לשלב הבא ברצף, תוך עצירה בשלב האחרון (בלי לחזור להתחלה)
+  const handleNextLevel = () => {
+    const nextIdx = Math.min(currentPuzzleIndex + 1, DEFAULT_PUZZLES.length - 1);
+    localStorage.setItem(storageKey, nextIdx.toString());
+
     setCurrentPuzzleIndex(nextIdx);
     const nextPuzzle = DEFAULT_PUZZLES[nextIdx];
-
-    setCurrentPuzzle(nextPuzzle);
     setCars(nextPuzzle.cars); 
+    setSel(null); 
+    setMove(null); 
+    setSteps(1); 
+    setMoves(0); 
+    setMsg("Select a car to begin"); 
+    setWarn(null); 
+    setStarted(false); 
+    setHidden(new Set()); 
+    setReveal(false); 
+    setStartedAt(null); 
+    setWonAt(null); 
+  };
+
+  // איפוס של השלב הנוכחי (לא מקדם שלב)
+  const resetCurrent = () => {
+    setCars(currentPuzzle.cars); 
     setSel(null); 
     setMove(null); 
     setSteps(1); 
@@ -126,18 +134,20 @@ function Game() {
     else flash("Not solved yet — the red car must reach the exit");
   };
 
+  const isLastLevel = currentPuzzleIndex >= DEFAULT_PUZZLES.length - 1;
+
   return (
     <main className="lot-bg min-h-screen px-4 py-6">
       <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
         <Link to="/" className="chip"><Home className="h-4 w-4" /> Back to Home</Link>
-        <h1 className="font-display text-lg font-bold md:text-2xl">{cfg.title} <span className="text-muted-foreground">· {cfg.he}</span></h1>
+        <h1 className="font-display text-lg font-bold md:text-2xl">{cfg.title} <span className="text-muted-foreground">· {cfg.he} (שלב {currentPuzzleIndex + 1} מתוך {DEFAULT_PUZZLES.length})</span></h1>
         <div className="flex gap-2">
           {started && hidden.size > 0 && (
             <button onClick={() => setReveal((v) => !v)} data-active={reveal} className="chip">
               {reveal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {reveal ? "Hide cars" : "Reveal cars"}
             </button>
           )}
-          <button onClick={reset} className="chip"><RotateCcw className="h-4 w-4" /> Reset</button>
+          <button onClick={resetCurrent} className="chip"><RotateCcw className="h-4 w-4" /> Reset</button>
         </div>
       </header>
 
@@ -212,9 +222,17 @@ function Game() {
               <div className="win flex-col gap-2 text-center">
                 <Trophy className="h-12 w-12" />
                 <span className="text-3xl">Victory! · ניצחון</span>
-                <span className="text-base text-muted-foreground">{moves} moves · {clock} · best possible {currentPuzzle.par}</span>
+                <span className="text-base text-muted-foreground">
+                  {isLastLevel 
+                    ? "סיימת את כל השלבים במשחק בהצלחה רבה! כל הכבוד! 🎉" 
+                    : `${moves} moves · {clock} · best possible ${currentPuzzle.par}`}
+                </span>
                 <div className="mt-3 flex gap-2">
-                  <button onClick={reset} className="chip"><RotateCcw className="h-4 w-4" /> Next Level · שלב הבא</button>
+                  {!isLastLevel ? (
+                    <button onClick={handleNextLevel} className="chip"><RotateCcw className="h-4 w-4" /> Next Level · שלב הבא</button>
+                  ) : (
+                    <button onClick={resetCurrent} className="chip"><RotateCcw className="h-4 w-4" /> Play again · שחק שוב</button>
+                  )}
                   <Link to="/" className="chip"><Home className="h-4 w-4" /> Home</Link>
                 </div>
               </div>
