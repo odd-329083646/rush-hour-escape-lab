@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, Eye, EyeOff, Home, RotateCcw, Timer, Trophy } from "lucide-react";
-import { applyMove, isSolved, LEVELS, pickHidden, getRandomPuzzle, type Car, type Level, type Move } from "@/lib/puzzles";
+import { applyMove, isSolved, LEVELS, pickHidden, DEFAULT_PUZZLES, type Car, type Level, type Move } from "@/lib/puzzles";
 
 export const Route = createFileRoute("/game/$level")({
   beforeLoad: ({ params }) => {
@@ -34,8 +34,22 @@ function Game() {
   const { level } = Route.useParams() as { level: Level };
   const cfg = LEVELS[level];
 
-  // הגרלה רנדומלית של שלב (המכוניות וה-par שלו) באתחול העמוד
-  const [currentPuzzle, setCurrentPuzzle] = useState(() => getRandomPuzzle());
+  // פונקציה לשליפת השלב הבא בתור בסבב מחזורי ושמירתו ב-localStorage
+  const getNextPuzzleIndex = () => {
+    const storageKey = `rush_hour_puzzle_index_${level}`;
+    const saved = localStorage.getItem(storageKey);
+    const currentIndex = saved ? parseInt(saved, 10) || 0 : 0;
+    
+    // קביעת האינדקס של השלב הבא (וחזרה להתחלה אם הגענו לסוף המאגר)
+    const nextIndex = (currentIndex + 1) % DEFAULT_PUZZLES.length;
+    localStorage.setItem(storageKey, nextIndex.toString());
+    
+    return currentIndex;
+  };
+
+  // אתחול השלב הנוכחי בתור
+  const [currentPuzzleIndex, setCurrentPuzzleIndex] = useState(() => getNextPuzzleIndex());
+  const currentPuzzle = DEFAULT_PUZZLES[currentPuzzleIndex];
   const [cars, setCars] = useState<Car[]>(currentPuzzle.cars);
 
   const [sel, setSel] = useState<string | null>(null);
@@ -61,11 +75,14 @@ function Game() {
     return () => clearInterval(t);
   }, [startedAt, won]);
 
-  // בעת איפוס (Reset) - נגריל שלב חדש לחלוטין מתוך המאגר המשותף
+  // בעת איפוס (Reset) או מעבר לשחק שוב - טעינת השלב הבא בתור ברצף
   const reset = () => { 
-    const newPuzzle = getRandomPuzzle();
-    setCurrentPuzzle(newPuzzle);
-    setCars(newPuzzle.cars); 
+    const nextIdx = getNextPuzzleIndex();
+    setCurrentPuzzleIndex(nextIdx);
+    const nextPuzzle = DEFAULT_PUZZLES[nextIdx];
+
+    setCurrentPuzzle(nextPuzzle);
+    setCars(nextPuzzle.cars); 
     setSel(null); 
     setMove(null); 
     setSteps(1); 
@@ -197,7 +214,7 @@ function Game() {
                 <span className="text-3xl">Victory! · ניצחון</span>
                 <span className="text-base text-muted-foreground">{moves} moves · {clock} · best possible {currentPuzzle.par}</span>
                 <div className="mt-3 flex gap-2">
-                  <button onClick={reset} className="chip"><RotateCcw className="h-4 w-4" /> Play again</button>
+                  <button onClick={reset} className="chip"><RotateCcw className="h-4 w-4" /> Next Level · שלב הבא</button>
                   <Link to="/" className="chip"><Home className="h-4 w-4" /> Home</Link>
                 </div>
               </div>
