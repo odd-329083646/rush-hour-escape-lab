@@ -58,13 +58,13 @@ export const LEVELS: Record<Level, { title: string; he: string; par: number; car
     title: "Advanced",
     he: "מתקדמים",
     par: 14,
-    cars: DEFAULT_PUZZLES[1],
+    cars: DEFAULT_PUZZLES[0],
   },
   champions: {
     title: "Champions",
     he: "אלופים",
     par: 24,
-    cars: DEFAULT_PUZZLES[2],
+    cars: DEFAULT_PUZZLES[0],
   },
 };
 
