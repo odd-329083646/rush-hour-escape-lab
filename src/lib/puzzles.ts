@@ -3,61 +3,76 @@ export type Car = { id: string; name: string; color: string; row: number; col: n
 export type Level = "beginner" | "advanced" | "champions";
 export type Move = "up" | "down" | "left" | "right";
 
-// Layouts verified solvable by `minSolution` (beginner 8, advanced 14, champions 24 moves).
+// מאגר משותף של כל השלבים המקוריים
+export const DEFAULT_PUZZLES: Car[][] = [
+  // שלב 1 (השלושה שהיו מקוריים)
+  [
+    { id: "X", name: "Red Racer", color: "var(--car-red)", row: 2, col: 1, len: 2, dir: "h" },
+    { id: "A", name: "Blue Car", color: "var(--car-blue)", row: 0, col: 0, len: 2, dir: "h" },
+    { id: "B", name: "Green Truck", color: "var(--car-green)", row: 0, col: 5, len: 3, dir: "v" },
+    { id: "C", name: "Yellow Truck", color: "var(--car-yellow)", row: 1, col: 0, len: 3, dir: "v" },
+    { id: "D", name: "Orange Truck", color: "var(--car-orange)", row: 1, col: 3, len: 3, dir: "v" },
+    { id: "E", name: "Teal Car", color: "var(--car-teal)", row: 4, col: 0, len: 2, dir: "v" },
+    { id: "F", name: "Pink Car", color: "var(--car-pink)", row: 4, col: 4, len: 2, dir: "h" },
+    { id: "G", name: "Slate Truck", color: "var(--car-slate)", row: 5, col: 2, len: 3, dir: "h" },
+  ],
+  // שלב 2
+  [
+    { id: "X", name: "Red Racer", color: "var(--car-red)", row: 2, col: 0, len: 2, dir: "h" },
+    { id: "A", name: "Blue Car", color: "var(--car-blue)", row: 0, col: 1, len: 2, dir: "h" },
+    { id: "B", name: "Green Car", color: "var(--car-green)", row: 4, col: 4, len: 2, dir: "h" },
+    { id: "C", name: "Yellow Truck", color: "var(--car-yellow)", row: 5, col: 3, len: 3, dir: "h" },
+    { id: "D", name: "Orange Car", color: "var(--car-orange)", row: 0, col: 5, len: 2, dir: "v" },
+    { id: "E", name: "Teal Car", color: "var(--car-teal)", row: 3, col: 1, len: 2, dir: "h" },
+    { id: "F", name: "Pink Truck", color: "var(--car-pink)", row: 0, col: 3, len: 3, dir: "v" },
+    { id: "G", name: "Slate Car", color: "var(--car-slate)", row: 4, col: 0, len: 2, dir: "v" },
+    { id: "H", name: "Lime Car", color: "var(--car-lime)", row: 3, col: 3, len: 2, dir: "h" },
+    { id: "I", name: "Brown Car", color: "var(--car-brown)", row: 0, col: 4, len: 2, dir: "v" },
+    { id: "J", name: "Navy Car", color: "var(--car-navy)", row: 4, col: 2, len: 2, dir: "v" },
+    { id: "K", name: "Sky Car", color: "var(--car-sky)", row: 0, col: 0, len: 2, dir: "v" },
+  ],
+  // שלב 3
+  [
+    { id: "X", name: "Red Racer", color: "var(--car-red)", row: 2, col: 1, len: 2, dir: "h" },
+    { id: "A", name: "Blue Car", color: "var(--car-blue)", row: 0, col: 1, len: 2, dir: "v" },
+    { id: "B", name: "Green Car", color: "var(--car-green)", row: 4, col: 3, len: 2, dir: "h" },
+    { id: "C", name: "Yellow Car", color: "var(--car-yellow)", row: 0, col: 2, len: 2, dir: "h" },
+    { id: "D", name: "Orange Car", color: "var(--car-orange)", row: 0, col: 4, len: 2, dir: "h" },
+    { id: "E", name: "Teal Car", color: "var(--car-teal)", row: 4, col: 0, len: 2, dir: "v" },
+    { id: "F", name: "Pink Truck", color: "var(--car-pink)", row: 3, col: 2, len: 3, dir: "v" },
+    { id: "G", name: "Slate Car", color: "var(--car-slate)", row: 3, col: 0, len: 2, dir: "h" },
+    { id: "H", name: "Lime Car", color: "var(--car-lime)", row: 5, col: 3, len: 2, dir: "h" },
+    { id: "I", name: "Brown Truck", color: "var(--car-brown)", row: 1, col: 3, len: 3, dir: "v" },
+    { id: "J", name: "Navy Truck", color: "var(--car-navy)", row: 2, col: 5, len: 3, dir: "v" },
+  ],
+];
+
 export const LEVELS: Record<Level, { title: string; he: string; par: number; cars: Car[] }> = {
   beginner: {
     title: "Beginner",
     he: "מתחילים",
     par: 8,
-    cars: [
-      { id: "X", name: "Red Racer", color: "var(--car-red)", row: 2, col: 1, len: 2, dir: "h" },
-      { id: "A", name: "Blue Car", color: "var(--car-blue)", row: 0, col: 0, len: 2, dir: "h" },
-      { id: "B", name: "Green Truck", color: "var(--car-green)", row: 0, col: 5, len: 3, dir: "v" },
-      { id: "C", name: "Yellow Truck", color: "var(--car-yellow)", row: 1, col: 0, len: 3, dir: "v" },
-      { id: "D", name: "Orange Truck", color: "var(--car-orange)", row: 1, col: 3, len: 3, dir: "v" },
-      { id: "E", name: "Teal Car", color: "var(--car-teal)", row: 4, col: 0, len: 2, dir: "v" },
-      { id: "F", name: "Pink Car", color: "var(--car-pink)", row: 4, col: 4, len: 2, dir: "h" },
-      { id: "G", name: "Slate Truck", color: "var(--car-slate)", row: 5, col: 2, len: 3, dir: "h" },
-    ],
+    cars: DEFAULT_PUZZLES[0],
   },
   advanced: {
     title: "Advanced",
     he: "מתקדמים",
     par: 14,
-    cars: [
-      { id: "X", name: "Red Racer", color: "var(--car-red)", row: 2, col: 0, len: 2, dir: "h" },
-      { id: "A", name: "Blue Car", color: "var(--car-blue)", row: 0, col: 1, len: 2, dir: "h" },
-      { id: "B", name: "Green Car", color: "var(--car-green)", row: 4, col: 4, len: 2, dir: "h" },
-      { id: "C", name: "Yellow Truck", color: "var(--car-yellow)", row: 5, col: 3, len: 3, dir: "h" },
-      { id: "D", name: "Orange Car", color: "var(--car-orange)", row: 0, col: 5, len: 2, dir: "v" },
-      { id: "E", name: "Teal Car", color: "var(--car-teal)", row: 3, col: 1, len: 2, dir: "h" },
-      { id: "F", name: "Pink Truck", color: "var(--car-pink)", row: 0, col: 3, len: 3, dir: "v" },
-      { id: "G", name: "Slate Car", color: "var(--car-slate)", row: 4, col: 0, len: 2, dir: "v" },
-      { id: "H", name: "Lime Car", color: "var(--car-lime)", row: 3, col: 3, len: 2, dir: "h" },
-      { id: "I", name: "Brown Car", color: "var(--car-brown)", row: 0, col: 4, len: 2, dir: "v" },
-      { id: "J", name: "Navy Car", color: "var(--car-navy)", row: 4, col: 2, len: 2, dir: "v" },
-      { id: "K", name: "Sky Car", color: "var(--car-sky)", row: 0, col: 0, len: 2, dir: "v" },
-    ],
+    cars: DEFAULT_PUZZLES[1],
   },
   champions: {
     title: "Champions",
     he: "אלופים",
     par: 24,
-    cars: [
-      { id: "X", name: "Red Racer", color: "var(--car-red)", row: 2, col: 1, len: 2, dir: "h" },
-      { id: "A", name: "Blue Car", color: "var(--car-blue)", row: 0, col: 1, len: 2, dir: "v" },
-      { id: "B", name: "Green Car", color: "var(--car-green)", row: 4, col: 3, len: 2, dir: "h" },
-      { id: "C", name: "Yellow Car", color: "var(--car-yellow)", row: 0, col: 2, len: 2, dir: "h" },
-      { id: "D", name: "Orange Car", color: "var(--car-orange)", row: 0, col: 4, len: 2, dir: "h" },
-      { id: "E", name: "Teal Car", color: "var(--car-teal)", row: 4, col: 0, len: 2, dir: "v" },
-      { id: "F", name: "Pink Truck", color: "var(--car-pink)", row: 3, col: 2, len: 3, dir: "v" },
-      { id: "G", name: "Slate Car", color: "var(--car-slate)", row: 3, col: 0, len: 2, dir: "h" },
-      { id: "H", name: "Lime Car", color: "var(--car-lime)", row: 5, col: 3, len: 2, dir: "h" },
-      { id: "I", name: "Brown Truck", color: "var(--car-brown)", row: 1, col: 3, len: 3, dir: "v" },
-      { id: "J", name: "Navy Truck", color: "var(--car-navy)", row: 2, col: 5, len: 3, dir: "v" },
-    ],
+    cars: DEFAULT_PUZZLES[2],
   },
 };
+
+/** פונקציה ששולפת שלב אקראי מתוך כלל השלבים במאגר */
+export function getRandomPuzzleCars(rand: () => number = Math.random): Car[] {
+  const index = Math.floor(rand() * DEFAULT_PUZZLES.length);
+  return DEFAULT_PUZZLES[index];
+}
 
 export function cells(c: Car): [number, number][] {
   return Array.from({ length: c.len }, (_, i) => (c.dir === "h" ? [c.row, c.col + i] : [c.row + i, c.col]));
