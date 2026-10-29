@@ -1,78 +1,113 @@
 export type Dir = "h" | "v";
-export type Car = { id: string; name: string; color: string; row: number; col: number; len: 2 | 3; dir: Dir };
 export type Level = "beginner" | "advanced" | "champions";
 export type Move = "up" | "down" | "left" | "right";
 
-// מאגר משותף של שלבים שכולל לכל שלב גם את המכוניות וגם את ה-par שלו
+export type Car = { id: string; name: string; color: string; row: number; col: number; len: 2 | 3; dir: Dir };
+export type ShortCar = { id: string; row: number; col: number; dir: Dir };
+
+// מיפוי מרכזי לכל מכונית (שם, צבע ואורך מוגדרים פעם אחת בלבד)
+const CAR_DEFAULTS: Record<string, { name: string; color: string; len: 2 | 3 }> = {
+  X: { name: "Red Racer", color: "var(--car-red)", len: 2 },
+  A: { name: "Green Car", color: "var(--car-green)", len: 2 },
+  B: { name: "Orange Car", color: "var(--car-orange)", len: 2 },
+  C: { name: "Teal Car", color: "var(--car-teal)", len: 2 },
+  D: { name: "Pink Car", color: "var(--car-pink)", len: 2 },
+  E: { name: "Light Purple Car", color: "var(--car-light-purple)", len: 2 },
+  F: { name: "Dark Green Car", color: "var(--car-dark-green)", len: 2 },
+  G: { name: "Slate Truck", color: "var(--car-slate)", len: 2 },
+  H: { name: "Blue Car", color: "var(--car-blue)", len: 2 },
+  I: { name: "Yellow Car", color: "var(--car-yellow)", len: 2 },
+  J: { name: "Purple Car", color: "var(--car-purple)", len: 2 },
+  K: { name: "Lime Car", color: "var(--car-lime)", len: 2 },
+  O: { name: "Yellow Truck", color: "var(--car-yellow)", len: 3 },
+  Q: { name: "Blue Truck", color: "var(--car-blue)", len: 3 },
+  P: { name: "Orange Truck", color: "var(--car-orange)", len: 3 },
+  R: { name: "Green Truck", color: "var(--car-green)", len: 3 },
+};
+
+// פונקציית עזר שמתרגמת את הרשימה המקוצרת לרשימה מלאה עבור המשחק
+function inflateCars(shortCars: ShortCar[]): Car[] {
+  return shortCars.map((c) => {
+    const defs = CAR_DEFAULTS[c.id] || { name: `Car ${c.id}`, color: "var(--car-slate)", len: 2 };
+    return {
+      ...c,
+      name: defs.name,
+      color: defs.color,
+      len: defs.len,
+    };
+  });
+}
+
+// מאגר השלבים המשודרג (כתיבה מקוצרת ונוחה!)
 export const DEFAULT_PUZZLES: { par: number; cars: Car[] }[] = [
   {
     par: 8,
-    cars: [
-      { id: "X", name: "Red Racer", color: "var(--car-red)", row: 2, col: 1, len: 2, dir: "h" },
-      { id: "A", name: "Blue Car", color: "var(--car-blue)", row: 0, col: 0, len: 2, dir: "h" },
-      { id: "B", name: "Green Truck", color: "var(--car-green)", row: 0, col: 5, len: 3, dir: "v" },
-      { id: "C", name: "Yellow Truck", color: "var(--car-yellow)", row: 1, col: 0, len: 3, dir: "v" },
-      { id: "D", name: "Orange Truck", color: "var(--car-orange)", row: 1, col: 3, len: 3, dir: "v" },
-      { id: "E", name: "Teal Car", color: "var(--car-teal)", row: 4, col: 0, len: 2, dir: "v" },
-      { id: "F", name: "Pink Car", color: "var(--car-pink)", row: 4, col: 4, len: 2, dir: "h" },
-      { id: "G", name: "Slate Truck", color: "var(--car-slate)", row: 5, col: 2, len: 3, dir: "h" },
-    ],
+    cars: inflateCars([
+      { id: "X", row: 2, col: 1, dir: "h" },
+      { id: "A", row: 0, col: 0, dir: "h" },
+      { id: "B", row: 0, col: 5, dir: "v" },
+      { id: "C", row: 1, col: 0, dir: "v" },
+      { id: "D", row: 1, col: 3, dir: "v" },
+      { id: "E", row: 4, col: 0, dir: "v" },
+      { id: "F", row: 4, col: 4, dir: "h" },
+      { id: "G", row: 5, col: 2, dir: "h" },
+    ]),
   },
   {
     par: 9,
-    cars: [
-      { id: "X", name: "Red Racer", color: "var(--car-red)", row: 2, col: 0, len: 2, dir: "h" },
-      { id: "A", name: "Green Car", color: "var(--car-green)", row: 0, col: 4, len: 2, dir: "h" },
-      { id: "O", name: "Yellow Truck", color: "var(--car-yellow)", row: 0, col: 2, len: 3, dir: "v" },
-      { id: "Q", name: "Blue Truck", color: "var(--car-blue)", row: 3, col: 5, len: 3, dir: "v" },
-      { id: "P", name: "Orange Truck", color: "var(--car-orange)", row: 3, col: 0, len: 3, dir: "h" },
-    ],
+    cars: inflateCars([
+      { id: "X", row: 2, col: 0, dir: "h" },
+      { id: "A", row: 0, col: 4, dir: "h" },
+      { id: "O", row: 0, col: 2, dir: "v" },
+      { id: "Q", row: 3, col: 5, dir: "v" },
+      { id: "P", row: 3, col: 0, dir: "h" },
+    ]),
   },
   {
     par: 16,
-    cars: [
-      { id: "X", name: "Red Racer", color: "var(--car-red)", row: 2, col: 3, len: 2, dir: "h" },
-      { id: "A", name: "Green Car", color: "var(--car-green)", row: 3, col: 3, len: 2, dir: "v" },
-      { id: "O", name: "Yellow Truck", color: "var(--car-yellow)", row: 0, col: 2, len: 3, dir: "v" },
-      { id: "Q", name: "Blue Truck", color: "var(--car-blue)", row: 3, col: 0, len: 3, dir: "h" },
-      { id: "P", name: "Orange Truck", color: "var(--car-orange)", row: 1, col: 5, len: 3, dir: "v" },
-      { id: "C", name: "Teal Car", color: "var(--car-teal)", row: 4, col: 0, len: 2, dir: "v" },
-      { id: "F", name: "Pink Car", color: "var(--car-pink)", row: 4, col: 4, len: 2, dir: "h" },
-      { id: "G", name: "Slate Truck", color: "var(--car-slate)", row: 5, col: 2, len: 3, dir: "h" },
-    ],
+    cars: inflateCars([
+      { id: "X", row: 2, col: 3, dir: "h" },
+      { id: "A", row: 3, col: 3, dir: "v" },
+      { id: "O", row: 0, col: 2, dir: "v" },
+      { id: "Q", row: 3, col: 0, dir: "h" },
+      { id: "P", row: 1, col: 5, dir: "v" },
+      { id: "E", row: 4, col: 0, dir: "v" },
+      { id: "F", row: 4, col: 4, dir: "h" },
+      { id: "G", row: 5, col: 2, dir: "h" },
+    ]),
   },
   {
     par: 14,
-    cars: [
-      { id: "X", name: "Red Racer", color: "var(--car-red)", row: 2, col: 0, len: 2, dir: "h" },
-      { id: "A", name: "Blue Car", color: "var(--car-blue)", row: 0, col: 1, len: 2, dir: "h" },
-      { id: "B", name: "Green Car", color: "var(--car-green)", row: 4, col: 4, len: 2, dir: "h" },
-      { id: "C", name: "Yellow Truck", color: "var(--car-yellow)", row: 5, col: 3, len: 3, dir: "h" },
-      { id: "D", name: "Orange Car", color: "var(--car-orange)", row: 0, col: 5, len: 2, dir: "v" },
-      { id: "E", name: "Teal Car", color: "var(--car-teal)", row: 3, col: 1, len: 2, dir: "h" },
-      { id: "F", name: "Pink Truck", color: "var(--car-pink)", row: 0, col: 3, len: 3, dir: "v" },
-      { id: "G", name: "Slate Car", color: "var(--car-slate)", row: 4, col: 0, len: 2, dir: "v" },
-      { id: "H", name: "Lime Car", color: "var(--car-lime)", row: 3, col: 3, len: 2, dir: "h" },
-      { id: "I", name: "Brown Car", color: "var(--car-brown)", row: 0, col: 4, len: 2, dir: "v" },
-      { id: "J", name: "Navy Car", color: "var(--car-navy)", row: 4, col: 2, len: 2, dir: "v" },
-      { id: "K", name: "Sky Car", color: "var(--car-sky)", row: 0, col: 0, len: 2, dir: "v" },
-    ],
+    cars: inflateCars([
+      { id: "X", row: 2, col: 0, dir: "h" },
+      { id: "A", row: 0, col: 1, dir: "h" },
+      { id: "B", row: 4, col: 4, dir: "h" },
+      { id: "C", row: 5, col: 3, dir: "h" },
+      { id: "D", row: 0, col: 5, dir: "v" },
+      { id: "E", row: 3, col: 1, dir: "h" },
+      { id: "F", row: 0, col: 3, dir: "v" },
+      { id: "G", row: 4, col: 0, dir: "v" },
+      { id: "H", row: 3, col: 3, dir: "h" },
+      { id: "I", row: 0, col: 4, dir: "v" },
+      { id: "J", row: 4, col: 2, dir: "v" },
+      { id: "K", row: 0, col: 0, dir: "v" },
+    ]),
   },
   {
     par: 24,
-    cars: [
-      { id: "X", name: "Red Racer", color: "var(--car-red)", row: 2, col: 1, len: 2, dir: "h" },
-      { id: "A", name: "Blue Car", color: "var(--car-blue)", row: 0, col: 1, len: 2, dir: "v" },
-      { id: "B", name: "Green Car", color: "var(--car-green)", row: 4, col: 3, len: 2, dir: "h" },
-      { id: "C", name: "Yellow Car", color: "var(--car-yellow)", row: 0, col: 2, len: 2, dir: "h" },
-      { id: "D", name: "Orange Car", color: "var(--car-orange)", row: 0, col: 4, len: 2, dir: "h" },
-      { id: "E", name: "Teal Car", color: "var(--car-teal)", row: 4, col: 0, len: 2, dir: "v" },
-      { id: "F", name: "Pink Truck", color: "var(--car-pink)", row: 3, col: 2, len: 3, dir: "v" },
-      { id: "G", name: "Slate Car", color: "var(--car-slate)", row: 3, col: 0, len: 2, dir: "h" },
-      { id: "H", name: "Lime Car", color: "var(--car-lime)", row: 5, col: 3, len: 2, dir: "h" },
-      { id: "I", name: "Brown Truck", color: "var(--car-brown)", row: 1, col: 3, len: 3, dir: "v" },
-      { id: "J", name: "Navy Truck", color: "var(--car-navy)", row: 2, col: 5, len: 3, dir: "v" },
-    ],
+    cars: inflateCars([
+      { id: "X", row: 2, col: 1, dir: "h" },
+      { id: "A", row: 0, col: 1, dir: "v" },
+      { id: "B", row: 4, col: 3, dir: "h" },
+      { id: "C", row: 0, col: 2, dir: "h" },
+      { id: "D", row: 0, col: 4, dir: "h" },
+      { id: "E", row: 4, col: 0, dir: "v" },
+      { id: "F", row: 3, col: 2, dir: "v" },
+      { id: "G", row: 3, col: 0, dir: "h" },
+      { id: "H", row: 5, col: 3, dir: "h" },
+      { id: "I", row: 1, col: 3, dir: "v" },
+      { id: "J", row: 2, col: 5, dir: "v" },
+    ]),
   },
 ];
 
