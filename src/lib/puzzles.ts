@@ -111,9 +111,9 @@ export const DEFAULT_PUZZLES: { par: number; cars: Car[] }[] = [
 ];
 
 export const LEVELS: Record<Level, { title: string; he: string; cars: Car[] }> = {
-  beginner: { title: "Beginner", he: "מתחילים", cars: DEFAULT_PUZZLES[1].cars },
-  advanced: { title: "Advanced", he: "מתקדמים", cars: DEFAULT_PUZZLES[1].cars },
-  champions: { title: "Champions", he: "אלופים", cars: DEFAULT_PUZZLES[1].cars },
+  beginner: { title: "Beginner", he: "מתחילים", cars: DEFAULT_PUZZLES[0].cars },
+  advanced: { title: "Advanced", he: "מתקדמים", cars: DEFAULT_PUZZLES[0].cars },
+  champions: { title: "Champions", he: "אלופים", cars: DEFAULT_PUZZLES[0].cars },
 };
 
 /** פונקציה ששולפת שלב אקראי (כולל המכוניות וה-par שלו) מתוך המאגר */
