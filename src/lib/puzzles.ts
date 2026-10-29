@@ -24,8 +24,21 @@ export const DEFAULT_PUZZLES: { par: number; cars: Car[] }[] = [
       { id: "X", name: "Red Racer", color: "var(--car-red)", row: 2, col: 0, len: 2, dir: "h" },
       { id: "A", name: "Green Car", color: "var(--car-green)", row: 0, col: 4, len: 2, dir: "h" },
       { id: "O", name: "Yellow Truck", color: "var(--car-yellow)", row: 0, col: 2, len: 3, dir: "v" },
-      { id: "Q", name: "Blue Truck", color: "var(--car-bloe)", row: 3, col: 5, len: 3, dir: "v" },
+      { id: "Q", name: "Blue Truck", color: "var(--car-blue)", row: 3, col: 5, len: 3, dir: "v" },
       { id: "P", name: "Orange Truck", color: "var(--car-orange)", row: 3, col: 0, len: 3, dir: "h" },
+    ],
+  },
+  {
+    par: 16,
+    cars: [
+      { id: "X", name: "Red Racer", color: "var(--car-red)", row: 2, col: 3, len: 2, dir: "h" },
+      { id: "A", name: "Green Car", color: "var(--car-green)", row: 3, col: 3, len: 2, dir: "v" },
+      { id: "O", name: "Yellow Truck", color: "var(--car-yellow)", row: 0, col: 2, len: 3, dir: "v" },
+      { id: "Q", name: "Blue Truck", color: "var(--car-blue)", row: 3, col: 0, len: 3, dir: "h" },
+      { id: "P", name: "Orange Truck", color: "var(--car-orange)", row: 1, col: 5, len: 3, dir: "v" },
+      { id: "C", name: "Teal Car", color: "var(--car-teal)", row: 4, col: 0, len: 2, dir: "v" },
+      { id: "F", name: "Pink Car", color: "var(--car-pink)", row: 4, col: 4, len: 2, dir: "h" },
+      { id: "G", name: "Slate Truck", color: "var(--car-slate)", row: 5, col: 2, len: 3, dir: "h" },
     ],
   },
   {
