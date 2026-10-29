@@ -19,19 +19,13 @@ export const DEFAULT_PUZZLES: { par: number; cars: Car[] }[] = [
     ],
   },
   {
-    par: 12, // הערכה ראשונית למספר הצעדים
+    par: 9,
     cars: [
       { id: "X", name: "Red Racer", color: "var(--car-red)", row: 2, col: 0, len: 2, dir: "h" },
-      { id: "A", name: "Cyan Car", color: "var(--car-teal)", row: 0, col: 1, len: 2, dir: "v" },
-      { id: "B", name: "Teal Truck", color: "var(--car-green)", row: 0, col: 3, len: 3, dir: "h" },
-      { id: "C", name: "Yellow Truck", color: "var(--car-yellow)", row: 1, col: 2, len: 3, dir: "v" },
-      { id: "D", name: "Purple Truck", color: "var(--car-purple, var(--car-pink))", row: 1, col: 3, len: 3, dir: "v" },
-      { id: "E", name: "Green Truck", color: "var(--car-green)", row: 1, col: 4, len: 3, dir: "v" },
-      { id: "F", name: "Light Blue Car", color: "var(--car-blue)", row: 1, col: 5, len: 2, dir: "v" },
-      { id: "G", name: "Lime Car", color: "var(--car-lime, var(--car-green))", row: 3, col: 0, len: 2, dir: "v" },
-      { id: "H", name: "Orange Truck", color: "var(--car-orange)", row: 3, col: 1, len: 3, dir: "v" },
-      { id: "I", name: "Pink Car", color: "var(--car-pink)", row: 4, col: 4, len: 2, dir: "v" },
-      { id: "J", name: "Navy Truck", color: "var(--car-navy)", row: 3, col: 5, len: 3, dir: "v" },
+      { id: "A", name: "Green Car", color: "var(--car-green)", row: 0, col: 4, len: 2, dir: "h" },
+      { id: "O", name: "Yellow Truck", color: "var(--car-yellow)", row: 0, col: 2, len: 3, dir: "v" },
+      { id: "Q", name: "Blue Truck", color: "var(--car-bloe)", row: 3, col: 5, len: 3, dir: "v" },
+      { id: "P", name: "Orange Truck", color: "var(--car-orange)", row: 3, col: 0, len: 3, dir: "h" },
     ],
   },
   {
@@ -70,9 +64,9 @@ export const DEFAULT_PUZZLES: { par: number; cars: Car[] }[] = [
 ];
 
 export const LEVELS: Record<Level, { title: string; he: string; cars: Car[] }> = {
-  beginner: { title: "Beginner", he: "מתחילים", cars: DEFAULT_PUZZLES[0].cars },
-  advanced: { title: "Advanced", he: "מתקדמים", cars: DEFAULT_PUZZLES[0].cars },
-  champions: { title: "Champions", he: "אלופים", cars: DEFAULT_PUZZLES[0].cars },
+  beginner: { title: "Beginner", he: "מתחילים", cars: DEFAULT_PUZZLES[1].cars },
+  advanced: { title: "Advanced", he: "מתקדמים", cars: DEFAULT_PUZZLES[1].cars },
+  champions: { title: "Champions", he: "אלופים", cars: DEFAULT_PUZZLES[1].cars },
 };
 
 /** פונקציה ששולפת שלב אקראי (כולל המכוניות וה-par שלו) מתוך המאגר */
