@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, Eye, EyeOff, Home, RotateCcw, Timer, Trophy } from "lucide-react";
-import { applyMove, isSolved, LEVELS, pickHidden, type Car, type Level, type Move } from "@/lib/puzzles";
+import { applyMove, isSolved, LEVELS, pickHidden, getRandomPuzzle, type Car, type Level, type Move } from "@/lib/puzzles";
 
 export const Route = createFileRoute("/game/$level")({
   beforeLoad: ({ params }) => {
@@ -33,7 +33,11 @@ const DIRS: { m: Move; Icon: typeof ArrowUp; cls: string }[] = [
 function Game() {
   const { level } = Route.useParams() as { level: Level };
   const cfg = LEVELS[level];
-  const [cars, setCars] = useState<Car[]>(cfg.cars);
+
+  // הגרלה רנדומלית של שלב (המכוניות וה-par שלו) באתחול העמוד
+  const [currentPuzzle, setCurrentPuzzle] = useState(() => getRandomPuzzle());
+  const [cars, setCars] = useState<Car[]>(currentPuzzle.cars);
+
   const [sel, setSel] = useState<string | null>(null);
   const [move, setMove] = useState<Move | null>(null);
   const [steps, setSteps] = useState(1);
@@ -57,10 +61,26 @@ function Game() {
     return () => clearInterval(t);
   }, [startedAt, won]);
 
-  const reset = () => { setCars(cfg.cars); setSel(null); setMove(null); setSteps(1); setMoves(0); setMsg("Select a car to begin"); setWarn(null); setStarted(false); setHidden(new Set()); setReveal(false); setStartedAt(null); setWonAt(null); };
+  // בעת איפוס (Reset) - נגריל שלב חדש לחלוטין מתוך המאגר המשותף
+  const reset = () => { 
+    const newPuzzle = getRandomPuzzle();
+    setCurrentPuzzle(newPuzzle);
+    setCars(newPuzzle.cars); 
+    setSel(null); 
+    setMove(null); 
+    setSteps(1); 
+    setMoves(0); 
+    setMsg("Select a car to begin"); 
+    setWarn(null); 
+    setStarted(false); 
+    setHidden(new Set()); 
+    setReveal(false); 
+    setStartedAt(null); 
+    setWonAt(null); 
+  };
 
   const start = () => {
-    setHidden(pickHidden(cfg.cars, level));
+    setHidden(pickHidden(cars, level));
     setStarted(true);
     setStartedAt(Date.now());
     setMsg(level === "champions" ? "All cars vanished. Good luck!" : level === "advanced" ? "Some cars vanished — they still block!" : "Clock's running — free the red car!");
@@ -175,7 +195,7 @@ function Game() {
               <div className="win flex-col gap-2 text-center">
                 <Trophy className="h-12 w-12" />
                 <span className="text-3xl">Victory! · ניצחון</span>
-                <span className="text-base text-muted-foreground">{moves} moves · {clock} · best possible {cfg.par}</span>
+                <span className="text-base text-muted-foreground">{moves} moves · {clock} · best possible {currentPuzzle.par}</span>
                 <div className="mt-3 flex gap-2">
                   <button onClick={reset} className="chip"><RotateCcw className="h-4 w-4" /> Play again</button>
                   <Link to="/" className="chip"><Home className="h-4 w-4" /> Home</Link>
@@ -189,7 +209,7 @@ function Game() {
         <aside className="panel order-3">
           <h2 className="panel-title">Cars</h2>
           <ul className="flex flex-col gap-2">
-            {cfg.cars.map((c) => {
+            {cars.map((c) => {
               return (
                 <li key={c.id}>
                   <button onClick={() => setSel(c.id)} data-active={sel === c.id} className="palette-item">
