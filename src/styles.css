@@ -140,15 +140,22 @@
   --primary: oklch(0.85 0.17 90);
   --primary-foreground: oklch(0.2 0.01 260);
   --border: oklch(0.34 0.015 260);
-  --car-red: oklch(0.62 0.22 27);
-  --car-blue: oklch(0.6 0.16 250);
-  --car-green: oklch(0.65 0.17 150);
-  --car-yellow: oklch(0.82 0.16 85);
-  --car-orange: oklch(0.7 0.18 50);
-  --car-teal: oklch(0.68 0.12 195);
-  --car-pink: oklch(0.72 0.16 350);
-  --car-slate: oklch(0.55 0.03 260);
-  --car-lime: oklch(0.8 0.18 125);
+
+  /* צבעי המכוניות המעודכנים */
+  --car-red: oklch(0.62 0.22 27);         /* אדום */
+  --car-blue: oklch(0.6 0.16 250);        /* כחול */
+  --car-teal: oklch(0.68 0.12 195);       /* תכלת */
+  --car-orange: oklch(0.7 0.18 50);       /* כתום */
+  --car-yellow: oklch(0.82 0.16 85);      /* צהוב */
+  --car-pink: oklch(0.72 0.16 350);       /* ורוד */
+  --car-slate: oklch(0.55 0.03 260);      /* אפור */
+  
+  --car-green: oklch(0.65 0.17 150);      /* ירוק רגיל */
+  --car-dark-green: oklch(0.45 0.14 150); /* ירוק כהה */
+  --car-lime: oklch(0.8 0.18 125);        /* גוון ירוק נוסף (ליים) */
+  
+  --car-purple: oklch(0.55 0.2 300);      /* סגול */
+  --car-light-purple: oklch(0.75 0.14 300); /* סגול בהיר */
 }
 
 @theme inline {
