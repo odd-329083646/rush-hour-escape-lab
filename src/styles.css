@@ -240,3 +240,9 @@
 .car[data-ghost="true"] { opacity: .45; outline: 2px dashed var(--foreground); outline-offset: -4px; }
 :root { --car-brown: oklch(0.55 0.09 55); --car-navy: oklch(0.45 0.12 260); --car-sky: oklch(0.78 0.1 230); }
 .win.veil { background: oklch(0.16 0.01 260 / .55); }
+@utility palette-cell {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem;
+  padding: .5rem .25rem; border-radius: .6rem; border: 1px solid var(--border); background: var(--background); font-family: var(--font-display);
+  &:hover { border-color: var(--primary); }
+  &[data-active="true"] { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary); }
+}

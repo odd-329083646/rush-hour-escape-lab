@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, Eye, EyeOff, Home, RotateCcw, Timer, Trophy } from "lucide-react";
-import { applyMove, isSolved, LEVELS, pickHidden, DEFAULT_PUZZLES, type Car, type Level, type Move } from "@/lib/puzzles";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, Eye, EyeOff, Home, Layers, Lock, Play, Plus, RotateCcw, Send, Timer, Trash2, Trophy, X } from "lucide-react";
+import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, type Car, type Level, type Move } from "@/lib/puzzles";
 
 export const Route = createFileRoute("/game/$level")({
   beforeLoad: ({ params }) => {
@@ -29,26 +29,25 @@ const DIRS: { m: Move; Icon: typeof ArrowUp; cls: string }[] = [
   { m: "right", Icon: ArrowRight, cls: "col-start-3 row-start-2" },
   { m: "down", Icon: ArrowDown, cls: "col-start-2 row-start-3" },
 ];
+const ARROW: Record<Move, string> = { up: "↑", down: "↓", left: "←", right: "→" };
+type Planned = { id: string; move: Move; steps: number };
 
 function Game() {
   const { level } = Route.useParams() as { level: Level };
   const cfg = LEVELS[level];
+  const murderer = level === "murderer";
+  const idxKey = `rush_hour_puzzle_index_${level}`;
+  const maxKey = `rush_hour_max_solved_${level}`;
 
-  // שליפת האינדקס השמור או התחלה מ-0
-  const storageKey = `rush_hour_puzzle_index_${level}`;
-  const [currentPuzzleIndex, setCurrentPuzzleIndex] = useState(() => {
-    const saved = localStorage.getItem(storageKey);
-    return saved ? parseInt(saved, 10) || 0 : 0;
-  });
-
-  const currentPuzzle = DEFAULT_PUZZLES[currentPuzzleIndex] || DEFAULT_PUZZLES[0];
-  const [cars, setCars] = useState<Car[]>(currentPuzzle.cars);
-
+  const [idx, setIdx] = useState(0);
+  const [maxSolved, setMaxSolved] = useState(-1);
+  const puzzle = (DEFAULT_PUZZLES[idx] ?? DEFAULT_PUZZLES[0])!;
+  const [cars, setCars] = useState<Car[]>(puzzle.cars);
   const [sel, setSel] = useState<string | null>(null);
   const [move, setMove] = useState<Move | null>(null);
   const [steps, setSteps] = useState(1);
   const [moves, setMoves] = useState(0);
-  const [msg, setMsg] = useState("Select a car to begin");
+  const [msg, setMsg] = useState("Study the lot, then press Start Solving");
   const [warn, setWarn] = useState<{ text: string; key: number } | null>(null);
   const [started, setStarted] = useState(false);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
@@ -56,9 +55,27 @@ function Game() {
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [now, setNow] = useState(0);
   const [wonAt, setWonAt] = useState<number | null>(null);
+  const [plan, setPlan] = useState<Planned[]>([]);
+  const [levelsOpen, setLevelsOpen] = useState(false);
   const won = wonAt !== null;
   const elapsed = startedAt ? Math.floor(((wonAt ?? now) - startedAt) / 1000) : 0;
   const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
+
+  const loadPuzzle = (i: number) => {
+    setIdx(i);
+    setCars(DEFAULT_PUZZLES[i]!.cars);
+    setSel(null); setMove(null); setSteps(1); setMoves(0);
+    setMsg("Study the lot, then press Start Solving");
+    setWarn(null); setStarted(false); setHidden(new Set()); setReveal(false);
+    setStartedAt(null); setWonAt(null); setPlan([]);
+  };
+
+  useEffect(() => {
+    const i = Math.min(parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0, DEFAULT_PUZZLES.length - 1);
+    setMaxSolved(parseInt(localStorage.getItem(maxKey) ?? "-1", 10));
+    loadPuzzle(i);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [level]);
 
   useEffect(() => {
     if (!startedAt || won) return;
@@ -67,48 +84,22 @@ function Game() {
     return () => clearInterval(t);
   }, [startedAt, won]);
 
-  // מעבר לשלב הבא ברצף, תוך עצירה בשלב האחרון (בלי לחזור להתחלה)
-  const handleNextLevel = () => {
-    const nextIdx = Math.min(currentPuzzleIndex + 1, DEFAULT_PUZZLES.length - 1);
-    localStorage.setItem(storageKey, nextIdx.toString());
-
-    setCurrentPuzzleIndex(nextIdx);
-    const nextPuzzle = DEFAULT_PUZZLES[nextIdx];
-    setCars(nextPuzzle.cars); 
-    setSel(null); 
-    setMove(null); 
-    setSteps(1); 
-    setMoves(0); 
-    setMsg("Select a car to begin"); 
-    setWarn(null); 
-    setStarted(false); 
-    setHidden(new Set()); 
-    setReveal(false); 
-    setStartedAt(null); 
-    setWonAt(null); 
+  const markWon = () => {
+    setWonAt(Date.now()); setMsg("Solved!"); setSel(null);
+    if (idx > maxSolved) { setMaxSolved(idx); localStorage.setItem(maxKey, String(idx)); }
   };
 
-  // איפוס של השלב הנוכחי (לא מקדם שלב)
-  const resetCurrent = () => {
-    setCars(currentPuzzle.cars); 
-    setSel(null); 
-    setMove(null); 
-    setSteps(1); 
-    setMoves(0); 
-    setMsg("Select a car to begin"); 
-    setWarn(null); 
-    setStarted(false); 
-    setHidden(new Set()); 
-    setReveal(false); 
-    setStartedAt(null); 
-    setWonAt(null); 
+  const jumpTo = (i: number) => {
+    localStorage.setItem(idxKey, String(i));
+    loadPuzzle(i);
+    setLevelsOpen(false);
   };
 
   const start = () => {
     setHidden(pickHidden(cars, level));
     setStarted(true);
     setStartedAt(Date.now());
-    setMsg(level === "champions" ? "All cars vanished. Good luck!" : level === "advanced" ? "Some cars vanished — they still block!" : "Clock's running — free the red car!");
+    setMsg(murderer ? "Board hidden — plan every move, then submit." : level === "hard" ? "All cars vanished. Good luck!" : level === "medium" ? "Some cars vanished — they still block!" : "Clock's running — free the red car!");
   };
 
   const flash = (text: string) => {
@@ -121,38 +112,55 @@ function Game() {
     if (!started) return flash("Press Start Solving first");
     if (!sel) return flash("Select a car first");
     if (!move) return flash("Choose a direction");
+    if (murderer) { setPlan((p) => [...p, { id: sel, move, steps }]); return; }
     const r = applyMove(cars, sel, move, steps);
     if (r.error) return flash(r.error);
     setCars(r.cars); setMoves((n) => n + 1); setWarn(null);
-    if (isSolved(r.cars)) { setWonAt(Date.now()); setMsg("Solved!"); setSel(null); }
-    else setMsg("Moved!");
+    if (isSolved(r.cars)) markWon(); else setMsg("Moved!");
+  };
+
+  const submitPlan = () => {
+    if (!plan.length) return flash("Add some moves first");
+    const r = runPlan(cars, plan);
+    if (r.error) return flash(`Move ${r.failedAt! + 1}: ${r.error}`);
+    if (!isSolved(r.cars)) return flash("Plan doesn't free the red car");
+    setCars(r.cars); setMoves(plan.length); markWon();
   };
 
   const finish = () => {
-    if (!started) return flash("Press Start Solving first");
-    if (isSolved(cars)) setWonAt(Date.now());
+    if (isSolved(cars)) markWon();
     else flash("Not solved yet — the red car must reach the exit");
   };
 
-  const isLastLevel = currentPuzzleIndex >= DEFAULT_PUZZLES.length - 1;
+  const isLast = idx >= DEFAULT_PUZZLES.length - 1;
+  const standard = cars.filter((c) => c.len === 2);
+  const trucks = cars.filter((c) => c.len === 3);
+  const showBoard = !(murderer && started && !won);
+
+  const carBtn = (c: Car) => (
+    <button key={c.id} onClick={() => setSel(c.id)} data-active={sel === c.id} title={c.name} className="palette-cell">
+      <span className="h-3 rounded-sm" style={{ background: c.color, width: c.len === 3 ? "2.5rem" : "1.5rem" }} />
+      <span className="text-xs">{c.id} {c.dir === "h" ? "↔" : "↕"}</span>
+    </button>
+  );
 
   return (
     <main className="lot-bg min-h-screen px-4 py-6">
       <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
         <Link to="/" className="chip"><Home className="h-4 w-4" /> Back to Home</Link>
-        <h1 className="font-display text-lg font-bold md:text-2xl">{cfg.title} <span className="text-muted-foreground">· {cfg.he} (שלב {currentPuzzleIndex + 1} מתוך {DEFAULT_PUZZLES.length})</span></h1>
-        <div className="flex gap-2">
-          {started && hidden.size > 0 && (
+        <h1 className="font-display text-lg font-bold md:text-2xl">{cfg.title} <span className="text-muted-foreground">· {cfg.he} (שלב {idx + 1} מתוך {DEFAULT_PUZZLES.length})</span></h1>
+        <div className="flex flex-wrap gap-2">
+          {started && hidden.size > 0 && !murderer && (
             <button onClick={() => setReveal((v) => !v)} data-active={reveal} className="chip">
               {reveal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {reveal ? "Hide cars" : "Reveal cars"}
             </button>
           )}
-          <button onClick={resetCurrent} className="chip"><RotateCcw className="h-4 w-4" /> Reset</button>
+          <button onClick={() => setLevelsOpen(true)} className="chip"><Layers className="h-4 w-4" /> Levels · בחר שלב</button>
+          <button onClick={() => loadPuzzle(idx)} className="chip"><RotateCcw className="h-4 w-4" /> Reset</button>
         </div>
       </header>
 
-      <div className="mx-auto mt-8 grid max-w-6xl gap-6 lg:grid-cols-[220px_1fr_220px]">
-        {/* Left: controls */}
+      <div className="mx-auto mt-8 grid max-w-6xl gap-6 lg:grid-cols-[220px_1fr_240px]">
         <aside className="panel order-2 flex flex-col gap-6 lg:order-1">
           <div>
             <h2 className="panel-title">Direction</h2>
@@ -172,94 +180,132 @@ function Game() {
               ))}
             </div>
           </div>
-          <button onClick={execute} disabled={won || !started} className="execute">Execute · בצע</button>
-          <button onClick={finish} disabled={won || !started} className="chip justify-center py-2.5">
-            <CheckCircle2 className="h-4 w-4" /> Finished · סיימתי
+          <button onClick={execute} disabled={won || !started} className="execute">
+            {murderer ? <span className="inline-flex items-center gap-2"><Plus className="h-4 w-4" /> Add move · הוסף</span> : "Execute · בצע"}
           </button>
+          {!started ? (
+            <button onClick={start} className="execute flex items-center justify-center gap-2"><Play className="h-4 w-4" /> Start Solving · התחל פתירה</button>
+          ) : !murderer && (
+            <button onClick={finish} disabled={won} className="chip justify-center py-2.5">
+              <CheckCircle2 className="h-4 w-4" /> Finished · סיימתי
+            </button>
+          )}
           <div className="text-sm text-muted-foreground">
             <p className="flex justify-between">
-              <span>Moves: <span className="font-display text-foreground">{moves}</span></span>
+              <span>Moves: <span className="font-display text-foreground">{murderer && !won ? plan.length : moves}</span></span>
               <span className="flex items-center gap-1"><Timer className="h-4 w-4" /><span className="font-display text-foreground">{clock}</span></span>
             </p>
             <p className="mt-1">{msg}</p>
           </div>
         </aside>
 
-        {/* Center: board */}
         <section className="order-1 flex justify-center lg:order-2">
-          <div className="board">
-            {warn && <div key={warn.key} className="warn" role="alert">{warn.text}</div>}
-            {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" style={{ gridRow: Math.floor(i / 6) + 1, gridColumn: (i % 6) + 1 }} />)}
-            <div className="exit" style={{ gridRow: 3 }} />
-            {cars.map((c) => (
-              <button
-                key={sel === c.id && warn ? `${c.id}-${warn.key}` : c.id}
-                onClick={() => setSel(c.id)}
-                data-shake={sel === c.id && !!warn}
-                data-selected={sel === c.id}
-                data-hidden={hidden.has(c.id) && !reveal}
-                data-ghost={hidden.has(c.id) && reveal}
-                aria-label={hidden.has(c.id) && !reveal ? "Hidden car" : c.name}
-                className="car"
-                style={{
-                  background: c.color,
-                  gridRow: `${c.row + 1} / span ${c.dir === "v" ? c.len : 1}`,
-                  gridColumn: `${c.col + 1} / span ${c.dir === "h" ? c.len : 1}`,
-                }}
-              >
-                {c.id}
-              </button>
-            ))}
-            {!started && (
-              <div className="win veil flex-col gap-3">
-                <span className="text-base text-muted-foreground">
-                  {level === "champions" ? "Memorize the lot — every car will vanish." : level === "advanced" ? "Memorize the lot — some cars will vanish." : "Free the red car to the yellow exit."}
-                </span>
-                <button onClick={start} className="execute px-8">Start Solving · התחל פתירה</button>
-              </div>
-            )}
-            {won && (
-              <div className="win flex-col gap-2 text-center">
-                <Trophy className="h-12 w-12" />
-                <span className="text-3xl">Victory! · ניצחון</span>
-                <span className="text-base text-muted-foreground">
-                  {isLastLevel 
-                    ? "סיימת את כל השלבים במשחק בהצלחה רבה! כל הכבוד! 🎉" 
-                    : `${moves} moves · {clock} · best possible ${currentPuzzle.par}`}
-                </span>
-                <div className="mt-3 flex gap-2">
-                  {!isLastLevel ? (
-                    <button onClick={handleNextLevel} className="chip"><RotateCcw className="h-4 w-4" /> Next Level · שלב הבא</button>
-                  ) : (
-                    <button onClick={resetCurrent} className="chip"><RotateCcw className="h-4 w-4" /> Play again · שחק שוב</button>
-                  )}
-                  <Link to="/" className="chip"><Home className="h-4 w-4" /> Home</Link>
+          {showBoard ? (
+            <div className="board">
+              {warn && <div key={warn.key} className="warn" role="alert">{warn.text}</div>}
+              {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" style={{ gridRow: Math.floor(i / 6) + 1, gridColumn: (i % 6) + 1 }} />)}
+              <div className="exit" style={{ gridRow: 3 }} />
+              {cars.map((c) => (
+                <button
+                  key={sel === c.id && warn ? `${c.id}-${warn.key}` : c.id}
+                  onClick={() => setSel(c.id)}
+                  data-shake={sel === c.id && !!warn}
+                  data-selected={sel === c.id}
+                  data-hidden={hidden.has(c.id) && !reveal}
+                  data-ghost={hidden.has(c.id) && reveal}
+                  aria-label={hidden.has(c.id) && !reveal ? "Hidden car" : c.name}
+                  className="car"
+                  style={{
+                    background: c.color,
+                    gridRow: `${c.row + 1} / span ${c.dir === "v" ? c.len : 1}`,
+                    gridColumn: `${c.col + 1} / span ${c.dir === "h" ? c.len : 1}`,
+                  }}
+                >
+                  {c.id}
+                </button>
+              ))}
+              {won && (
+                <div className="win flex-col gap-2 text-center">
+                  <Trophy className="h-12 w-12" />
+                  <span className="text-3xl">Victory! · ניצחון</span>
+                  <span className="text-base text-muted-foreground">
+                    {isLast ? "סיימת את כל השלבים במשחק בהצלחה רבה! כל הכבוד! 🎉" : `${moves} moves · ${clock} · best possible ${puzzle.par}`}
+                  </span>
+                  <div className="mt-3 flex gap-2">
+                    {!isLast ? (
+                      <button onClick={() => jumpTo(idx + 1)} className="chip"><RotateCcw className="h-4 w-4" /> Next Level · שלב הבא</button>
+                    ) : (
+                      <button onClick={() => loadPuzzle(idx)} className="chip"><RotateCcw className="h-4 w-4" /> Play again · שחק שוב</button>
+                    )}
+                    <Link to="/" className="chip"><Home className="h-4 w-4" /> Home</Link>
+                  </div>
                 </div>
+              )}
+            </div>
+          ) : (
+            <div className="panel relative flex w-full max-w-[480px] flex-col gap-4 self-start">
+              {warn && <div key={warn.key} className="warn" role="alert">{warn.text}</div>}
+              <h2 className="panel-title mb-0">Planned Moves · מהלכים מתוכננים</h2>
+              {plan.length === 0 ? (
+                <p className="py-10 text-center text-sm text-muted-foreground">Pick a car, direction and steps, then press Add move.</p>
+              ) : (
+                <ol className="flex max-h-96 flex-col gap-2 overflow-auto">
+                  {plan.map((p, i) => {
+                    const c = cars.find((x) => x.id === p.id)!;
+                    return (
+                      <li key={i} className="flex items-center gap-3 rounded-lg border bg-background px-3 py-2 text-sm">
+                        <span className="w-6 font-display text-muted-foreground">{i + 1}.</span>
+                        <span className="h-3 w-5 rounded-sm" style={{ background: c.color }} />
+                        <span className="flex-1">{c.id} · {c.name}</span>
+                        <span className="font-display">{ARROW[p.move]} {p.steps}</span>
+                        <button aria-label="Remove move" onClick={() => setPlan((q) => q.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-foreground"><Trash2 className="h-4 w-4" /></button>
+                      </li>
+                    );
+                  })}
+                </ol>
+              )}
+              <div className="flex gap-2">
+                <button onClick={() => setPlan([])} disabled={!plan.length} className="chip">Clear</button>
+                <button onClick={submitPlan} className="execute flex flex-1 items-center justify-center gap-2"><Send className="h-4 w-4" /> Submit Solution · הגש פתרון</button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </section>
 
-        {/* Right: car palette */}
         <aside className="panel order-3">
           <h2 className="panel-title">Cars</h2>
-          <ul className="flex flex-col gap-2">
-            {cars.map((c) => {
-              return (
-                <li key={c.id}>
-                  <button onClick={() => setSel(c.id)} data-active={sel === c.id} className="palette-item">
-                    <span className="flex gap-0.5">
-                      {Array.from({ length: c.len }).map((_, i) => <span key={i} className="h-3 w-3 rounded-sm" style={{ background: c.color }} />)}
-                    </span>
-                    <span className="flex-1 text-left">{c.name}</span>
-                    <span className="text-xs text-muted-foreground">{c.dir === "h" ? "↔" : "↕"}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+          <div className="grid grid-cols-4 gap-2">{standard.map(carBtn)}</div>
+          {trucks.length > 0 && (
+            <>
+              <h2 className="panel-title mt-4">Trucks</h2>
+              <div className="grid grid-cols-2 gap-2">{trucks.map(carBtn)}</div>
+            </>
+          )}
         </aside>
       </div>
+
+      {levelsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4" onClick={() => setLevelsOpen(false)}>
+          <div className="panel max-h-[80vh] w-full max-w-lg overflow-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="font-display text-xl font-bold">Choose Level · בחר שלב</h2>
+              <button aria-label="Close" onClick={() => setLevelsOpen(false)} className="chip"><X className="h-4 w-4" /></button>
+            </div>
+            <div className="grid grid-cols-5 gap-2">
+              {DEFAULT_PUZZLES.map((_, i) => {
+                const locked = i > maxSolved + 1;
+                const done = i <= maxSolved;
+                return (
+                  <button key={i} disabled={locked} onClick={() => jumpTo(i)} data-active={i === idx} className="ctrl relative font-display disabled:opacity-40">
+                    {locked ? <Lock className="h-4 w-4" /> : i + 1}
+                    {done && <CheckCircle2 className="absolute -right-1 -top-1 h-4 w-4 text-primary" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
