@@ -2025,7 +2025,7 @@ export const DEFAULT_PUZZLES: { par: number; cars: Car[] }[] = [
       { id: "J", row: 3, col: 3, dir: "v" },
     ]),
   },
-];
+].sort((a, b) => a.par - b.par);
 
 export const LEVELS: Record<Level, { title: string; he: string; cars: Car[] }> = {
   beginner: { title: "Beginner", he: "מתחילים", cars: DEFAULT_PUZZLES[0].cars },
