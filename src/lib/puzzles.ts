@@ -2048,7 +2048,7 @@ export function runPlan(cars: Car[], plan: { id: string; move: Move; steps: numb
 /** פונקציה ששולפת שלב אקראי (כולל המכוניות וה-par שלו) מתוך המאגר */
 export function getRandomPuzzle(rand: () => number = Math.random): { par: number; cars: Car[] } {
   const index = Math.floor(rand() * DEFAULT_PUZZLES.length);
-  return DEFAULT_PUZZLES[index];
+  return DEFAULT_PUZZLES[index]!;
 }
 
 export function cells(c: Car): [number, number][] {

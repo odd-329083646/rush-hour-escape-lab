@@ -41,7 +41,7 @@ function Game() {
 
   const [idx, setIdx] = useState(0);
   const [maxSolved, setMaxSolved] = useState(-1);
-  const puzzle = DEFAULT_PUZZLES[idx] || DEFAULT_PUZZLES[0];
+  const puzzle = (DEFAULT_PUZZLES[idx] ?? DEFAULT_PUZZLES[0])!;
   const [cars, setCars] = useState<Car[]>(puzzle.cars);
   const [sel, setSel] = useState<string | null>(null);
   const [move, setMove] = useState<Move | null>(null);
@@ -63,7 +63,7 @@ function Game() {
 
   const loadPuzzle = (i: number) => {
     setIdx(i);
-    setCars(DEFAULT_PUZZLES[i].cars);
+    setCars(DEFAULT_PUZZLES[i]!.cars);
     setSel(null); setMove(null); setSteps(1); setMoves(0);
     setMsg("Study the lot, then press Start Solving");
     setWarn(null); setStarted(false); setHidden(new Set()); setReveal(false);
