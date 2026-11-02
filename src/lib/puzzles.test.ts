@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { applyMove, isSolved, LEVELS, minSolution, pickHidden, type Level } from "./puzzles";
+import { runPlan, applyMove, isSolved, LEVELS, minSolution, pickHidden, type Level } from "./puzzles";
 
 describe("applyMove", () => {
-  const cars = LEVELS.beginner.cars;
+  const cars = LEVELS.easy.cars;
   it("blocks moves across orientation", () => expect(applyMove(cars, "X", "up", 1).error).toBeTruthy());
   it("blocks when another car is in the way", () => expect(applyMove(cars, "X", "right", 1).error).toBe("Blocked by another car"));
   it("cars can't leave the grid", () => expect(applyMove(cars, "A", "left", 1).error).toBe("Can't leave the parking lot"));
@@ -10,8 +10,8 @@ describe("applyMove", () => {
 });
 
 describe("win condition", () => {
-  it("solved when red front reaches the exit cell", () => expect(isSolved([{ ...LEVELS.beginner.cars[0]!, col: 4 }])).toBe(true));
-  it("not solved one cell short", () => expect(isSolved([{ ...LEVELS.beginner.cars[0]!, col: 3 }])).toBe(false));
+  it("solved when red front reaches the exit cell", () => expect(isSolved([{ ...LEVELS.easy.cars[0]!, col: 4 }])).toBe(true));
+  it("not solved one cell short", () => expect(isSolved([{ ...LEVELS.easy.cars[0]!, col: 3 }])).toBe(false));
 });
 
 describe("every level is solvable", () => {
@@ -20,11 +20,15 @@ describe("every level is solvable", () => {
   }
 });
 
+describe("runPlan", () => {
+  it("reports the first invalid planned move", () => expect(runPlan(LEVELS.easy.cars, [{ id: "A", move: "right", steps: 1 }, { id: "X", move: "up", steps: 1 }]).failedAt).toBe(1));
+});
+
 describe("pickHidden", () => {
-  it("beginner hides nothing", () => expect(pickHidden(LEVELS.beginner.cars, "beginner").size).toBe(0));
-  it("champions hides all cars", () => expect(pickHidden(LEVELS.champions.cars, "champions").size).toBe(LEVELS.champions.cars.length));
-  it("advanced hides some, never the red car", () => {
-    const h = pickHidden(LEVELS.advanced.cars, "advanced");
+  it("easy hides nothing", () => expect(pickHidden(LEVELS.easy.cars, "easy").size).toBe(0));
+  it("hard hides all cars", () => expect(pickHidden(LEVELS.hard.cars, "hard").size).toBe(LEVELS.hard.cars.length));
+  it("medium hides some, never the red car", () => {
+    const h = pickHidden(LEVELS.medium.cars, "medium");
     expect(h.size).toBe(6);
     expect(h.has("X")).toBe(false);
   });

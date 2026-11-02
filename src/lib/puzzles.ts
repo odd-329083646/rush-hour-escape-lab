@@ -1,5 +1,5 @@
 export type Dir = "h" | "v";
-export type Level = "beginner" | "advanced" | "champions";
+export type Level = "easy" | "medium" | "hard" | "murderer";
 export type Move = "up" | "down" | "left" | "right";
 
 export type Car = { id: string; name: string; color: string; row: number; col: number; len: 2 | 3; dir: Dir };
@@ -2027,11 +2027,23 @@ export const DEFAULT_PUZZLES: { par: number; cars: Car[] }[] = [
   },
 ].sort((a, b) => a.par - b.par);
 
-export const LEVELS: Record<Level, { title: string; he: string; cars: Car[] }> = {
-  beginner: { title: "Beginner", he: "מתחילים", cars: DEFAULT_PUZZLES[0].cars },
-  advanced: { title: "Advanced", he: "מתקדמים", cars: DEFAULT_PUZZLES[0].cars },
-  champions: { title: "Champions", he: "אלופים", cars: DEFAULT_PUZZLES[0].cars },
+export const LEVELS: Record<Level, { title: string; he: string; par: number; cars: Car[] }> = {
+  easy: { title: "Easy", he: "קל", par: DEFAULT_PUZZLES[0].par, cars: DEFAULT_PUZZLES[0].cars },
+  medium: { title: "Medium", he: "בינוני", par: DEFAULT_PUZZLES[0].par, cars: DEFAULT_PUZZLES[0].cars },
+  hard: { title: "Hard", he: "קשה", par: DEFAULT_PUZZLES[0].par, cars: DEFAULT_PUZZLES[0].cars },
+  murderer: { title: "Murderer", he: "רוצח", par: DEFAULT_PUZZLES[0].par, cars: DEFAULT_PUZZLES[0].cars },
 };
+
+/** Applies a list of planned moves in order; stops at the first invalid one. */
+export function runPlan(cars: Car[], plan: { id: string; move: Move; steps: number }[]): { cars: Car[]; failedAt?: number; error?: string } {
+  let cur = cars;
+  for (let i = 0; i < plan.length; i++) {
+    const r = applyMove(cur, plan[i].id, plan[i].move, plan[i].steps);
+    if (r.error) return { cars: cur, failedAt: i, error: r.error };
+    cur = r.cars;
+  }
+  return { cars: cur };
+}
 
 /** פונקציה ששולפת שלב אקראי (כולל המכוניות וה-par שלו) מתוך המאגר */
 export function getRandomPuzzle(rand: () => number = Math.random): { par: number; cars: Car[] } {
@@ -2092,10 +2104,10 @@ export function minSolution(start: Car[]): number {
   return -1;
 }
 
-/** Beginner: none. Advanced: random half of the non-red cars. Champions: every car. */
+/** Easy: none. Medium: random half of the non-red cars. Hard/Murderer: every car. */
 export function pickHidden(cars: Car[], level: Level, rand: () => number = Math.random): Set<string> {
-  if (level === "beginner") return new Set();
-  if (level === "champions") return new Set(cars.map((c) => c.id));
+  if (level === "easy") return new Set();
+  if (level === "hard" || level === "murderer") return new Set(cars.map((c) => c.id));
   const pool = cars.filter((c) => c.id !== "X").map((c) => c.id).sort(() => rand() - 0.5);
   return new Set(pool.slice(0, Math.ceil(pool.length / 2)));
 }
