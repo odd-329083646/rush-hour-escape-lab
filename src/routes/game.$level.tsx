@@ -84,41 +84,6 @@ function Game() {
     return () => clearInterval(t);
   }, [startedAt, won]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const key = e.key;
-      const upperKey = key.toUpperCase();
-
-      // 1. בחירת מכונית לפי אות (A-Z)
-      const carExists = cars.some((c) => c.id === upperKey);
-      if (carExists) {
-        setSel(upperKey);
-        return;
-      }
-
-      // 2. בחירת מספר צעדים (1-4)
-      if (["1", "2", "3", "4"].includes(key)) {
-        setSteps(parseInt(key, 10));
-        return;
-      }
-
-      // 3. בחירת כיוון לפי מקשי החיצים
-      if (key === "ArrowUp") { e.preventDefault(); setMove("up"); return; }
-      if (key === "ArrowDown") { e.preventDefault(); setMove("down"); return; }
-      if (key === "ArrowLeft") { e.preventDefault(); setMove("left"); return; }
-      if (key === "ArrowRight") { e.preventDefault(); setMove("right"); return; }
-
-      // 4. מקש Enter לביצוע/הוספת מהלך
-      if (key === "Enter") {
-        e.preventDefault();
-        execute();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [cars, execute]);
-
   const markWon = () => {
     setWonAt(Date.now()); setMsg("Solved!"); setSel(null);
     if (idx > maxSolved) { setMaxSolved(idx); localStorage.setItem(maxKey, String(idx)); }
