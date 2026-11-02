@@ -2055,10 +2055,10 @@ export function cells(c: Car): [number, number][] {
   return Array.from({ length: c.len }, (_, i) => (c.dir === "h" ? [c.row, c.col + i] : [c.row + i, c.col]));
 }
 
-/** Solved when the red car's front bumper reaches the exit cell (row 2, col 5). */
+/** Solved when the red car's front bumper reaches or passes the exit cell (row 2, col 5). */
 export function isSolved(cars: Car[]): boolean {
   const x = cars.find((c) => c.id === "X");
-  return !!x && x.row === 2 && x.col + x.len - 1 === 5;
+  return !!x && x.row === 2 && x.col + x.len - 1 >= 5;
 }
 
 /** Moves a car exactly `steps` cells; never through other cars or off the grid. */
@@ -2070,13 +2070,29 @@ export function applyMove(cars: Car[], id: string, move: Move, steps: number): {
   const d = move === "right" || move === "down" ? 1 : -1;
   const occ = new Set(cars.filter((c) => c.id !== id).flatMap(cells).map(([r, c]) => `${r},${c}`));
   let { row, col } = car;
+
   for (let s = 0; s < steps; s++) {
     const nr = horiz ? row : d > 0 ? row + car.len : row - 1;
     const nc = horiz ? (d > 0 ? col + car.len : col - 1) : col;
+
+    // גמישות מיוחדת למכונית X בדרך ליציאה (שורה 2, תנועה ימינה)
+    if (id === "X" && row === 2 && move === "right") {
+      if (occ.has(`${row},${nc}`)) return { cars, error: "Blocked by another car" };
+      col += 1;
+      // אם הגענו או עברנו את שער היציאה (עמודה 5 לפגוש הקדמי)
+      if (col + car.len - 1 >= 5) {
+        col = 6 - car.len; // מציב את X בדיוק בשער היציאה
+        break; // עצירת הצעדים והכרזה על ניצחון
+      }
+      continue;
+    }
+
+    // בדיקת גבולות רגילה לשאר המכוניות והכיוונים
     if (nr < 0 || nr > 5 || nc < 0 || nc > 5) return { cars, error: "Can't leave the parking lot" };
     if (occ.has(`${nr},${nc}`)) return { cars, error: "Blocked by another car" };
     if (horiz) col += d; else row += d;
   }
+
   return { cars: cars.map((c) => (c.id === id ? { ...c, row, col } : c)) };
 }
 
