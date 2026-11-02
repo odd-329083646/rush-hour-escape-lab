@@ -144,6 +144,57 @@ function Game() {
     </button>
   );
 
+  // האזנה לאירועי מקלדת (ממוקם ממש לפני ה-return)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // מונע התנגשות אם יש מקש מיוחד בלבד
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+
+      // 1. זיהוי רכב לפי האות (תומך באנגלית וגם בעברית לפי המקשים בלוח)
+      let char = e.key.toUpperCase();
+      if (e.code.startsWith("Key")) {
+        char = e.code.replace("Key", ""); // הופך למשל את KeyX ל-X ואת KeyA ל-A
+      }
+
+      const carExists = cars.some((c) => c.id === char);
+      if (carExists) {
+        setSel(char);
+        return;
+      }
+
+      // 2. בחירת מספר צעדים (1-4)
+      if (["1", "2", "3", "4"].includes(e.key)) {
+        setSteps(parseInt(e.key, 10));
+        return;
+      }
+
+      // 3. בחירת כיוון לפי מקשי החצים
+      if (e.key === "ArrowUp") { e.preventDefault(); setMove("up"); return; }
+      if (e.key === "ArrowDown") { e.preventDefault(); setMove("down"); return; }
+      if (e.key === "ArrowLeft") { e.preventDefault(); setMove("left"); return; }
+      if (e.key === "ArrowRight") { e.preventDefault(); setMove("right"); return; }
+
+      // 4. מקש Enter להפעלת המשחק / הוספת מהלך
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (!started) {
+          start();
+        } else if (murderer) {
+          if (sel && move) {
+            setPlan((p) => [...p, { id: sel, move, steps }]);
+          } else {
+            flash("Select a car and direction first");
+          }
+        } else {
+          execute();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [cars, sel, move, steps, started, murderer]);
+  
   return (
     <main className="lot-bg min-h-screen px-4 py-6">
       <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
