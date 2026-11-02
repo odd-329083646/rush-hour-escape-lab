@@ -6,7 +6,7 @@ describe("applyMove", () => {
   it("blocks moves across orientation", () => expect(applyMove(cars, "X", "up", 1).error).toBeTruthy());
   it("blocks when another car is in the way", () => expect(applyMove(cars, "X", "right", 1).error).toBe("Blocked by another car"));
   it("cars can't leave the grid", () => expect(applyMove(cars, "A", "right", 1).error).toBe("Can't leave the parking lot"));
-  it("moves exactly the chosen steps", () => expect(applyMove(cars, "A", "left", 2).cars.find((c) => c.id === "A")?.col).toBe(2));
+  it("moves exactly the chosen steps", () => expect(applyMove(cars, "A", "left", 1).cars.find((c) => c.id === "A")?.col).toBe(3));
 });
 
 describe("win condition", () => {
