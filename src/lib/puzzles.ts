@@ -60,18 +60,43 @@ export interface PuzzleRaw {
   cars: { id: string; row: number; col: number; dir: "h" | "v" }[];
 }
 
-export async function loadPuzzlesAsync() {
+/** מחזיר true רק לשלב תקין: par מספרי, מכונית X קיימת וכל המכוניות בתוך הלוח */
+function isValidPuzzle(p: unknown): p is PuzzleRaw {
+  if (!p || typeof p !== "object") return false;
+  const { par, cars } = p as PuzzleRaw;
+  if (typeof par !== "number" || !Number.isFinite(par) || !Array.isArray(cars)) return false;
+  if (!cars.some((c) => c?.id === "X")) return false;
+  return cars.every(
+    (c) =>
+      !!c &&
+      typeof c.id === "string" &&
+      (c.dir === "h" || c.dir === "v") &&
+      Number.isInteger(c.row) && c.row >= 0 && c.row <= 5 &&
+      Number.isInteger(c.col) && c.col >= 0 && c.col <= 5,
+  );
+}
+
+/**
+ * טוען את השלבים מ-‎/puzzles.json‎ (קובץ סטטי בתיקיית public).
+ * אפשר לערוך את הקובץ בכל עת — רענון הדף יטען את השלבים החדשים.
+ * אם הקובץ חסר, פגום או ריק — משתמשים ברשימת הגיבוי המקומית.
+ */
+export async function loadPuzzlesAsync(): Promise<{ par: number; cars: Car[] }[]> {
   try {
-    const response = await fetch("/puzzles.json");
-    if (!response.ok) throw new Error("Failed to load external puzzles");
-    const data: PuzzleRaw[] = await response.json();
-    
-    const loadedPuzzles = data.map((p) => ({
-      par: p.par,
-      cars: inflateCars(p.cars),
-    })).sort((a, b) => a.par - b.par);
-    
+    const response = await fetch("/puzzles.json", { cache: "no-store" });
+    if (!response.ok) throw new Error(`Failed to load external puzzles (${response.status})`);
+    const data: unknown = await response.json();
+
+    const raw = Array.isArray(data) ? data : (data as { puzzles?: unknown[] })?.puzzles;
+    const loadedPuzzles = (Array.isArray(raw) ? raw : [])
+      .filter(isValidPuzzle)
+      .map((p) => ({ par: p.par, cars: inflateCars(p.cars) }))
+      .sort((a, b) => a.par - b.par);
+
+    if (!loadedPuzzles.length) throw new Error("No valid puzzles in puzzles.json");
+
     console.log(`Loaded ${loadedPuzzles.length} puzzles successfully!`);
+    DEFAULT_PUZZLES = loadedPuzzles;
     return loadedPuzzles;
   } catch (err) {
     console.error("Could not load puzzles.json, using fallback:", err);
