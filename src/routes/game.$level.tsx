@@ -144,17 +144,13 @@ function Game() {
     </button>
   );
 
-// האזנה לאירועי מקלדת (ממוקם ממש לפני ה-return)
+  // האזנה לאירועי מקלדת
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // מונע התנגשות אם יש מקש מיוחד בלבד
       if (e.altKey || e.ctrlKey || e.metaKey) return;
 
-      // 1. זיהוי רכב לפי האות (תומך באנגלית וגם בעברית לפי המקשים בלוח)
       let char = e.key.toUpperCase();
-      if (e.code.startsWith("Key")) {
-        char = e.code.replace("Key", ""); // הופך למשל את KeyX ל-X ואת KeyA ל-A
-      }
+      if (e.code.startsWith("Key")) char = e.code.replace("Key", "");
 
       const carExists = cars.some((c) => c.id === char);
       if (carExists) {
@@ -162,28 +158,22 @@ function Game() {
         return;
       }
 
-      // 2. בחירת מספר צעדים (1-4)
       if (["1", "2", "3", "4"].includes(e.key)) {
         setSteps(parseInt(e.key, 10));
         return;
       }
 
-      // 3. בחירת כיוון לפי מקשי החצים
       if (e.key === "ArrowUp") { e.preventDefault(); setMove("up"); return; }
       if (e.key === "ArrowDown") { e.preventDefault(); setMove("down"); return; }
       if (e.key === "ArrowLeft") { e.preventDefault(); setMove("left"); return; }
       if (e.key === "ArrowRight") { e.preventDefault(); setMove("right"); return; }
 
-      // 4. מקש רווח (Space) להגשת הפתרון במצב רוצח
       if (e.key === " " || e.code === "Space") {
         e.preventDefault();
-        if (murderer && started) {
-          submitPlan();
-        }
+        if (murderer && started) submitPlan();
         return;
       }
 
-      // 5. מקש Enter להפעלת המשחק / הוספת מהלך במצב רוצח / ביצוע תנועה רגילה
       if (e.key === "Enter") {
         e.preventDefault();
         if (!started) {
@@ -204,22 +194,23 @@ function Game() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [cars, sel, move, steps, started, murderer, plan]);
 
-  // <<< להדביק מכאן את הקוד של הגרירה >>>
+  // לוגיקת גרירה והחלקה (Pointer Events)
   const dragStart = useRef<{ id: string; x: number; y: number } | null>(null);
 
   const handlePointerDown = (c: Car, e: React.PointerEvent) => {
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch (err) {}
     dragStart.current = { id: c.id, x: e.clientX, y: e.clientY };
   };
 
   const handlePointerUp = (c: Car, e: React.PointerEvent) => {
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch (err) {}
     if (!dragStart.current || dragStart.current.id !== c.id) return;
 
     const dx = e.clientX - dragStart.current.x;
     const dy = e.clientY - dragStart.current.y;
     dragStart.current = null;
 
-    const threshold = 20;
+    const threshold = 15;
 
     if (Math.abs(dx) < threshold && Math.abs(dy) < threshold) {
       setSel(c.id);
@@ -230,6 +221,8 @@ function Game() {
       flash("Press Start Solving first");
       return;
     }
+
+    setSel(c.id);
 
     let moveDir: Move | null = null;
     let dist = 0;
@@ -247,7 +240,9 @@ function Game() {
     }
 
     if (moveDir) {
-      const calculatedSteps = Math.max(1, Math.round(dist / 50));
+      setMove(moveDir);
+      const calculatedSteps = Math.max(1, Math.round(dist / 40));
+      setSteps(calculatedSteps);
 
       if (murderer) {
         setPlan((p) => [...p, { id: c.id, move: moveDir!, steps: calculatedSteps }]);
@@ -258,6 +253,7 @@ function Game() {
           if (r1.error) {
             flash(r1.error);
           } else {
+            setSteps(1);
             setCars(r1.cars);
             setMoves((n) => n + 1);
             setWarn(null);
@@ -272,7 +268,7 @@ function Game() {
       }
     }
   };
-  
+
   return (
     <main className="lot-bg min-h-screen px-4 py-6">
       <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
@@ -335,26 +331,26 @@ function Game() {
               {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" style={{ gridRow: Math.floor(i / 6) + 1, gridColumn: (i % 6) + 1 }} />)}
               <div className="exit" style={{ gridRow: 3 }} />
               {cars.map((c) => (
-  <button
-    key={sel === c.id && warn ? `${c.id}-${warn.key}` : c.id}
-    onClick={() => setSel(c.id)}
-    onPointerDown={(e) => handlePointerDown(c, e)}
-    onPointerUp={(e) => handlePointerUp(c, e)}
-    data-shake={sel === c.id && !!warn}
-    data-selected={sel === c.id}
-    data-hidden={hidden.has(c.id) && !reveal}
-    data-ghost={hidden.has(c.id) && reveal}
-    aria-label={hidden.has(c.id) && !reveal ? "Hidden car" : c.name}
-    className="car touch-none select-none"
-    style={{
-      background: c.color,
-      gridRow: `${c.row + 1} / span ${c.dir === "v" ? c.len : 1}`,
-      gridColumn: `${c.col + 1} / span ${c.dir === "h" ? c.len : 1}`,
-    }}
-  >
-    {c.id}
-  </button>
-))}
+                <button
+                  key={sel === c.id && warn ? `${c.id}-${warn.key}` : c.id}
+                  onPointerDown={(e) => handlePointerDown(c, e)}
+                  onPointerUp={(e) => handlePointerUp(c, e)}
+                  onPointerCancel={() => { dragStart.current = null; }}
+                  data-shake={sel === c.id && !!warn}
+                  data-selected={sel === c.id}
+                  data-hidden={hidden.has(c.id) && !reveal}
+                  data-ghost={hidden.has(c.id) && reveal}
+                  aria-label={hidden.has(c.id) && !reveal ? "Hidden car" : c.name}
+                  className="car touch-none select-none"
+                  style={{
+                    background: c.color,
+                    gridRow: `${c.row + 1} / span ${c.dir === "v" ? c.len : 1}`,
+                    gridColumn: `${c.col + 1} / span ${c.dir === "h" ? c.len : 1}`,
+                  }}
+                >
+                  {c.id}
+                </button>
+              ))}
               {won && (
                 <div className="win flex-col gap-2 text-center">
                   <Trophy className="h-12 w-12" />
