@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, Eye, EyeOff, Home, Layers, Lock, Play, Plus, RotateCcw, Send, Timer, Trash2, Trophy, X } from "lucide-react";
-import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, loadPuzzlesAsync, type Car, type Level, type Move } from "@/lib/puzzles";
+import { applyMove, isSolved, LEVELS, pickHidden, runPlan, puzzles, loadPuzzlesAsync, type Car, type Level, type Move } from "@/lib/puzzles";
 
 export const Route = createFileRoute("/game/$level")({
   beforeLoad: ({ params }) => {
@@ -39,9 +39,10 @@ function Game() {
   const idxKey = `rush_hour_puzzle_index_${level}`;
   const maxKey = `rush_hour_max_solved_${level}`;
 
+  const [puzzles, setPuzzles] = useState(DEFAULT_PUZZLES);
   const [idx, setIdx] = useState(0);
   const [maxSolved, setMaxSolved] = useState(-1);
-  const puzzle = (DEFAULT_PUZZLES[idx] ?? DEFAULT_PUZZLES[0])!;
+  const puzzle = (puzzles[idx] ?? puzzles[0])!;
   const [cars, setCars] = useState<Car[]>(puzzle.cars);
   const [sel, setSel] = useState<string | null>(null);
   const [move, setMove] = useState<Move | null>(null);
@@ -61,9 +62,9 @@ function Game() {
   const elapsed = startedAt ? Math.floor(((wonAt ?? now) - startedAt) / 1000) : 0;
   const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
 
-const loadPuzzle = (i: number) => {
+const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
     setIdx(i);
-    setCars(DEFAULT_PUZZLES[i]!.cars);
+    setCars(currentPuzzles[i]!.cars);
     setSel(null); setMove(null); setSteps(1); setMoves(0);
     setMsg("Study the lot, then press Start Solving");
     setWarn(null); setStarted(false); setHidden(new Set()); setReveal(false);
@@ -72,10 +73,11 @@ const loadPuzzle = (i: number) => {
 
   // טעינת השלבים החיצוניים מה-JSON ואתחול המשחק
   useEffect(() => {
-    loadPuzzlesAsync().then(() => {
-      const i = Math.min(parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0, DEFAULT_PUZZLES.length - 1);
+    loadPuzzlesAsync().then((loadedPuzzles) => {
+      setPuzzles(loadedPuzzles); // שמירת הנתונים ב-State
+      const i = Math.min(parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0, loadedPuzzles.length - 1);
       setMaxSolved(parseInt(localStorage.getItem(maxKey) ?? "-1", 10));
-      loadPuzzle(i);
+      loadPuzzle(i, loadedPuzzles); // העברת הנתונים החדשים ישירות לפונקציה
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level]);
@@ -135,7 +137,7 @@ const loadPuzzle = (i: number) => {
     else flash("Not solved yet — the red car must reach the exit");
   };
 
-  const isLast = idx >= DEFAULT_PUZZLES.length - 1;
+  const isLast = idx >= puzzles.length - 1;
   const standard = cars.filter((c) => c.len === 2);
   const trucks = cars.filter((c) => c.len === 3);
   const showBoard = !(murderer && started && !won);
@@ -276,7 +278,7 @@ const loadPuzzle = (i: number) => {
     <main className="lot-bg min-h-screen px-4 py-6">
       <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
         <Link to="/" className="chip"><Home className="h-4 w-4" /> Back to Home</Link>
-        <h1 className="font-display text-lg font-bold md:text-2xl">{cfg.title} <span className="text-muted-foreground">· {cfg.he} (שלב {idx + 1} מתוך {DEFAULT_PUZZLES.length})</span></h1>
+        <h1 className="font-display text-lg font-bold md:text-2xl">{cfg.title} <span className="text-muted-foreground">· {cfg.he} (שלב {idx + 1} מתוך {puzzles.length})</span></h1>
         <div className="flex flex-wrap gap-2">
           {started && hidden.size > 0 && !murderer && (
             <button onClick={() => setReveal((v) => !v)} data-active={reveal} className="chip">
@@ -422,7 +424,7 @@ const loadPuzzle = (i: number) => {
               <button aria-label="Close" onClick={() => setLevelsOpen(false)} className="chip"><X className="h-4 w-4" /></button>
             </div>
             <div className="grid grid-cols-5 gap-2">
-              {DEFAULT_PUZZLES.map((_, i) => {
+              {puzzles.map((_, i) => {
                 const locked = i > maxSolved + 1;
                 const done = i <= maxSolved;
                 return (
