@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, Eye, EyeOff, Home, Layers, Lock, Play, Plus, RotateCcw, Send, Timer, Trash2, Trophy, X } from "lucide-react";
-import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, type Car, type Level, type Move } from "@/lib/puzzles";
+import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, loadPuzzlesAsync, type Car, type Level, type Move } from "@/lib/puzzles";
 
 export const Route = createFileRoute("/game/$level")({
   beforeLoad: ({ params }) => {
@@ -69,6 +69,16 @@ function Game() {
     setWarn(null); setStarted(false); setHidden(new Set()); setReveal(false);
     setStartedAt(null); setWonAt(null); setPlan([]);
   };
+
+  // 1. הוספת טעינה אסינכרונית של קובץ השלבים החיצוני מיד בכניסה לדף
+  useEffect(() => {
+    loadPuzzlesAsync().then(() => {
+      const i = Math.min(parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0, DEFAULT_PUZZLES.length - 1);
+      setMaxSolved(parseInt(localStorage.getItem(maxKey) ?? "-1", 10));
+      loadPuzzle(i);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [level]);
 
   useEffect(() => {
     const i = Math.min(parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0, DEFAULT_PUZZLES.length - 1);
