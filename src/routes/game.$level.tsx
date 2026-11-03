@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, Eye, EyeOff, Home, Layers, Lock, Play, Plus, RotateCcw, Send, Timer, Trash2, Trophy, X } from "lucide-react";
-import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, loadPuzzlesAsync, type Car, type Level, type Move } from "@/lib/puzzles";
+import { applyMove, isSolved, LEVELS, pickHidden, runPlan, puzzles as DEFAULT_PUZZLES, loadPuzzlesAsync, type Car, type Level, type Move } from "@/lib/puzzles";
 
 export const Route = createFileRoute("/game/$level")({
   beforeLoad: ({ params }) => {
@@ -71,13 +71,20 @@ const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
     setStartedAt(null); setWonAt(null); setPlan([]);
   };
 
-  // טעינת השלבים החיצוניים מה-JSON ואתחול המשחק
+  // טעינת השלבים החיצוניים ואתחול המשחק (עם הגנה מפני דריסה)
   useEffect(() => {
-    loadPuzzlesAsync().then((loadedPuzzles) => {
-      setPuzzles(loadedPuzzles); // שמירת הנתונים ב-State
-      const i = Math.min(parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0, loadedPuzzles.length - 1);
+    loadPuzzlesAsync(level).then((loadedPuzzles) => {
+      // נשתמש בנתונים רק אם הם מכילים רשימה מלאה, אחרת נשתמש במערך המקומי שלך (DEFAULT_PUZZLES)
+      const finalPuzzles = loadedPuzzles.length > 1 ? loadedPuzzles : DEFAULT_PUZZLES;
+      setPuzzles(finalPuzzles);
+      const i = Math.min(parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0, finalPuzzles.length - 1);
       setMaxSolved(parseInt(localStorage.getItem(maxKey) ?? "-1", 10));
-      loadPuzzle(i, loadedPuzzles); // העברת הנתונים החדשים ישירות לפונקציה
+      loadPuzzle(i, finalPuzzles);
+    }).catch(() => {
+      setPuzzles(DEFAULT_PUZZLES);
+      const i = Math.min(parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0, DEFAULT_PUZZLES.length - 1);
+      setMaxSolved(parseInt(localStorage.getItem(maxKey) ?? "-1", 10));
+      loadPuzzle(i, DEFAULT_PUZZLES);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level]);
