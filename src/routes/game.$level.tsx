@@ -42,7 +42,6 @@ function Game() {
   const [puzzles, setPuzzles] = useState(DEFAULT_PUZZLES);
   const [idx, setIdx] = useState(0);
   const [maxSolved, setMaxSolved] = useState(-1);
-  // הגנה מפני רשימה ריקה/שלב חסר — הממשק לעולם לא קורס בזמן טעינת ה-JSON
   const puzzle = puzzles[idx] ?? puzzles[0] ?? { par: 0, cars: [] as Car[] };
   const [cars, setCars] = useState<Car[]>(puzzle?.cars ?? []);
   const [sel, setSel] = useState<string | null>(null);
@@ -63,7 +62,7 @@ function Game() {
   const elapsed = startedAt ? Math.floor(((wonAt ?? now) - startedAt) / 1000) : 0;
   const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
 
-const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
+  const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
     const p = currentPuzzles[i] ?? currentPuzzles[0];
     if (!p) return;
     setIdx(currentPuzzles.indexOf(p));
@@ -74,12 +73,10 @@ const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
     setStartedAt(null); setWonAt(null); setPlan([]);
   };
 
-  // טעינת השלבים מ-‎/puzzles.json‎; במקרה של כשל נשארים עם רשימת הגיבוי (DEFAULT_PUZZLES)
   useEffect(() => {
     let alive = true;
     loadPuzzlesAsync().then((loadedPuzzles) => {
       if (!alive) return;
-      // נשתמש בנתונים רק אם הם מכילים רשימה מלאה, אחרת נשתמש במערך המקומי שלך (DEFAULT_PUZZLES)
       const finalPuzzles = loadedPuzzles.length > 1 ? loadedPuzzles : DEFAULT_PUZZLES;
       setPuzzles(finalPuzzles);
       const saved = parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0;
@@ -95,7 +92,6 @@ const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
       loadPuzzle(i, DEFAULT_PUZZLES);
     });
     return () => { alive = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level]);
 
   useEffect(() => {
@@ -165,7 +161,6 @@ const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
     </button>
   );
 
-  // האזנה לאירועי מקלדת
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.altKey || e.ctrlKey || e.metaKey) return;
@@ -215,11 +210,9 @@ const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [cars, sel, move, steps, started, murderer, plan]);
 
-  // גרירה בזמן אמת (Pointer Events) — תזוזה חזותית מוגבלת, ובסיום applyMove
   const dragStart = useRef<{ id: string; x: number; y: number; pitch: number; min: number; max: number } | null>(null);
   const [drag, setDrag] = useState<{ id: string; offset: number } | null>(null);
 
-  // כמה תאים פנויים יש לפני/אחרי המכונית לאורך הציר שלה
   const freeRange = (c: Car) => {
     const occ = new Set<string>();
     for (const o of cars) {
@@ -243,7 +236,7 @@ const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const gap = 6;
     const size = c.dir === "h" ? rect.width : rect.height;
-    const pitch = (size + gap) / c.len; // תא + רווח
+    const pitch = (size + gap) / c.len;
     const { back, fwd } = started && !won ? freeRange(c) : { back: 0, fwd: 0 };
     dragStart.current = { id: c.id, x: e.clientX, y: e.clientY, pitch, min: -back * pitch, max: fwd * pitch };
   };
@@ -256,64 +249,39 @@ const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
     setDrag({ id: c.id, offset });
   };
 
-const handlePointerUp = (c: Car, e: React.PointerEvent) => {
-  try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch (err) {}
-  const d = dragStart.current;
-  dragStart.current = null;
-  
-  if (!d || d.id !== c.id) {
+  const handlePointerUp = (c: Car, e: React.PointerEvent) => {
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch (err) {}
+    const d = dragStart.current;
+    dragStart.current = null;
     setDrag(null);
-    return;
-  }
+    if (!d || d.id !== c.id) return;
 
-  const dx = e.clientX - d.x;
-  const dy = e.clientY - d.y;
-  if (Math.abs(dx) < 8 && Math.abs(dy) < 8) { 
-    setSel(c.id); 
-    setDrag(null);
-    return; 
-  }
-  
-  if (!started) { 
-    flash("Press Start Solving first"); 
-    setDrag(null);
-    return; 
-  }
+    const dx = e.clientX - d.x;
+    const dy = e.clientY - d.y;
+    if (Math.abs(dx) < 8 && Math.abs(dy) < 8) { setSel(c.id); return; }
+    if (!started) { flash("Press Start Solving first"); return; }
 
-  setSel(c.id);
-  const raw = c.dir === "h" ? dx : dy;
-  const offset = Math.max(d.min, Math.min(d.max, raw));
-  const cellsMoved = Math.round(offset / d.pitch);
+    setSel(c.id);
+    const raw = c.dir === "h" ? dx : dy;
+    const offset = Math.max(d.min, Math.min(d.max, raw));
+    const cellsMoved = Math.round(offset / d.pitch);
+    if (cellsMoved === 0) return;
+    const moveDir: Move = c.dir === "h" ? (cellsMoved > 0 ? "right" : "left") : (cellsMoved > 0 ? "down" : "up");
+    const calculatedSteps = Math.abs(cellsMoved);
+    setMove(moveDir);
+    setSteps(Math.min(4, calculatedSteps));
 
-  // חישוב היסט הפיקסלים המדויק למשבצת היעד
-  const targetOffset = cellsMoved * d.pitch;
-
-  // הצמדת המכונית ויזואלית למשבצת היעד
-  setDrag({ id: c.id, offset: targetOffset });
-
-  // השהיית איפוס ה-drag עד לסיום אנימציית המעבר ב-CSS
-  setTimeout(() => {
-    setDrag(null);
-  }, 150);
-
-  if (cellsMoved === 0) return; // החלקה חזרה למקום אם הופעל פחות מחצי משבצת
-
-  const moveDir: Move = c.dir === "h" ? (cellsMoved > 0 ? "right" : "left") : (cellsMoved > 0 ? "down" : "up");
-  const calculatedSteps = Math.abs(cellsMoved);
-  setMove(moveDir);
-  setSteps(Math.min(4, calculatedSteps));
-
-  if (murderer) {
-    setPlan((p) => [...p, { id: c.id, move: moveDir, steps: calculatedSteps }]);
-    return;
-  }
-  const r = applyMove(cars, c.id, moveDir, calculatedSteps);
-  if (r.error) return flash(r.error);
-  setCars(r.cars);
-  setMoves((n) => n + 1);
-  setWarn(null);
-  if (isSolved(r.cars)) markWon(); else setMsg("Moved!");
-};
+    if (murderer) {
+      setPlan((p) => [...p, { id: c.id, move: moveDir, steps: calculatedSteps }]);
+      return;
+    }
+    const r = applyMove(cars, c.id, moveDir, calculatedSteps);
+    if (r.error) return flash(r.error);
+    setCars(r.cars);
+    setMoves((n) => n + 1);
+    setWarn(null);
+    if (isSolved(r.cars)) markWon(); else setMsg("Moved!");
+  };
 
   return (
     <main className="lot-bg min-h-screen px-4 py-6">
@@ -376,37 +344,32 @@ const handlePointerUp = (c: Car, e: React.PointerEvent) => {
               {warn && <div key={warn.key} className="warn" role="alert">{warn.text}</div>}
               {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" style={{ gridRow: Math.floor(i / 6) + 1, gridColumn: (i % 6) + 1 }} />)}
               <div className="exit" style={{ gridRow: 3 }} />
-              {cars.map((c) => {
-  const isDragging = dragStart.current?.id === c.id;
-  
-  return (
-    <button
-      key={c.id}
-      draggable={false}
-      onPointerDown={(e) => handlePointerDown(c, e)}
-      onPointerUp={(e) => handlePointerUp(c, e)}
-      onPointerMove={(e) => handlePointerMove(c, e)}
-      onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
-      data-shake={sel === c.id && !!warn}
-      data-selected={sel === c.id}
-      data-hidden={hidden.has(c.id) && !reveal}
-      data-ghost={hidden.has(c.id) && reveal}
-      aria-label={hidden.has(c.id) && !reveal ? "Hidden car" : c.name}
-      className="car touch-none select-none"
-      style={{
-        background: c.color,
-        gridRow: `${c.row + 1} / span ${c.dir === "v" ? c.len : 1}`,
-        gridColumn: `${c.col + 1} / span ${c.dir === "h" ? c.len : 1}`,
-        transform: drag?.id === c.id ? (c.dir === "h" ? `translate(${drag.offset}px, 0)` : `translate(0, ${drag.offset}px)`) : undefined,
-        // בזמן גרירה פעילה: ללא transition. ברגע השחרור: מעבר חלק של 0.15 שניות
-        transition: drag?.id === c.id && isDragging ? "none" : "transform 0.15s ease-out",
-        zIndex: drag?.id === c.id ? 5 : undefined,
-      }}
-    >
-      {c.id}
-    </button>
-  );
-})}
+              {cars.map((c) => (
+                <button
+                  key={c.id}
+                  draggable={false}
+                  onPointerDown={(e) => handlePointerDown(c, e)}
+                  onPointerUp={(e) => handlePointerUp(c, e)}
+                  onPointerMove={(e) => handlePointerMove(c, e)}
+                  onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
+                  data-shake={sel === c.id && !!warn}
+                  data-selected={sel === c.id}
+                  data-hidden={hidden.has(c.id) && !reveal}
+                  data-ghost={hidden.has(c.id) && reveal}
+                  aria-label={hidden.has(c.id) && !reveal ? "Hidden car" : c.name}
+                  className="car touch-none select-none"
+                  style={{
+                    background: c.color,
+                    gridRow: `${c.row + 1} / span ${c.dir === "v" ? c.len : 1}`,
+                    gridColumn: `${c.col + 1} / span ${c.dir === "h" ? c.len : 1}`,
+                    transform: drag?.id === c.id ? (c.dir === "h" ? `translate(${drag.offset}px, 0)` : `translate(0, ${drag.offset}px)`) : undefined,
+                    transition: drag?.id === c.id ? "none" : undefined,
+                    zIndex: drag?.id === c.id ? 5 : undefined,
+                  }}
+                >
+                  {c.id}
+                </button>
+              ))}
               {won && (
                 <div className="win flex-col gap-2 text-center">
                   <Trophy className="h-12 w-12" />
