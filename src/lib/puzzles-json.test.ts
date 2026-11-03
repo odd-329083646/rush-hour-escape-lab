@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import path from "node:path";
 import { loadPuzzlesAsync, DEFAULT_PUZZLES, type PuzzleRaw } from "./puzzles";
 
-const JSON_PATH = fileURLToPath(new URL("../../public/puzzles.json", import.meta.url));
+const JSON_PATH = path.resolve(process.cwd(), "public/puzzles.json");
 
 function readRawPuzzles(): unknown {
   return JSON.parse(readFileSync(JSON_PATH, "utf-8"));
