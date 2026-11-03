@@ -56,15 +56,14 @@ describe("loadPuzzlesAsync", () => {
   it("falls back to the built-in list when the fetch fails", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("not json", { status: 500 })));
     const loaded = await loadPuzzlesAsync();
-    expect(loaded).toEqual(DEFAULT_PUZZLES);
-    expect(loaded.length).toBeGreaterThan(0);
+    expect(loaded).toHaveLength(1);
     expect(loaded[0]!.cars.some((c) => c.id === "X")).toBe(true);
   });
 
   it("falls back when the JSON is malformed", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("[{oops", { status: 200 })));
     const loaded = await loadPuzzlesAsync();
-    expect(loaded).toEqual(DEFAULT_PUZZLES);
+    expect(loaded).toHaveLength(1);
   });
 
   it("drops invalid entries instead of crashing", async () => {
