@@ -357,7 +357,8 @@ const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
     draggable={false}
     onPointerDown={(e) => handlePointerDown(c, e)}
     onPointerUp={(e) => handlePointerUp(c, e)}
-    onPointerCancel={() => { dragStart.current = null; }}
+    onPointerMove={(e) => handlePointerMove(c, e)}
+    onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
     data-shake={sel === c.id && !!warn}
     data-selected={sel === c.id}
     data-hidden={hidden.has(c.id) && !reveal}
@@ -368,6 +369,9 @@ const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
       background: c.color,
       gridRow: `${c.row + 1} / span ${c.dir === "v" ? c.len : 1}`,
       gridColumn: `${c.col + 1} / span ${c.dir === "h" ? c.len : 1}`,
+      transform: drag?.id === c.id ? (c.dir === "h" ? `translate(${drag.offset}px, 0)` : `translate(0, ${drag.offset}px)`) : undefined,
+      transition: drag?.id === c.id ? "none" : undefined,
+      zIndex: drag?.id === c.id ? 5 : undefined,
     }}
   >
     {c.id}
