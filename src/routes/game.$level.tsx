@@ -223,72 +223,74 @@ const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
     dragStart.current = { id: c.id, x: e.clientX, y: e.clientY };
   };
 
-  const handlePointerUp = (c: Car, e: React.PointerEvent) => {
-    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch (err) {}
-    if (!dragStart.current || dragStart.current.id !== c.id) return;
+ const handlePointerUp = (c: Car, e: React.PointerEvent) => {
+  try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch (err) {}
+  if (!dragStart.current || dragStart.current.id !== c.id) return;
 
-    const dx = e.clientX - dragStart.current.x;
-    const dy = e.clientY - dragStart.current.y;
-    dragStart.current = null;
+  const dx = e.clientX - dragStart.current.x;
+  const dy = e.clientY - dragStart.current.y;
+  dragStart.current = null;
 
-    const threshold = 15;
+  const threshold = 15;
 
-    if (Math.abs(dx) < threshold && Math.abs(dy) < threshold) {
-      setSel(c.id);
-      return;
-    }
-
-    if (!started) {
-      flash("Press Start Solving first");
-      return;
-    }
-
+  if (Math.abs(dx) < threshold && Math.abs(dy) < threshold) {
     setSel(c.id);
+    return;
+  }
 
-    let moveDir: Move | null = null;
-    let dist = 0;
+  if (!started) {
+    flash("Press Start Solving first");
+    return;
+  }
 
-    if (c.dir === "h") {
-      if (Math.abs(dx) >= threshold) {
-        moveDir = dx > 0 ? "right" : "left";
-        dist = Math.abs(dx);
-      }
+  setSel(c.id);
+
+  let moveDir: Move | null = null;
+  let dist = 0;
+
+  if (c.dir === "h") {
+    if (Math.abs(dx) >= threshold) {
+      moveDir = dx > 0 ? "right" : "left";
+      dist = Math.abs(dx);
+    }
+  } else {
+    if (Math.abs(dy) >= threshold) {
+      moveDir = dy > 0 ? "down" : "up";
+      dist = Math.abs(dy);
+    }
+  }
+
+  if (moveDir) {
+    setMove(moveDir);
+    const calculatedSteps = Math.max(1, Math.round(dist / 40));
+    setSteps(calculatedSteps);
+
+    if (murderer) {
+      setPlan((p) => [...p, { id: c.id, move: moveDir!, steps: calculatedSteps }]);
     } else {
-      if (Math.abs(dy) >= threshold) {
-        moveDir = dy > 0 ? "down" : "up";
-        dist = Math.abs(dy);
+      let finalSteps = calculatedSteps;
+      let r = applyMove(cars, c.id, moveDir, finalSteps);
+
+      // כל עוד המהלך נכשל ויש לנו יותר מצעד אחד, ננסה להפחית צעד ולבדוק שוב
+      while (r.error && finalSteps > 1) {
+        finalSteps--;
+        r = applyMove(cars, c.id, moveDir, finalSteps);
       }
-    }
 
-    if (moveDir) {
-      setMove(moveDir);
-      const calculatedSteps = Math.max(1, Math.round(dist / 40));
-      setSteps(calculatedSteps);
-
-      if (murderer) {
-        setPlan((p) => [...p, { id: c.id, move: moveDir!, steps: calculatedSteps }]);
+      if (r.error) {
+        // הגענו לצעד 1 וגם הוא חסום
+        flash(r.error);
       } else {
-        const r = applyMove(cars, c.id, moveDir, calculatedSteps);
-        if (r.error) {
-          const r1 = applyMove(cars, c.id, moveDir, 1);
-          if (r1.error) {
-            flash(r1.error);
-          } else {
-            setSteps(1);
-            setCars(r1.cars);
-            setMoves((n) => n + 1);
-            setWarn(null);
-            if (isSolved(r1.cars)) markWon(); else setMsg("Moved!");
-          }
-        } else {
-          setCars(r.cars);
-          setMoves((n) => n + 1);
-          setWarn(null);
-          if (isSolved(r.cars)) markWon(); else setMsg("Moved!");
-        }
+        // מצאנו את המהלך המקסימלי האפשרי
+        setSteps(finalSteps);
+        setCars(r.cars);
+        setMoves((n) => n + 1);
+        setWarn(null);
+        if (isSolved(r.cars)) markWon(); else setMsg("Moved!");
       }
     }
-  };
+  }
+};
 
   return (
     <main className="lot-bg min-h-screen px-4 py-6">
@@ -352,26 +354,27 @@ const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
               {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" style={{ gridRow: Math.floor(i / 6) + 1, gridColumn: (i % 6) + 1 }} />)}
               <div className="exit" style={{ gridRow: 3 }} />
               {cars.map((c) => (
-                <button
-                  key={sel === c.id && warn ? `${c.id}-${warn.key}` : c.id}
-                  onPointerDown={(e) => handlePointerDown(c, e)}
-                  onPointerUp={(e) => handlePointerUp(c, e)}
-                  onPointerCancel={() => { dragStart.current = null; }}
-                  data-shake={sel === c.id && !!warn}
-                  data-selected={sel === c.id}
-                  data-hidden={hidden.has(c.id) && !reveal}
-                  data-ghost={hidden.has(c.id) && reveal}
-                  aria-label={hidden.has(c.id) && !reveal ? "Hidden car" : c.name}
-                  className="car touch-none select-none"
-                  style={{
-                    background: c.color,
-                    gridRow: `${c.row + 1} / span ${c.dir === "v" ? c.len : 1}`,
-                    gridColumn: `${c.col + 1} / span ${c.dir === "h" ? c.len : 1}`,
-                  }}
-                >
-                  {c.id}
-                </button>
-              ))}
+  <button
+    key={c.id}
+    draggable={false}
+    onPointerDown={(e) => handlePointerDown(c, e)}
+    onPointerUp={(e) => handlePointerUp(c, e)}
+    onPointerCancel={() => { dragStart.current = null; }}
+    data-shake={sel === c.id && !!warn}
+    data-selected={sel === c.id}
+    data-hidden={hidden.has(c.id) && !reveal}
+    data-ghost={hidden.has(c.id) && reveal}
+    aria-label={hidden.has(c.id) && !reveal ? "Hidden car" : c.name}
+    className="car touch-none select-none"
+    style={{
+      background: c.color,
+      gridRow: `${c.row + 1} / span ${c.dir === "v" ? c.len : 1}`,
+      gridColumn: `${c.col + 1} / span ${c.dir === "h" ? c.len : 1}`,
+    }}
+  >
+    {c.id}
+  </button>
+))}
               {won && (
                 <div className="win flex-col gap-2 text-center">
                   <Trophy className="h-12 w-12" />
