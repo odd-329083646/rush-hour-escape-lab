@@ -256,39 +256,64 @@ const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
     setDrag({ id: c.id, offset });
   };
 
-  const handlePointerUp = (c: Car, e: React.PointerEvent) => {
-    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch (err) {}
-    const d = dragStart.current;
-    dragStart.current = null;
+const handlePointerUp = (c: Car, e: React.PointerEvent) => {
+  try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch (err) {}
+  const d = dragStart.current;
+  dragStart.current = null;
+  
+  if (!d || d.id !== c.id) {
     setDrag(null);
-    if (!d || d.id !== c.id) return;
+    return;
+  }
 
-    const dx = e.clientX - d.x;
-    const dy = e.clientY - d.y;
-    if (Math.abs(dx) < 8 && Math.abs(dy) < 8) { setSel(c.id); return; }
-    if (!started) { flash("Press Start Solving first"); return; }
+  const dx = e.clientX - d.x;
+  const dy = e.clientY - d.y;
+  if (Math.abs(dx) < 8 && Math.abs(dy) < 8) { 
+    setSel(c.id); 
+    setDrag(null);
+    return; 
+  }
+  
+  if (!started) { 
+    flash("Press Start Solving first"); 
+    setDrag(null);
+    return; 
+  }
 
-    setSel(c.id);
-    const raw = c.dir === "h" ? dx : dy;
-    const offset = Math.max(d.min, Math.min(d.max, raw));
-    const cellsMoved = Math.round(offset / d.pitch);
-    if (cellsMoved === 0) return; // חוזר למקום
-    const moveDir: Move = c.dir === "h" ? (cellsMoved > 0 ? "right" : "left") : (cellsMoved > 0 ? "down" : "up");
-    const calculatedSteps = Math.abs(cellsMoved);
-    setMove(moveDir);
-    setSteps(Math.min(4, calculatedSteps));
+  setSel(c.id);
+  const raw = c.dir === "h" ? dx : dy;
+  const offset = Math.max(d.min, Math.min(d.max, raw));
+  const cellsMoved = Math.round(offset / d.pitch);
 
-    if (murderer) {
-      setPlan((p) => [...p, { id: c.id, move: moveDir, steps: calculatedSteps }]);
-      return;
-    }
-    const r = applyMove(cars, c.id, moveDir, calculatedSteps);
-    if (r.error) return flash(r.error);
-    setCars(r.cars);
-    setMoves((n) => n + 1);
-    setWarn(null);
-    if (isSolved(r.cars)) markWon(); else setMsg("Moved!");
-  };
+  // חישוב היסט הפיקסלים המדויק למשבצת היעד
+  const targetOffset = cellsMoved * d.pitch;
+
+  // הצמדת המכונית ויזואלית למשבצת היעד
+  setDrag({ id: c.id, offset: targetOffset });
+
+  // השהיית איפוס ה-drag עד לסיום אנימציית המעבר ב-CSS
+  setTimeout(() => {
+    setDrag(null);
+  }, 150);
+
+  if (cellsMoved === 0) return; // החלקה חזרה למקום אם הופעל פחות מחצי משבצת
+
+  const moveDir: Move = c.dir === "h" ? (cellsMoved > 0 ? "right" : "left") : (cellsMoved > 0 ? "down" : "up");
+  const calculatedSteps = Math.abs(cellsMoved);
+  setMove(moveDir);
+  setSteps(Math.min(4, calculatedSteps));
+
+  if (murderer) {
+    setPlan((p) => [...p, { id: c.id, move: moveDir, steps: calculatedSteps }]);
+    return;
+  }
+  const r = applyMove(cars, c.id, moveDir, calculatedSteps);
+  if (r.error) return flash(r.error);
+  setCars(r.cars);
+  setMoves((n) => n + 1);
+  setWarn(null);
+  if (isSolved(r.cars)) markWon(); else setMsg("Moved!");
+};
 
   return (
     <main className="lot-bg min-h-screen px-4 py-6">
@@ -351,32 +376,37 @@ const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
               {warn && <div key={warn.key} className="warn" role="alert">{warn.text}</div>}
               {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" style={{ gridRow: Math.floor(i / 6) + 1, gridColumn: (i % 6) + 1 }} />)}
               <div className="exit" style={{ gridRow: 3 }} />
-              {cars.map((c) => (
-  <button
-    key={c.id}
-    draggable={false}
-    onPointerDown={(e) => handlePointerDown(c, e)}
-    onPointerUp={(e) => handlePointerUp(c, e)}
-    onPointerMove={(e) => handlePointerMove(c, e)}
-    onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
-    data-shake={sel === c.id && !!warn}
-    data-selected={sel === c.id}
-    data-hidden={hidden.has(c.id) && !reveal}
-    data-ghost={hidden.has(c.id) && reveal}
-    aria-label={hidden.has(c.id) && !reveal ? "Hidden car" : c.name}
-    className="car touch-none select-none"
-    style={{
-      background: c.color,
-      gridRow: `${c.row + 1} / span ${c.dir === "v" ? c.len : 1}`,
-      gridColumn: `${c.col + 1} / span ${c.dir === "h" ? c.len : 1}`,
-      transform: drag?.id === c.id ? (c.dir === "h" ? `translate(${drag.offset}px, 0)` : `translate(0, ${drag.offset}px)`) : undefined,
-      transition: drag?.id === c.id ? "none" : undefined,
-      zIndex: drag?.id === c.id ? 5 : undefined,
-    }}
-  >
-    {c.id}
-  </button>
-))}
+              {cars.map((c) => {
+  const isDragging = dragStart.current?.id === c.id;
+  
+  return (
+    <button
+      key={c.id}
+      draggable={false}
+      onPointerDown={(e) => handlePointerDown(c, e)}
+      onPointerUp={(e) => handlePointerUp(c, e)}
+      onPointerMove={(e) => handlePointerMove(c, e)}
+      onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
+      data-shake={sel === c.id && !!warn}
+      data-selected={sel === c.id}
+      data-hidden={hidden.has(c.id) && !reveal}
+      data-ghost={hidden.has(c.id) && reveal}
+      aria-label={hidden.has(c.id) && !reveal ? "Hidden car" : c.name}
+      className="car touch-none select-none"
+      style={{
+        background: c.color,
+        gridRow: `${c.row + 1} / span ${c.dir === "v" ? c.len : 1}`,
+        gridColumn: `${c.col + 1} / span ${c.dir === "h" ? c.len : 1}`,
+        transform: drag?.id === c.id ? (c.dir === "h" ? `translate(${drag.offset}px, 0)` : `translate(0, ${drag.offset}px)`) : undefined,
+        // בזמן גרירה פעילה: ללא transition. ברגע השחרור: מעבר חלק של 0.15 שניות
+        transition: drag?.id === c.id && isDragging ? "none" : "transform 0.15s ease-out",
+        zIndex: drag?.id === c.id ? 5 : undefined,
+      }}
+    >
+      {c.id}
+    </button>
+  );
+})}
               {won && (
                 <div className="win flex-col gap-2 text-center">
                   <Trophy className="h-12 w-12" />
