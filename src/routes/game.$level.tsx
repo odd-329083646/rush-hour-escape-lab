@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, Eye, EyeOff, Home, Layers, Lock, Play, Plus, RotateCcw, Send, Timer, Trash2, Trophy, X } from "lucide-react";
-import { applyMove, isSolved, LEVELS, pickHidden, runPlan, puzzles as DEFAULT_PUZZLES, loadPuzzlesAsync, type Car, type Level, type Move } from "@/lib/puzzles";
+import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, loadPuzzlesAsync, type Car, type Level, type Move } from "@/lib/puzzles";
 
 export const Route = createFileRoute("/game/$level")({
   beforeLoad: ({ params }) => {
@@ -42,8 +42,9 @@ function Game() {
   const [puzzles, setPuzzles] = useState(DEFAULT_PUZZLES);
   const [idx, setIdx] = useState(0);
   const [maxSolved, setMaxSolved] = useState(-1);
-  const puzzle = (puzzles[idx] ?? puzzles[0])!;
-  const [cars, setCars] = useState<Car[]>(puzzle.cars);
+  // הגנה מפני רשימה ריקה/שלב חסר — הממשק לעולם לא קורס בזמן טעינת ה-JSON
+  const puzzle = puzzles[idx] ?? puzzles[0] ?? { par: 0, cars: [] as Car[] };
+  const [cars, setCars] = useState<Car[]>(puzzle?.cars ?? []);
   const [sel, setSel] = useState<string | null>(null);
   const [move, setMove] = useState<Move | null>(null);
   const [steps, setSteps] = useState(1);
@@ -63,29 +64,37 @@ function Game() {
   const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
 
 const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
-    setIdx(i);
-    setCars(currentPuzzles[i]!.cars);
+    const p = currentPuzzles[i] ?? currentPuzzles[0];
+    if (!p) return;
+    setIdx(currentPuzzles.indexOf(p));
+    setCars(p.cars);
     setSel(null); setMove(null); setSteps(1); setMoves(0);
     setMsg("Study the lot, then press Start Solving");
     setWarn(null); setStarted(false); setHidden(new Set()); setReveal(false);
     setStartedAt(null); setWonAt(null); setPlan([]);
   };
 
-  // טעינת השלבים החיצוניים ואתחול המשחק (עם הגנה מפני דריסה)
+  // טעינת השלבים מ-‎/puzzles.json‎; במקרה של כשל נשארים עם רשימת הגיבוי (DEFAULT_PUZZLES)
   useEffect(() => {
-    loadPuzzlesAsync(level).then((loadedPuzzles) => {
+    let alive = true;
+    loadPuzzlesAsync().then((loadedPuzzles) => {
+      if (!alive) return;
       // נשתמש בנתונים רק אם הם מכילים רשימה מלאה, אחרת נשתמש במערך המקומי שלך (DEFAULT_PUZZLES)
       const finalPuzzles = loadedPuzzles.length > 1 ? loadedPuzzles : DEFAULT_PUZZLES;
       setPuzzles(finalPuzzles);
-      const i = Math.min(parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0, finalPuzzles.length - 1);
-      setMaxSolved(parseInt(localStorage.getItem(maxKey) ?? "-1", 10));
+      const saved = parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0;
+      const i = Math.max(0, Math.min(saved, finalPuzzles.length - 1));
+      setMaxSolved(Number.isFinite(parseInt(localStorage.getItem(maxKey) ?? "", 10)) ? parseInt(localStorage.getItem(maxKey)!, 10) : -1);
       loadPuzzle(i, finalPuzzles);
     }).catch(() => {
+      if (!alive) return;
       setPuzzles(DEFAULT_PUZZLES);
-      const i = Math.min(parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0, DEFAULT_PUZZLES.length - 1);
-      setMaxSolved(parseInt(localStorage.getItem(maxKey) ?? "-1", 10));
+      const saved = parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0;
+      const i = Math.max(0, Math.min(saved, DEFAULT_PUZZLES.length - 1));
+      setMaxSolved(Number.isFinite(parseInt(localStorage.getItem(maxKey) ?? "", 10)) ? parseInt(localStorage.getItem(maxKey)!, 10) : -1);
       loadPuzzle(i, DEFAULT_PUZZLES);
     });
+    return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level]);
 
