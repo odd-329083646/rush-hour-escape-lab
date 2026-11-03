@@ -144,7 +144,7 @@ function Game() {
     </button>
   );
 
-  // האזנה לאירועי מקלדת (ממוקם ממש לפני ה-return)
+// האזנה לאירועי מקלדת (ממוקם ממש לפני ה-return)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // מונע התנגשות אם יש מקש מיוחד בלבד
@@ -174,7 +174,16 @@ function Game() {
       if (e.key === "ArrowLeft") { e.preventDefault(); setMove("left"); return; }
       if (e.key === "ArrowRight") { e.preventDefault(); setMove("right"); return; }
 
-      // 4. מקש Enter להפעלת המשחק / הוספת מהלך
+      // 4. מקש רווח (Space) להגשת הפתרון במצב רוצח
+      if (e.key === " " || e.code === "Space") {
+        e.preventDefault();
+        if (murderer && started) {
+          submitPlan();
+        }
+        return;
+      }
+
+      // 5. מקש Enter להפעלת המשחק / הוספת מהלך במצב רוצח / ביצוע תנועה רגילה
       if (e.key === "Enter") {
         e.preventDefault();
         if (!started) {
@@ -193,7 +202,7 @@ function Game() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [cars, sel, move, steps, started, murderer]);
+  }, [cars, sel, move, steps, started, murderer, plan]);
   
   return (
     <main className="lot-bg min-h-screen px-4 py-6">
