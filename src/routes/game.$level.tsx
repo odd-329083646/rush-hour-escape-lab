@@ -215,82 +215,80 @@ const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [cars, sel, move, steps, started, murderer, plan]);
 
-  // לוגיקת גרירה והחלקה (Pointer Events)
-  const dragStart = useRef<{ id: string; x: number; y: number } | null>(null);
+  // גרירה בזמן אמת (Pointer Events) — תזוזה חזותית מוגבלת, ובסיום applyMove
+  const dragStart = useRef<{ id: string; x: number; y: number; pitch: number; min: number; max: number } | null>(null);
+  const [drag, setDrag] = useState<{ id: string; offset: number } | null>(null);
+
+  // כמה תאים פנויים יש לפני/אחרי המכונית לאורך הציר שלה
+  const freeRange = (c: Car) => {
+    const occ = new Set<string>();
+    for (const o of cars) {
+      if (o.id === c.id) continue;
+      for (let k = 0; k < o.len; k++) occ.add(o.dir === "h" ? `${o.row},${o.col + k}` : `${o.row + k},${o.col}`);
+    }
+    const free = (r: number, col: number) => r >= 0 && r < 6 && col >= 0 && col < 6 && !occ.has(`${r},${col}`);
+    let back = 0, fwd = 0;
+    if (c.dir === "h") {
+      while (free(c.row, c.col - back - 1)) back++;
+      while (free(c.row, c.col + c.len + fwd)) fwd++;
+    } else {
+      while (free(c.row - back - 1, c.col)) back++;
+      while (free(c.row + c.len + fwd, c.col)) fwd++;
+    }
+    return { back, fwd };
+  };
 
   const handlePointerDown = (c: Car, e: React.PointerEvent) => {
     try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch (err) {}
-    dragStart.current = { id: c.id, x: e.clientX, y: e.clientY };
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const gap = 6;
+    const size = c.dir === "h" ? rect.width : rect.height;
+    const pitch = (size + gap) / c.len; // תא + רווח
+    const { back, fwd } = started && !won ? freeRange(c) : { back: 0, fwd: 0 };
+    dragStart.current = { id: c.id, x: e.clientX, y: e.clientY, pitch, min: -back * pitch, max: fwd * pitch };
   };
 
- const handlePointerUp = (c: Car, e: React.PointerEvent) => {
-  try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch (err) {}
-  if (!dragStart.current || dragStart.current.id !== c.id) return;
+  const handlePointerMove = (c: Car, e: React.PointerEvent) => {
+    const d = dragStart.current;
+    if (!d || d.id !== c.id) return;
+    const raw = c.dir === "h" ? e.clientX - d.x : e.clientY - d.y;
+    const offset = Math.max(d.min, Math.min(d.max, raw));
+    setDrag({ id: c.id, offset });
+  };
 
-  const dx = e.clientX - dragStart.current.x;
-  const dy = e.clientY - dragStart.current.y;
-  dragStart.current = null;
+  const handlePointerUp = (c: Car, e: React.PointerEvent) => {
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch (err) {}
+    const d = dragStart.current;
+    dragStart.current = null;
+    setDrag(null);
+    if (!d || d.id !== c.id) return;
 
-  const threshold = 15;
+    const dx = e.clientX - d.x;
+    const dy = e.clientY - d.y;
+    if (Math.abs(dx) < 8 && Math.abs(dy) < 8) { setSel(c.id); return; }
+    if (!started) { flash("Press Start Solving first"); return; }
 
-  if (Math.abs(dx) < threshold && Math.abs(dy) < threshold) {
     setSel(c.id);
-    return;
-  }
-
-  if (!started) {
-    flash("Press Start Solving first");
-    return;
-  }
-
-  setSel(c.id);
-
-  let moveDir: Move | null = null;
-  let dist = 0;
-
-  if (c.dir === "h") {
-    if (Math.abs(dx) >= threshold) {
-      moveDir = dx > 0 ? "right" : "left";
-      dist = Math.abs(dx);
-    }
-  } else {
-    if (Math.abs(dy) >= threshold) {
-      moveDir = dy > 0 ? "down" : "up";
-      dist = Math.abs(dy);
-    }
-  }
-
-  if (moveDir) {
+    const raw = c.dir === "h" ? dx : dy;
+    const offset = Math.max(d.min, Math.min(d.max, raw));
+    const cellsMoved = Math.round(offset / d.pitch);
+    if (cellsMoved === 0) return; // חוזר למקום
+    const moveDir: Move = c.dir === "h" ? (cellsMoved > 0 ? "right" : "left") : (cellsMoved > 0 ? "down" : "up");
+    const calculatedSteps = Math.abs(cellsMoved);
     setMove(moveDir);
-    const calculatedSteps = Math.max(1, Math.round(dist / 40));
-    setSteps(calculatedSteps);
+    setSteps(Math.min(4, calculatedSteps));
 
     if (murderer) {
-      setPlan((p) => [...p, { id: c.id, move: moveDir!, steps: calculatedSteps }]);
-    } else {
-      let finalSteps = calculatedSteps;
-      let r = applyMove(cars, c.id, moveDir, finalSteps);
-
-      // כל עוד המהלך נכשל ויש לנו יותר מצעד אחד, ננסה להפחית צעד ולבדוק שוב
-      while (r.error && finalSteps > 1) {
-        finalSteps--;
-        r = applyMove(cars, c.id, moveDir, finalSteps);
-      }
-
-      if (r.error) {
-        // הגענו לצעד 1 וגם הוא חסום
-        flash(r.error);
-      } else {
-        // מצאנו את המהלך המקסימלי האפשרי
-        setSteps(finalSteps);
-        setCars(r.cars);
-        setMoves((n) => n + 1);
-        setWarn(null);
-        if (isSolved(r.cars)) markWon(); else setMsg("Moved!");
-      }
+      setPlan((p) => [...p, { id: c.id, move: moveDir, steps: calculatedSteps }]);
+      return;
     }
-  }
-};
+    const r = applyMove(cars, c.id, moveDir, calculatedSteps);
+    if (r.error) return flash(r.error);
+    setCars(r.cars);
+    setMoves((n) => n + 1);
+    setWarn(null);
+    if (isSolved(r.cars)) markWon(); else setMsg("Moved!");
+  };
 
   return (
     <main className="lot-bg min-h-screen px-4 py-6">
@@ -359,7 +357,8 @@ const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
     draggable={false}
     onPointerDown={(e) => handlePointerDown(c, e)}
     onPointerUp={(e) => handlePointerUp(c, e)}
-    onPointerCancel={() => { dragStart.current = null; }}
+    onPointerMove={(e) => handlePointerMove(c, e)}
+    onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
     data-shake={sel === c.id && !!warn}
     data-selected={sel === c.id}
     data-hidden={hidden.has(c.id) && !reveal}
@@ -370,6 +369,9 @@ const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
       background: c.color,
       gridRow: `${c.row + 1} / span ${c.dir === "v" ? c.len : 1}`,
       gridColumn: `${c.col + 1} / span ${c.dir === "h" ? c.len : 1}`,
+      transform: drag?.id === c.id ? (c.dir === "h" ? `translate(${drag.offset}px, 0)` : `translate(0, ${drag.offset}px)`) : undefined,
+      transition: drag?.id === c.id ? "none" : undefined,
+      zIndex: drag?.id === c.id ? 5 : undefined,
     }}
   >
     {c.id}
