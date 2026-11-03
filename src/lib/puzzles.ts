@@ -60,21 +60,22 @@ export interface PuzzleRaw {
   cars: { id: string; row: number; col: number; dir: "h" | "v" }[];
 }
 
-/** פונקציה אסינכרונית לטעינת כל השלבים מתוך קובץ ה-JSON החיצוני */
 export async function loadPuzzlesAsync() {
   try {
     const response = await fetch("/puzzles.json");
     if (!response.ok) throw new Error("Failed to load external puzzles");
     const data: PuzzleRaw[] = await response.json();
     
-    DEFAULT_PUZZLES = data.map((p) => ({
+    const loadedPuzzles = data.map((p) => ({
       par: p.par,
       cars: inflateCars(p.cars),
     })).sort((a, b) => a.par - b.par);
     
-    console.log(`Loaded ${DEFAULT_PUZZLES.length} puzzles successfully!`);
+    console.log(`Loaded ${loadedPuzzles.length} puzzles successfully!`);
+    return loadedPuzzles;
   } catch (err) {
     console.error("Could not load puzzles.json, using fallback:", err);
+    return INITIAL_FALLBACK;
   }
 }
 
