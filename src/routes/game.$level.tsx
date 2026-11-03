@@ -61,7 +61,7 @@ function Game() {
   const elapsed = startedAt ? Math.floor(((wonAt ?? now) - startedAt) / 1000) : 0;
   const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
 
-  const loadPuzzle = (i: number) => {
+const loadPuzzle = (i: number) => {
     setIdx(i);
     setCars(DEFAULT_PUZZLES[i]!.cars);
     setSel(null); setMove(null); setSteps(1); setMoves(0);
@@ -70,20 +70,13 @@ function Game() {
     setStartedAt(null); setWonAt(null); setPlan([]);
   };
 
-  // 1. הוספת טעינה אסינכרונית של קובץ השלבים החיצוני מיד בכניסה לדף
+  // טעינת השלבים החיצוניים מה-JSON ואתחול המשחק
   useEffect(() => {
     loadPuzzlesAsync().then(() => {
       const i = Math.min(parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0, DEFAULT_PUZZLES.length - 1);
       setMaxSolved(parseInt(localStorage.getItem(maxKey) ?? "-1", 10));
       loadPuzzle(i);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [level]);
-
-  useEffect(() => {
-    const i = Math.min(parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0, DEFAULT_PUZZLES.length - 1);
-    setMaxSolved(parseInt(localStorage.getItem(maxKey) ?? "-1", 10));
-    loadPuzzle(i);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level]);
 
