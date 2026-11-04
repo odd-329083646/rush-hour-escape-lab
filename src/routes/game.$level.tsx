@@ -382,7 +382,7 @@ function Game() {
               )}
             </div>
           ) : (
-            <div className="panel relative flex w-full flex-col gap-2 self-start" style={{ width: "var(--board)", maxHeight: "var(--board)" }} data-x="">
+            <div className="panel relative flex w-full flex-col gap-2 self-start" style={{ width: "var(--board)", maxHeight: "var(--board)" }}>
               {warn && <div key={warn.key} className="warn" role="alert">{warn.text}</div>}
               <h2 className="panel-title mb-0">Planned Moves · מהלכים מתוכננים</h2>
               {plan.length === 0 ? (
