@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, Eye, EyeOff, Home, Layers, Lock, Play, Plus, RotateCcw, Send, Timer, Trash2, Trophy, X } from "lucide-react";
 import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, loadPuzzlesAsync, type Car, type Level, type Move } from "@/lib/puzzles";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/game/$level")({
   beforeLoad: ({ params }) => {
@@ -286,28 +287,32 @@ function Game() {
   return (
     <main className="lot-bg flex h-dvh flex-col gap-2 overflow-hidden px-2 py-2 sm:px-4">
       <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2 overflow-x-auto">
-        <Link to="/" className="chip shrink-0"><Home className="h-4 w-4" /><span className="hidden sm:inline"> Back to Home</span></Link>
-        <h1 className="min-w-0 truncate font-display text-sm font-bold md:text-xl">{cfg.title} <span className="text-muted-foreground">· {cfg.he} (שלב {idx + 1} מתוך {puzzles.length})</span></h1>
+        <Button asChild variant="ghost" className="chip shrink-0 px-2 sm:px-3.5"><Link to="/" aria-label="Back to Home" title="Back to Home"><Home className="h-4 w-4" /><span className="hidden sm:inline">Back to Home</span></Link></Button>
+        <h1 className="min-w-0 truncate font-display text-sm font-bold md:text-xl">{cfg.title} <span className="text-muted-foreground">· {cfg.he} (שלב {idx + 1})</span></h1>
         <div className="flex shrink-0 gap-2">
           {started && hidden.size > 0 && !murderer && (
             <button onClick={() => setReveal((v) => !v)} data-active={reveal} className="chip">
               {reveal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {reveal ? "Hide cars" : "Reveal cars"}
             </button>
           )}
-          <button onClick={() => setLevelsOpen(true)} className="chip"><Layers className="h-4 w-4" /> Levels · בחר שלב</button>
-          <button onClick={() => loadPuzzle(idx)} className="chip"><RotateCcw className="h-4 w-4" /> Reset</button>
+           <Button variant="ghost" onClick={() => setLevelsOpen(true)} aria-label="Levels · בחר שלב" title="Levels · בחר שלב" className="chip px-2 sm:px-3.5"><Layers className="h-4 w-4" /><span className="hidden sm:inline">Levels · בחר שלב</span></Button>
+           <Button variant="ghost" onClick={() => loadPuzzle(idx)} aria-label="Reset" title="Reset" className="chip px-2 sm:px-3.5"><RotateCcw className="h-4 w-4" /><span className="hidden sm:inline">Reset</span></Button>
         </div>
       </header>
 
       <div className="game-grid">
         <aside className="panel flex flex-col gap-2" style={{ gridArea: "ctrl" }}>
+          {!started ? (
+            <Button onClick={start} className="execute start-control whitespace-normal"><Play className="h-4 w-4" /><span>Start Solving · התחל פתירה</span></Button>
+          ) : (
+          <div className="solving-controls flex flex-col gap-2">
           <div>
             <h2 className="panel-title">Direction</h2>
             <div className="grid grid-cols-3 grid-rows-3 gap-2">
               {DIRS.map(({ m, Icon, cls }) => (
-                <button key={m} aria-label={m} onClick={() => setMove(m)} data-active={move === m} className={`ctrl ${cls}`}>
+                 <Button variant="ghost" key={m} aria-label={m} title={m} onClick={() => setMove(m)} data-active={move === m} className={`ctrl ${cls}`}>
                   <Icon className="h-5 w-5" />
-                </button>
+                 </Button>
               ))}
             </div>
           </div>
@@ -315,19 +320,17 @@ function Game() {
             <h2 className="panel-title">Steps</h2>
             <div className="grid grid-cols-4 gap-2">
               {[1, 2, 3, 4].map((n) => (
-                <button key={n} onClick={() => setSteps(n)} data-active={steps === n} className="ctrl font-display">{n}</button>
+                 <Button variant="ghost" key={n} onClick={() => setSteps(n)} data-active={steps === n} className="ctrl px-0 font-display">{n}</Button>
               ))}
             </div>
           </div>
-          <button onClick={execute} disabled={won || !started} className="execute">
-            {murderer ? <span className="inline-flex items-center gap-2"><Plus className="h-4 w-4" /> Add move · הוסף</span> : "Execute · בצע"}
-          </button>
-          {!started ? (
-            <button onClick={start} className="execute flex items-center justify-center gap-2"><Play className="h-4 w-4" /> Start Solving · התחל פתירה</button>
-          ) : !murderer && (
-            <button onClick={finish} disabled={won} className="chip justify-center py-2.5">
+           {murderer && <Button onClick={execute} disabled={won} className="execute"><Plus className="h-4 w-4" /> Add move · הוסף</Button>}
+           {!murderer && (
+             <Button variant="ghost" onClick={finish} disabled={won} className="chip justify-center py-2.5">
               <CheckCircle2 className="h-4 w-4" /> Finished · סיימתי
-            </button>
+             </Button>
+          )}
+          </div>
           )}
 </aside>
 
@@ -372,9 +375,9 @@ function Game() {
                   </span>
                   <div className="mt-3 flex gap-2">
                     {!isLast ? (
-                      <button onClick={() => jumpTo(idx + 1)} className="chip"><RotateCcw className="h-4 w-4" /> Next Level · שלב הבא</button>
+                       <Button variant="ghost" onClick={() => jumpTo(idx + 1)} className="chip">Next Level · שלב הבא</Button>
                     ) : (
-                      <button onClick={() => loadPuzzle(idx)} className="chip"><RotateCcw className="h-4 w-4" /> Play again · שחק שוב</button>
+                       <Button variant="ghost" onClick={() => loadPuzzle(idx)} className="chip">Play again · שחק שוב</Button>
                     )}
                     <Link to="/" className="chip"><Home className="h-4 w-4" /> Home</Link>
                   </div>
