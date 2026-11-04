@@ -263,3 +263,4 @@
 .game-grid .ctrl { height: 2rem; border-radius: .5rem; }
 .game-grid .execute { padding: .45rem; font-size: .9rem; border-radius: .6rem; }
 .game-grid .palette-cell { padding: .3rem .2rem; gap: .2rem; }
+.game-grid .exit { top: calc(6px + 2 * ((100% - 12px - 20px) / 6 + 4px)); height: calc((100% - 32px) / 6); }
