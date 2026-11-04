@@ -339,7 +339,7 @@ function Game() {
             <div className="board">
               {warn && <div key={warn.key} className="warn" role="alert">{warn.text}</div>}
               {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" style={{ gridRow: Math.floor(i / 6) + 1, gridColumn: (i % 6) + 1 }} />)}
-              <div className="exit" style={{ gridRow: 3 }} />
+              <div className="exit" />
               {cars.map((c) => (
                 <button
                   key={c.id}
@@ -352,6 +352,7 @@ function Game() {
                   data-selected={sel === c.id}
                   data-hidden={hidden.has(c.id) && !reveal}
                   data-ghost={hidden.has(c.id) && reveal}
+                  data-escaping={won && c.id === "X"}
                   aria-label={hidden.has(c.id) && !reveal ? "Hidden car" : c.name}
                   className="car touch-none select-none"
                   style={{
