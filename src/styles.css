@@ -264,3 +264,12 @@
 .game-grid .execute { padding: .45rem; font-size: .9rem; border-radius: .6rem; }
 .game-grid .palette-cell { padding: .3rem .2rem; gap: .2rem; }
 .game-grid .exit { top: calc(6px + 2 * ((100% - 12px - 20px) / 6 + 4px)); height: calc((100% - 32px) / 6); }
+.game-grid .start-control { width: 100%; height: auto; min-height: 10.5rem; flex: 1; }
+.solving-controls { animation: controls-reveal .25s ease-out; }
+@keyframes controls-reveal {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .solving-controls { animation: none; }
+}
