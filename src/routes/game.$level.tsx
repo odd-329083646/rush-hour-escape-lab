@@ -57,9 +57,10 @@ function Game() {
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [now, setNow] = useState(0);
   const [wonAt, setWonAt] = useState<number | null>(null);
-  const [failed, setFailed] = useState(false);
   const [plan, setPlan] = useState<Planned[]>([]);
   const [levelsOpen, setLevelsOpen] = useState(false);
+  const [failed, setFailed] = useState(false); // הוספנו את משתנה הפסילה
+
   const won = wonAt !== null;
   const elapsed = startedAt ? Math.floor(((wonAt ?? now) - startedAt) / 1000) : 0;
   const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
@@ -72,7 +73,7 @@ function Game() {
     setSel(null); setMove(null); setSteps(1); setMoves(0);
     setMsg("Study the lot, then press Start Solving");
     setWarn(null); setStarted(false); setHidden(new Set()); setReveal(false);
-    setStartedAt(null); setWonAt(null); setPlan([]); setFailed(false);
+    setStartedAt(null); setWonAt(null); setPlan([]); setFailed(false); // איפוס פסילה
   };
 
   useEffect(() => {
@@ -138,15 +139,16 @@ function Game() {
     if (isSolved(r.cars)) markWon(); else setMsg("Moved!");
   };
 
+  // הפונקציה המעודכנת שמפעילה את מסך הפסילה
   const submitPlan = () => {
-  if (!plan.length) return flash("Add some moves first");
-  const r = runPlan(cars, plan);
-  if (r.error || !isSolved(r.cars)) {
-    setFailed(true);
-    return;
-  }
-  setCars(r.cars); setMoves(plan.length); markWon();
-};
+    if (!plan.length) return flash("Add some moves first");
+    const r = runPlan(cars, plan);
+    if (r.error || !isSolved(r.cars)) {
+      setFailed(true);
+      return;
+    }
+    setCars(r.cars); setMoves(plan.length); markWon();
+  };
 
   const finish = () => {
     if (isSolved(cars)) markWon();
@@ -156,7 +158,7 @@ function Game() {
   const isLast = idx >= puzzles.length - 1;
   const standard = cars.filter((c) => c.len === 2);
   const trucks = cars.filter((c) => c.len === 3);
-  const showBoard = !(murderer && started && !won);
+  const showBoard = !(murderer && started && !won && !failed); // דואג שהלוח יופיע גם במסך פסילה
 
   const carBtn = (c: Car) => (
     <button key={c.id} onClick={() => setSel(c.id)} data-active={sel === c.id} title={c.name} className="palette-cell">
@@ -393,19 +395,19 @@ function Game() {
                 </div>
               )}
               {failed && (
-              <div className="win flex-col gap-2 text-center" style={{ backgroundColor: 'oklch(0.16 0.01 260 / 0.95)' }}>
-                <X className="h-12 w-12 text-destructive" />
-                <span className="text-3xl text-destructive">Oops! · אופס!</span>
-                <span className="text-base text-muted-foreground">
-                  התוכנית שגויה או שלא שחררה את הרכב האדום.
-                </span>
-                <div className="mt-3 flex gap-2">
-                  <Button variant="ghost" onClick={() => loadPuzzle(idx)} className="chip">
-                    <RotateCcw className="h-4 w-4" /> Try again · נסה שוב
-                  </Button>
+                <div className="win flex-col gap-2 text-center" style={{ backgroundColor: 'oklch(0.16 0.01 260 / 0.95)' }}>
+                  <X className="h-12 w-12 text-destructive" />
+                  <span className="text-3xl text-destructive">Oops! · אופס!</span>
+                  <span className="text-base text-muted-foreground">
+                    התוכנית שגויה או שלא שחררה את הרכב האדום.
+                  </span>
+                  <div className="mt-3 flex gap-2">
+                    <Button variant="ghost" onClick={() => loadPuzzle(idx)} className="chip">
+                      <RotateCcw className="h-4 w-4" /> Try again · נסה שוב
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
             </div>
           ) : (
             <div className="panel relative flex w-full flex-col gap-2 self-start" style={{ width: "var(--board)", maxHeight: "var(--board)" }}>
