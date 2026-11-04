@@ -324,12 +324,17 @@ function Game() {
               ))}
             </div>
           </div>
-           {murderer && <Button onClick={execute} disabled={won} className="execute"><Plus className="h-4 w-4" /> Add move · הוסף</Button>}
-           {!murderer && (
-             <Button variant="ghost" onClick={finish} disabled={won} className="chip justify-center py-2.5">
-              <CheckCircle2 className="h-4 w-4" /> Finished · סיימתי
-             </Button>
-          )}
+           <Button onClick={execute} disabled={won} className="execute">
+            {murderer ? (
+              <>
+                <Plus className="h-4 w-4" /> Add move · הוסף
+              </>
+            ) : (
+              <>
+                <Play className="h-4 w-4" /> Execute · בצע
+              </>
+            )}
+          </Button>
           </div>
           )}
 </aside>
