@@ -61,7 +61,7 @@ function Game() {
   const [levelsOpen, setLevelsOpen] = useState(false);
   const [failed, setFailed] = useState(false);
   const [simulating, setSimulating] = useState(false);
-  const [invisibleBumps, setInvisibleBumps] = useState(0); // משתנה למעקב אחרי התנגשויות בנסתרים
+  const [invisibleBumps, setInvisibleBumps] = useState(0);
 
   const won = wonAt !== null;
   const elapsed = startedAt ? Math.floor(((wonAt ?? now) - startedAt) / 1000) : 0;
@@ -76,7 +76,7 @@ function Game() {
     setMsg("Study the lot, then press Start Solving");
     setWarn(null); setStarted(false); setHidden(new Set()); setReveal(false);
     setStartedAt(null); setWonAt(null); setPlan([]); setFailed(false); setSimulating(false);
-    setInvisibleBumps(0); // איפוס מונה ההתנגשויות בכל ניסיון מחדש
+    setInvisibleBumps(0);
   };
 
   useEffect(() => {
@@ -131,7 +131,6 @@ function Game() {
     setTimeout(() => setWarn((w) => (w?.key === key ? null : w)), 1800);
   };
 
-  // פונקציה חכמה שבודקת אם המהלך ניסה לעבור דרך מכונית נסתרת
   const checkInvisibleBump = (c: Car, moveDir: Move, attemptedSteps: number) => {
     if (level !== "medium" && level !== "hard") return false;
     
@@ -155,11 +154,10 @@ function Game() {
          const cell = c.dir === "h" ? `${r},${col + k}` : `${r + k},${col}`;
          if (occ.has(cell)) {
             const blockerId = occ.get(cell)!;
-            // אם המכונית שנחסמנו בגללה היא מוסתרת ואינה גלויה כרגע - זו התנגשות בסתר!
             if (hidden.has(blockerId) && !reveal) {
                return true; 
             }
-            return false; // חסימה על ידי מכונית גלויה
+            return false;
          }
       }
     }
@@ -299,8 +297,7 @@ function Game() {
     const occ = new Set<string>();
     for (const o of cars) {
       if (o.id === c.id) continue;
-      // התעלמות ממכוניות מוסתרות בזמן גרירה כדי לאפשר לשחקן לעשות את הטעות ולהתנגש
-      if (hidden.has(o.id) && !reveal) continue; 
+      // כאן הוסר המעקף - כעת מכוניות נסתרות חוסמות את הגרירה ויזואלית כמו קיר מוצק
       for (let k = 0; k < o.len; k++) occ.add(o.dir === "h" ? `${o.row},${o.col + k}` : `${o.row + k},${o.col}`);
     }
     const free = (r: number, col: number) => r >= 0 && r < 6 && col >= 0 && col < 6 && !occ.has(`${r},${col}`);
@@ -352,6 +349,22 @@ function Game() {
     const raw = c.dir === "h" ? dx : dy;
     const offset = Math.max(d.min, Math.min(d.max, raw));
     const cellsMoved = Math.round(offset / d.pitch);
+
+    // בדיקה אם השחקן ניסה למשוך את המכונית בכוח לתוך "קיר" המכונית הבלתי נראית
+    if ((raw > offset + 20 || raw < offset - 20) && (level === "medium" || level === "hard")) {
+      const intendedDir: Move = c.dir === "h" ? (raw > 0 ? "right" : "left") : (raw > 0 ? "down" : "up");
+      if (checkInvisibleBump(c, intendedDir, Math.abs(cellsMoved) + 1)) {
+        const newBumps = invisibleBumps + 1;
+        setInvisibleBumps(newBumps);
+        if (newBumps >= 3) {
+          setFailed(true);
+          return;
+        } else {
+          flash(`נחסמת על ידי מכונית בלתי נראית! (ניסיון ${newBumps} מתוך 3)`);
+        }
+      }
+    }
+
     if (cellsMoved === 0) return;
     const moveDir: Move = c.dir === "h" ? (cellsMoved > 0 ? "right" : "left") : (cellsMoved > 0 ? "down" : "up");
     const calculatedSteps = Math.abs(cellsMoved);
@@ -360,18 +373,6 @@ function Game() {
 
     if (murderer) {
       setPlan((p) => [...p, { id: c.id, move: moveDir, steps: calculatedSteps }]);
-      return;
-    }
-
-    // בדיקת התנגשות בסתר בגרירה
-    if (checkInvisibleBump(c, moveDir, calculatedSteps)) {
-      const newBumps = invisibleBumps + 1;
-      setInvisibleBumps(newBumps);
-      if (newBumps >= 3) {
-        setFailed(true);
-      } else {
-        flash(`נחסמת על ידי מכונית בלתי נראית! (ניסיון ${newBumps} מתוך 3)`);
-      }
       return;
     }
 
