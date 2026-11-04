@@ -246,3 +246,20 @@
   &:hover { border-color: var(--primary); }
   &[data-active="true"] { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary); }
 }
+@utility game-grid {
+  display: grid; gap: .5rem; min-height: 0; flex: 1; width: 100%; max-width: 72rem; margin-inline: auto;
+  grid-template-columns: minmax(0,1fr) minmax(0,1fr); grid-template-rows: auto minmax(0,1fr);
+  grid-template-areas: "board board" "ctrl cars";
+  --board: min(94vw, calc(100dvh - 21rem));
+  @media (orientation: landscape) {
+    grid-template-columns: minmax(0,13rem) auto minmax(0,15rem); grid-template-rows: minmax(0,1fr);
+    grid-template-areas: "ctrl board cars"; justify-content: center;
+    --board: max(12rem, min(calc(100dvh - 7.5rem), calc(100vw - 31rem)));
+  }
+}
+.game-grid .board { width: var(--board); padding: 6px; gap: 4px; }
+.game-grid .panel { padding: .6rem; border-radius: .9rem; overflow: auto; min-height: 0; }
+.game-grid .panel-title { margin-bottom: .35rem; font-size: .65rem; }
+.game-grid .ctrl { height: 2rem; border-radius: .5rem; }
+.game-grid .execute { padding: .45rem; font-size: .9rem; border-radius: .6rem; }
+.game-grid .palette-cell { padding: .3rem .2rem; gap: .2rem; }
