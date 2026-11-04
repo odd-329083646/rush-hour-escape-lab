@@ -60,7 +60,8 @@ function Game() {
   const [plan, setPlan] = useState<Planned[]>([]);
   const [levelsOpen, setLevelsOpen] = useState(false);
   const [failed, setFailed] = useState(false);
-  const [simulating, setSimulating] = useState(false); // הוספנו משתנה לסימולציה
+  const [simulating, setSimulating] = useState(false);
+  const [invisibleBumps, setInvisibleBumps] = useState(0); // משתנה למעקב אחרי התנגשויות בנסתרים
 
   const won = wonAt !== null;
   const elapsed = startedAt ? Math.floor(((wonAt ?? now) - startedAt) / 1000) : 0;
@@ -75,6 +76,7 @@ function Game() {
     setMsg("Study the lot, then press Start Solving");
     setWarn(null); setStarted(false); setHidden(new Set()); setReveal(false);
     setStartedAt(null); setWonAt(null); setPlan([]); setFailed(false); setSimulating(false);
+    setInvisibleBumps(0); // איפוס מונה ההתנגשויות בכל ניסיון מחדש
   };
 
   useEffect(() => {
@@ -129,54 +131,96 @@ function Game() {
     setTimeout(() => setWarn((w) => (w?.key === key ? null : w)), 1800);
   };
 
+  // פונקציה חכמה שבודקת אם המהלך ניסה לעבור דרך מכונית נסתרת
+  const checkInvisibleBump = (c: Car, moveDir: Move, attemptedSteps: number) => {
+    if (level !== "medium" && level !== "hard") return false;
+    
+    const occ = new Map<string, string>();
+    for (const o of cars) {
+      if (o.id === c.id) continue;
+      for (let k = 0; k < o.len; k++) {
+        occ.set(o.dir === "h" ? `${o.row},${o.col + k}` : `${o.row + k},${o.col}`, o.id);
+      }
+    }
+
+    let r = c.row;
+    let col = c.col;
+    for (let s = 1; s <= attemptedSteps; s++) {
+      if (moveDir === "up") r--;
+      else if (moveDir === "down") r++;
+      else if (moveDir === "left") col--;
+      else if (moveDir === "right") col++;
+      
+      for (let k = 0; k < c.len; k++) {
+         const cell = c.dir === "h" ? `${r},${col + k}` : `${r + k},${col}`;
+         if (occ.has(cell)) {
+            const blockerId = occ.get(cell)!;
+            // אם המכונית שנחסמנו בגללה היא מוסתרת ואינה גלויה כרגע - זו התנגשות בסתר!
+            if (hidden.has(blockerId) && !reveal) {
+               return true; 
+            }
+            return false; // חסימה על ידי מכונית גלויה
+         }
+      }
+    }
+    return false;
+  };
+
   const execute = () => {
     if (!started) return flash("Press Start Solving first");
     if (!sel) return flash("Select a car first");
     if (!move) return flash("Choose a direction");
     if (murderer) { setPlan((p) => [...p, { id: sel, move, steps }]); return; }
+
+    const c = cars.find((x) => x.id === sel);
+    if (c && checkInvisibleBump(c, move, steps)) {
+      const newBumps = invisibleBumps + 1;
+      setInvisibleBumps(newBumps);
+      if (newBumps >= 3) {
+        setFailed(true);
+      } else {
+        flash(`נחסמת על ידי מכונית בלתי נראית! (ניסיון ${newBumps} מתוך 3)`);
+      }
+      return;
+    }
+
     const r = applyMove(cars, sel, move, steps);
     if (r.error) return flash(r.error);
     setCars(r.cars); setMoves((n) => n + 1); setWarn(null);
     if (isSolved(r.cars)) markWon(); else setMsg("Moved!");
   };
 
-  // פונקציית הגשת הפתרון עכשיו מפעילה סימולציה ויזואלית!
   const submitPlan = async () => {
-    if (simulating) return; // מונע לחיצה כפולה
+    if (simulating) return;
     if (!plan.length) return flash("Add some moves first");
     
     setSimulating(true);
-    setHidden(new Set()); // חושף את המכוניות המוסתרות כדי שנראה אותן זזות
+    setHidden(new Set());
     setMsg("Simulating moves... · מדמה מהלכים...");
 
     let currentCars = [...cars];
 
-    // לולאה שעוברת מהלך-מהלך
     for (let i = 0; i < plan.length; i++) {
       const p = plan[i];
       const r = applyMove(currentCars, p.id, p.move, p.steps);
       
-      // אם מהלך מסוים נכשל (למשל התנגשות)
       if (r.error) {
         setFailed(true);
         setSimulating(false);
         return;
       }
       
-      // מעדכן את הלוח ויזואלית למהלך הנוכחי
       currentCars = r.cars;
       setCars(currentCars);
       setMoves(i + 1);
       
-      // מחכה 700 מילי-שניות לפני המהלך הבא
       await new Promise((res) => setTimeout(res, 700));
     }
 
-    // בסיום כל המהלכים המתוכננים
     if (isSolved(currentCars)) {
       markWon();
     } else {
-      setFailed(true); // אם סיימנו את התוכנית והרכב האדום לא בחוץ
+      setFailed(true);
     }
     setSimulating(false);
   };
@@ -190,7 +234,6 @@ function Game() {
   const standard = cars.filter((c) => c.len === 2);
   const trucks = cars.filter((c) => c.len === 3);
   
-  // הלוח יוצג תמיד כשיש סימולציה
   const showBoard = simulating || !(murderer && started && !won && !failed);
 
   const carBtn = (c: Car) => (
@@ -202,7 +245,7 @@ function Game() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey || e.ctrlKey || e.metaKey || simulating) return; // חוסם מקלדת בזמן סימולציה
+      if (e.altKey || e.ctrlKey || e.metaKey || simulating) return;
 
       let char = e.key.toUpperCase();
       if (e.code.startsWith("Key")) char = e.code.replace("Key", "");
@@ -247,7 +290,7 @@ function Game() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [cars, sel, move, steps, started, murderer, plan, simulating]);
+  }, [cars, sel, move, steps, started, murderer, plan, simulating, invisibleBumps]);
 
   const dragStart = useRef<{ id: string; x: number; y: number; pitch: number; min: number; max: number } | null>(null);
   const [drag, setDrag] = useState<{ id: string; offset: number } | null>(null);
@@ -256,6 +299,8 @@ function Game() {
     const occ = new Set<string>();
     for (const o of cars) {
       if (o.id === c.id) continue;
+      // התעלמות ממכוניות מוסתרות בזמן גרירה כדי לאפשר לשחקן לעשות את הטעות ולהתנגש
+      if (hidden.has(o.id) && !reveal) continue; 
       for (let k = 0; k < o.len; k++) occ.add(o.dir === "h" ? `${o.row},${o.col + k}` : `${o.row + k},${o.col}`);
     }
     const free = (r: number, col: number) => r >= 0 && r < 6 && col >= 0 && col < 6 && !occ.has(`${r},${col}`);
@@ -271,7 +316,7 @@ function Game() {
   };
 
   const handlePointerDown = (c: Car, e: React.PointerEvent) => {
-    if (simulating) return; // מונע גרירה בזמן סימולציה
+    if (simulating) return;
     try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch (err) {}
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const gap = 6;
@@ -317,6 +362,19 @@ function Game() {
       setPlan((p) => [...p, { id: c.id, move: moveDir, steps: calculatedSteps }]);
       return;
     }
+
+    // בדיקת התנגשות בסתר בגרירה
+    if (checkInvisibleBump(c, moveDir, calculatedSteps)) {
+      const newBumps = invisibleBumps + 1;
+      setInvisibleBumps(newBumps);
+      if (newBumps >= 3) {
+        setFailed(true);
+      } else {
+        flash(`נחסמת על ידי מכונית בלתי נראית! (ניסיון ${newBumps} מתוך 3)`);
+      }
+      return;
+    }
+
     const r = applyMove(cars, c.id, moveDir, calculatedSteps);
     if (r.error) return flash(r.error);
     setCars(r.cars);
@@ -435,7 +493,9 @@ function Game() {
                   <X className="h-12 w-12 text-destructive" />
                   <span className="text-3xl text-destructive">Oops! · אופס!</span>
                   <span className="text-base text-muted-foreground">
-                    התוכנית שגויה או שלא שחררה את הרכב האדום.
+                    {invisibleBumps >= 3 
+                      ? "התנגשת 3 פעמים במכוניות בלתי נראות!" 
+                      : "התוכנית שגויה או שלא שחררה את הרכב האדום."}
                   </span>
                   <div className="mt-3 flex gap-2">
                     <Button variant="ghost" onClick={() => loadPuzzle(idx)} className="chip">
