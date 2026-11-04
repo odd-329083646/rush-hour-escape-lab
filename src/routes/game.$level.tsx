@@ -59,7 +59,8 @@ function Game() {
   const [wonAt, setWonAt] = useState<number | null>(null);
   const [plan, setPlan] = useState<Planned[]>([]);
   const [levelsOpen, setLevelsOpen] = useState(false);
-  const [failed, setFailed] = useState(false); // הוספנו את משתנה הפסילה
+  const [failed, setFailed] = useState(false);
+  const [simulating, setSimulating] = useState(false); // הוספנו משתנה לסימולציה
 
   const won = wonAt !== null;
   const elapsed = startedAt ? Math.floor(((wonAt ?? now) - startedAt) / 1000) : 0;
@@ -73,7 +74,7 @@ function Game() {
     setSel(null); setMove(null); setSteps(1); setMoves(0);
     setMsg("Study the lot, then press Start Solving");
     setWarn(null); setStarted(false); setHidden(new Set()); setReveal(false);
-    setStartedAt(null); setWonAt(null); setPlan([]); setFailed(false); // איפוס פסילה
+    setStartedAt(null); setWonAt(null); setPlan([]); setFailed(false); setSimulating(false);
   };
 
   useEffect(() => {
@@ -139,15 +140,45 @@ function Game() {
     if (isSolved(r.cars)) markWon(); else setMsg("Moved!");
   };
 
-  // הפונקציה המעודכנת שמפעילה את מסך הפסילה
-  const submitPlan = () => {
+  // פונקציית הגשת הפתרון עכשיו מפעילה סימולציה ויזואלית!
+  const submitPlan = async () => {
+    if (simulating) return; // מונע לחיצה כפולה
     if (!plan.length) return flash("Add some moves first");
-    const r = runPlan(cars, plan);
-    if (r.error || !isSolved(r.cars)) {
-      setFailed(true);
-      return;
+    
+    setSimulating(true);
+    setHidden(new Set()); // חושף את המכוניות המוסתרות כדי שנראה אותן זזות
+    setMsg("Simulating moves... · מדמה מהלכים...");
+
+    let currentCars = [...cars];
+
+    // לולאה שעוברת מהלך-מהלך
+    for (let i = 0; i < plan.length; i++) {
+      const p = plan[i];
+      const r = applyMove(currentCars, p.id, p.move, p.steps);
+      
+      // אם מהלך מסוים נכשל (למשל התנגשות)
+      if (r.error) {
+        setFailed(true);
+        setSimulating(false);
+        return;
+      }
+      
+      // מעדכן את הלוח ויזואלית למהלך הנוכחי
+      currentCars = r.cars;
+      setCars(currentCars);
+      setMoves(i + 1);
+      
+      // מחכה 700 מילי-שניות לפני המהלך הבא
+      await new Promise((res) => setTimeout(res, 700));
     }
-    setCars(r.cars); setMoves(plan.length); markWon();
+
+    // בסיום כל המהלכים המתוכננים
+    if (isSolved(currentCars)) {
+      markWon();
+    } else {
+      setFailed(true); // אם סיימנו את התוכנית והרכב האדום לא בחוץ
+    }
+    setSimulating(false);
   };
 
   const finish = () => {
@@ -158,10 +189,12 @@ function Game() {
   const isLast = idx >= puzzles.length - 1;
   const standard = cars.filter((c) => c.len === 2);
   const trucks = cars.filter((c) => c.len === 3);
-  const showBoard = !(murderer && started && !won && !failed); // דואג שהלוח יופיע גם במסך פסילה
+  
+  // הלוח יוצג תמיד כשיש סימולציה
+  const showBoard = simulating || !(murderer && started && !won && !failed);
 
   const carBtn = (c: Car) => (
-    <button key={c.id} onClick={() => setSel(c.id)} data-active={sel === c.id} title={c.name} className="palette-cell">
+    <button key={c.id} onClick={() => setSel(c.id)} data-active={sel === c.id} title={c.name} className="palette-cell" disabled={simulating}>
       <span className="h-3 rounded-sm" style={{ background: c.color, width: c.len === 3 ? "2.5rem" : "1.5rem" }} />
       <span className="text-xs">{c.id} {c.dir === "h" ? "↔" : "↕"}</span>
     </button>
@@ -169,7 +202,7 @@ function Game() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      if (e.altKey || e.ctrlKey || e.metaKey || simulating) return; // חוסם מקלדת בזמן סימולציה
 
       let char = e.key.toUpperCase();
       if (e.code.startsWith("Key")) char = e.code.replace("Key", "");
@@ -214,7 +247,7 @@ function Game() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [cars, sel, move, steps, started, murderer, plan]);
+  }, [cars, sel, move, steps, started, murderer, plan, simulating]);
 
   const dragStart = useRef<{ id: string; x: number; y: number; pitch: number; min: number; max: number } | null>(null);
   const [drag, setDrag] = useState<{ id: string; offset: number } | null>(null);
@@ -238,6 +271,7 @@ function Game() {
   };
 
   const handlePointerDown = (c: Car, e: React.PointerEvent) => {
+    if (simulating) return; // מונע גרירה בזמן סימולציה
     try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch (err) {}
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const gap = 6;
@@ -248,6 +282,7 @@ function Game() {
   };
 
   const handlePointerMove = (c: Car, e: React.PointerEvent) => {
+    if (simulating) return;
     const d = dragStart.current;
     if (!d || d.id !== c.id) return;
     const raw = c.dir === "h" ? e.clientX - d.x : e.clientY - d.y;
@@ -256,6 +291,7 @@ function Game() {
   };
 
   const handlePointerUp = (c: Car, e: React.PointerEvent) => {
+    if (simulating) return;
     try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch (err) {}
     const d = dragStart.current;
     dragStart.current = null;
@@ -292,16 +328,16 @@ function Game() {
   return (
     <main className="lot-bg flex h-dvh flex-col gap-2 overflow-hidden px-2 py-2 sm:px-4">
       <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2 overflow-x-auto">
-        <Button asChild variant="ghost" className="chip shrink-0 px-2 sm:px-3.5"><Link to="/" aria-label="Back to Home" title="Back to Home"><Home className="h-4 w-4" /><span className="hidden sm:inline">Back to Home</span></Link></Button>
+        <Button asChild variant="ghost" className="chip shrink-0 px-2 sm:px-3.5" disabled={simulating}><Link to="/" aria-label="Back to Home" title="Back to Home"><Home className="h-4 w-4" /><span className="hidden sm:inline">Back to Home</span></Link></Button>
         <h1 className="min-w-0 truncate font-display text-sm font-bold md:text-xl">{cfg.title} <span className="text-muted-foreground">· {cfg.he} (שלב {idx + 1})</span></h1>
         <div className="flex shrink-0 gap-2">
           {started && hidden.size > 0 && !murderer && (
-            <button onClick={() => setReveal((v) => !v)} data-active={reveal} className="chip">
+            <button onClick={() => setReveal((v) => !v)} data-active={reveal} className="chip" disabled={simulating}>
               {reveal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {reveal ? "Hide cars" : "Reveal cars"}
             </button>
           )}
-           <Button variant="ghost" onClick={() => setLevelsOpen(true)} aria-label="Levels · בחר שלב" title="Levels · בחר שלב" className="chip px-2 sm:px-3.5"><Layers className="h-4 w-4" /><span className="hidden sm:inline">Levels · בחר שלב</span></Button>
-           <Button variant="ghost" onClick={() => loadPuzzle(idx)} aria-label="Reset" title="Reset" className="chip px-2 sm:px-3.5"><RotateCcw className="h-4 w-4" /><span className="hidden sm:inline">Reset</span></Button>
+           <Button variant="ghost" onClick={() => setLevelsOpen(true)} aria-label="Levels · בחר שלב" title="Levels · בחר שלב" className="chip px-2 sm:px-3.5" disabled={simulating}><Layers className="h-4 w-4" /><span className="hidden sm:inline">Levels · בחר שלב</span></Button>
+           <Button variant="ghost" onClick={() => loadPuzzle(idx)} aria-label="Reset" title="Reset" className="chip px-2 sm:px-3.5" disabled={simulating}><RotateCcw className="h-4 w-4" /><span className="hidden sm:inline">Reset</span></Button>
         </div>
       </header>
 
@@ -315,7 +351,7 @@ function Game() {
             <h2 className="panel-title">Direction</h2>
             <div className="grid grid-cols-3 grid-rows-3 gap-2">
               {DIRS.map(({ m, Icon, cls }) => (
-                 <Button variant="ghost" key={m} aria-label={m} title={m} onClick={() => setMove(m)} data-active={move === m} className={`ctrl ${cls}`}>
+                 <Button variant="ghost" key={m} aria-label={m} title={m} onClick={() => setMove(m)} data-active={move === m} className={`ctrl ${cls}`} disabled={simulating}>
                   <Icon className="h-5 w-5" />
                  </Button>
               ))}
@@ -325,11 +361,11 @@ function Game() {
             <h2 className="panel-title">Steps</h2>
             <div className="grid grid-cols-4 gap-2">
               {[1, 2, 3, 4].map((n) => (
-                 <Button variant="ghost" key={n} onClick={() => setSteps(n)} data-active={steps === n} className="ctrl px-0 font-display">{n}</Button>
+                 <Button variant="ghost" key={n} onClick={() => setSteps(n)} data-active={steps === n} className="ctrl px-0 font-display" disabled={simulating}>{n}</Button>
               ))}
             </div>
           </div>
-           <Button onClick={execute} disabled={won} className="execute">
+           <Button onClick={execute} disabled={won || simulating} className="execute">
             {murderer ? (
               <>
                 <Plus className="h-4 w-4" /> Add move · הוסף
@@ -425,15 +461,15 @@ function Game() {
                         <span className="h-3 w-5 rounded-sm" style={{ background: c.color }} />
                         <span className="flex-1">{c.id} · {c.name}</span>
                         <span className="font-display">{ARROW[p.move]} {p.steps}</span>
-                        <button aria-label="Remove move" onClick={() => setPlan((q) => q.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-foreground"><Trash2 className="h-4 w-4" /></button>
+                        <button aria-label="Remove move" onClick={() => setPlan((q) => q.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-foreground" disabled={simulating}><Trash2 className="h-4 w-4" /></button>
                       </li>
                     );
                   })}
                 </ol>
               )}
               <div className="flex gap-2">
-                <button onClick={() => setPlan([])} disabled={!plan.length} className="chip">Clear</button>
-                <button onClick={submitPlan} className="execute flex flex-1 items-center justify-center gap-2"><Send className="h-4 w-4" /> Submit Solution · הגש פתרון</button>
+                <button onClick={() => setPlan([])} disabled={!plan.length || simulating} className="chip">Clear</button>
+                <button onClick={submitPlan} disabled={simulating} className="execute flex flex-1 items-center justify-center gap-2"><Send className="h-4 w-4" /> Submit Solution · הגש פתרון</button>
               </div>
             </div>
           )}
