@@ -57,6 +57,7 @@ function Game() {
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [now, setNow] = useState(0);
   const [wonAt, setWonAt] = useState<number | null>(null);
+  const [failed, setFailed] = useState(false);
   const [plan, setPlan] = useState<Planned[]>([]);
   const [levelsOpen, setLevelsOpen] = useState(false);
   const won = wonAt !== null;
@@ -71,7 +72,7 @@ function Game() {
     setSel(null); setMove(null); setSteps(1); setMoves(0);
     setMsg("Study the lot, then press Start Solving");
     setWarn(null); setStarted(false); setHidden(new Set()); setReveal(false);
-    setStartedAt(null); setWonAt(null); setPlan([]);
+    setStartedAt(null); setWonAt(null); setPlan([]); setFailed(false);
   };
 
   useEffect(() => {
@@ -138,12 +139,14 @@ function Game() {
   };
 
   const submitPlan = () => {
-    if (!plan.length) return flash("Add some moves first");
-    const r = runPlan(cars, plan);
-    if (r.error) return flash(`Move ${r.failedAt! + 1}: ${r.error}`);
-    if (!isSolved(r.cars)) return flash("Plan doesn't free the red car");
-    setCars(r.cars); setMoves(plan.length); markWon();
-  };
+  if (!plan.length) return flash("Add some moves first");
+  const r = runPlan(cars, plan);
+  if (r.error || !isSolved(r.cars)) {
+    setFailed(true);
+    return;
+  }
+  setCars(r.cars); setMoves(plan.length); markWon();
+};
 
   const finish = () => {
     if (isSolved(cars)) markWon();
@@ -389,6 +392,20 @@ function Game() {
                   </div>
                 </div>
               )}
+              {failed && (
+              <div className="win flex-col gap-2 text-center" style={{ backgroundColor: 'oklch(0.16 0.01 260 / 0.95)' }}>
+                <X className="h-12 w-12 text-destructive" />
+                <span className="text-3xl text-destructive">Oops! · אופס!</span>
+                <span className="text-base text-muted-foreground">
+                  התוכנית שגויה או שלא שחררה את הרכב האדום.
+                </span>
+                <div className="mt-3 flex gap-2">
+                  <Button variant="ghost" onClick={() => loadPuzzle(idx)} className="chip">
+                    <RotateCcw className="h-4 w-4" /> Try again · נסה שוב
+                  </Button>
+                </div>
+              </div>
+            )}
             </div>
           ) : (
             <div className="panel relative flex w-full flex-col gap-2 self-start" style={{ width: "var(--board)", maxHeight: "var(--board)" }}>
