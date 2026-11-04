@@ -284,11 +284,11 @@ function Game() {
   };
 
   return (
-    <main className="lot-bg min-h-screen px-4 py-6">
-      <header className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
-        <Link to="/" className="chip"><Home className="h-4 w-4" /> Back to Home</Link>
-        <h1 className="font-display text-lg font-bold md:text-2xl">{cfg.title} <span className="text-muted-foreground">· {cfg.he} (שלב {idx + 1} מתוך {puzzles.length})</span></h1>
-        <div className="flex flex-wrap gap-2">
+    <main className="lot-bg flex h-dvh flex-col gap-2 overflow-hidden px-2 py-2 sm:px-4">
+      <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2 overflow-x-auto">
+        <Link to="/" className="chip shrink-0"><Home className="h-4 w-4" /><span className="hidden sm:inline"> Back to Home</span></Link>
+        <h1 className="min-w-0 truncate font-display text-sm font-bold md:text-xl">{cfg.title} <span className="text-muted-foreground">· {cfg.he} (שלב {idx + 1} מתוך {puzzles.length})</span></h1>
+        <div className="flex shrink-0 gap-2">
           {started && hidden.size > 0 && !murderer && (
             <button onClick={() => setReveal((v) => !v)} data-active={reveal} className="chip">
               {reveal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {reveal ? "Hide cars" : "Reveal cars"}
@@ -299,8 +299,8 @@ function Game() {
         </div>
       </header>
 
-      <div className="mx-auto mt-8 grid max-w-6xl gap-6 lg:grid-cols-[220px_1fr_240px]">
-        <aside className="panel order-2 flex flex-col gap-6 lg:order-1">
+      <div className="game-grid">
+        <aside className="panel flex flex-col gap-2" style={{ gridArea: "ctrl" }}>
           <div>
             <h2 className="panel-title">Direction</h2>
             <div className="grid grid-cols-3 grid-rows-3 gap-2">
@@ -329,16 +329,9 @@ function Game() {
               <CheckCircle2 className="h-4 w-4" /> Finished · סיימתי
             </button>
           )}
-          <div className="text-sm text-muted-foreground">
-            <p className="flex justify-between">
-              <span>Moves: <span className="font-display text-foreground">{murderer && !won ? plan.length : moves}</span></span>
-              <span className="flex items-center gap-1"><Timer className="h-4 w-4" /><span className="font-display text-foreground">{clock}</span></span>
-            </p>
-            <p className="mt-1">{msg}</p>
-          </div>
-        </aside>
+</aside>
 
-        <section className="order-1 flex justify-center lg:order-2">
+        <section className="flex min-h-0 flex-col items-center gap-2" style={{ gridArea: "board" }}>
           {showBoard ? (
             <div className="board">
               {warn && <div key={warn.key} className="warn" role="alert">{warn.text}</div>}
@@ -389,13 +382,13 @@ function Game() {
               )}
             </div>
           ) : (
-            <div className="panel relative flex w-full max-w-[480px] flex-col gap-4 self-start">
+            <div className="panel relative flex w-full flex-col gap-2 self-start" style={{ width: "var(--board)", maxHeight: "var(--board)" }}>
               {warn && <div key={warn.key} className="warn" role="alert">{warn.text}</div>}
               <h2 className="panel-title mb-0">Planned Moves · מהלכים מתוכננים</h2>
               {plan.length === 0 ? (
                 <p className="py-10 text-center text-sm text-muted-foreground">Pick a car, direction and steps, then press Add move.</p>
               ) : (
-                <ol className="flex max-h-96 flex-col gap-2 overflow-auto">
+                <ol className="flex min-h-0 flex-1 flex-col gap-2 overflow-auto">
                   {plan.map((p, i) => {
                     const c = cars.find((x) => x.id === p.id)!;
                     return (
@@ -416,14 +409,19 @@ function Game() {
               </div>
             </div>
           )}
+          <div className="flex w-full shrink-0 items-center justify-between gap-3 rounded-xl border bg-card px-3 py-1.5 text-sm text-muted-foreground" style={{ width: "var(--board)" }}>
+            <span>Moves: <span className="font-display text-foreground">{murderer && !won ? plan.length : moves}</span></span>
+            <span className="min-w-0 flex-1 truncate text-center">{msg}</span>
+            <span className="flex items-center gap-1"><Timer className="h-4 w-4" /><span className="font-display text-foreground">{clock}</span></span>
+          </div>
         </section>
 
-        <aside className="panel order-3">
+        <aside className="panel" style={{ gridArea: "cars" }}>
           <h2 className="panel-title">Cars</h2>
           <div className="grid grid-cols-4 gap-2">{standard.map(carBtn)}</div>
           {trucks.length > 0 && (
             <>
-              <h2 className="panel-title mt-4">Trucks</h2>
+              <h2 className="panel-title mt-2">Trucks</h2>
               <div className="grid grid-cols-2 gap-2">{trucks.map(carBtn)}</div>
             </>
           )}
