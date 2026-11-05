@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, Eye, EyeOff, Home, Layers, Lock, Play, Plus, RotateCcw, Send, Timer, Trash2, Trophy, X } from "lucide-react";
-import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, loadPuzzlesAsync, type Car, type Level, type Move } from "@/lib/puzzles";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, Eye, EyeOff, Home, Layers, Lock, Play, Plus, RotateCcw, Send, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
+import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, IS_OFFLINE_MODE, getRandomPuzzle, type Car, type Level, type Move } from "@/lib/puzzles";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/game/$level")({
@@ -80,7 +80,6 @@ function Game() {
   };
 
   useEffect(() => {
-    // השלבים כבר נטענו בהצלחה ב-__root.tsx, אפשר להשתמש בהם מיד!
     setPuzzles(DEFAULT_PUZZLES);
     
     const saved = parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0;
@@ -214,11 +213,6 @@ function Game() {
     setSimulating(false);
   };
 
-  const finish = () => {
-    if (isSolved(cars)) markWon();
-    else flash("Not solved yet — the red car must reach the exit");
-  };
-
   const isLast = idx >= puzzles.length - 1;
   const standard = cars.filter((c) => c.len === 2);
   const trucks = cars.filter((c) => c.len === 3);
@@ -288,7 +282,6 @@ function Game() {
     const occ = new Set<string>();
     for (const o of cars) {
       if (o.id === c.id) continue;
-      // כאן הוסר המעקף - כעת מכוניות נסתרות חוסמות את הגרירה ויזואלית כמו קיר מוצק
       for (let k = 0; k < o.len; k++) occ.add(o.dir === "h" ? `${o.row},${o.col + k}` : `${o.row + k},${o.col}`);
     }
     const free = (r: number, col: number) => r >= 0 && r < 6 && col >= 0 && col < 6 && !occ.has(`${r},${col}`);
@@ -341,7 +334,6 @@ function Game() {
     const offset = Math.max(d.min, Math.min(d.max, raw));
     const cellsMoved = Math.round(offset / d.pitch);
 
-    // בדיקה אם השחקן ניסה למשוך את המכונית בכוח לתוך "קיר" המכונית הבלתי נראית
     if ((raw > offset + 20 || raw < offset - 20) && (level === "medium" || level === "hard")) {
       const intendedDir: Move = c.dir === "h" ? (raw > 0 ? "right" : "left") : (raw > 0 ? "down" : "up");
       if (checkInvisibleBump(c, intendedDir, Math.abs(cellsMoved) + 1)) {
@@ -377,6 +369,28 @@ function Game() {
 
   return (
     <main className="lot-bg flex h-dvh flex-col gap-2 overflow-hidden px-2 py-2 sm:px-4">
+      {/* באנר התראה למצב אופליין */}
+      {IS_OFFLINE_MODE && (
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between rounded-lg border border-amber-500/30 bg-amber-500/15 px-3 py-1.5 text-xs text-amber-600 dark:text-amber-400 sm:text-sm">
+          <div className="flex items-center gap-2">
+            <WifiOff className="h-4 w-4 shrink-0" />
+            <span>אין חיבור לאינטרנט — המשחק פועל במצב אופליין עם שלבים אקראיים.</span>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              const randPuz = getRandomPuzzle();
+              setCars(randPuz.cars);
+              setMsg("הוגרל שלב אקראי חדש!");
+            }}
+            className="h-7 gap-1 text-xs"
+          >
+            <Shuffle className="h-3 w-3" /> שלב אקראי
+          </Button>
+        </div>
+      )}
+
       <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2 overflow-x-auto">
         <Button asChild variant="ghost" className="chip shrink-0 px-2 sm:px-3.5" disabled={simulating}><Link to="/" aria-label="Back to Home" title="Back to Home"><Home className="h-4 w-4" /><span className="hidden sm:inline">Back to Home</span></Link></Button>
         <h1 className="min-w-0 truncate font-display text-sm font-bold md:text-xl">{cfg.title} <span className="text-muted-foreground">· {cfg.he} (שלב {idx + 1})</span></h1>
@@ -422,7 +436,7 @@ function Game() {
            )}
           </div>
           )}
-</aside>
+        </aside>
 
         <section className="flex min-h-0 flex-col items-center gap-2" style={{ gridArea: "board" }}>
           {showBoard ? (
