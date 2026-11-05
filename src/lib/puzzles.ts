@@ -83,7 +83,8 @@ function isValidPuzzle(p: unknown): p is PuzzleRaw {
  */
 export async function loadPuzzlesAsync(): Promise<{ par: number; cars: Car[] }[]> {
   try {
-    const response = await fetch("/puzzles.json", { cache: "no-store" });
+    const PUZZLES_URL = "https://raw.githubusercontent.com/odd-329083646/rush-hour-escape-lab/refs/heads/main/public/puzzles.json?token=GHSAT0AAAAAAENX2S6BEZRXDZKUPB6GVGZS2XMT3OA";
+    const response = await fetch(PUZZLES_URL, { cache: "no-store" });
     if (!response.ok) throw new Error(`Failed to load external puzzles (${response.status})`);
     const data: unknown = await response.json();
 
