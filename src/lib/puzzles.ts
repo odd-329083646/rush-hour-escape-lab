@@ -105,11 +105,11 @@ export async function loadPuzzlesAsync(): Promise<{ par: number; cars: Car[] }[]
   }
 }
 
-export const LEVELS: Record<Level, { title: string; he: string; par: number; cars: Car[] }> = {
-  easy: { title: "Easy", he: "קל", par: DEFAULT_PUZZLES[0]!.par, cars: DEFAULT_PUZZLES[0]!.cars },
-  medium: { title: "Medium", he: "בינוני", par: DEFAULT_PUZZLES[0]!.par, cars: DEFAULT_PUZZLES[0]!.cars },
-  hard: { title: "Hard", he: "קשה", par: DEFAULT_PUZZLES[0]!.par, cars: DEFAULT_PUZZLES[0]!.cars },
-  murderer: { title: "Murderer", he: "רוצח", par: DEFAULT_PUZZLES[0]!.par, cars: DEFAULT_PUZZLES[0]!.cars },
+export const LEVELS: Record<Level, { title: string; he: string }> = {
+  easy: { title: "Easy", he: "קל" },
+  medium: { title: "Medium", he: "בינוני" },
+  hard: { title: "Hard", he: "קשה" },
+  murderer: { title: "Murderer", he: "רוצח" },
 };
 
 /** Applies a list of planned moves in order; stops at the first invalid one. */
