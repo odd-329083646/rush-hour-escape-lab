@@ -199,7 +199,7 @@ function Game() {
     let currentCars = [...cars];
 
     for (let i = 0; i < plan.length; i++) {
-      const p = plan[i];
+      const p = plan[i]!;
       const r = applyMove(currentCars, p.id, p.move, p.steps);
       
       if (r.error) {
@@ -424,17 +424,11 @@ function Game() {
               ))}
             </div>
           </div>
-           <Button onClick={execute} disabled={won || simulating} className="execute">
-            {murderer ? (
-              <>
-                <Plus className="h-4 w-4" /> Add move · הוסף
-              </>
-            ) : (
-              <>
-                <Play className="h-4 w-4" /> Execute · בצע
-              </>
-            )}
-          </Button>
+           {murderer && (
+             <Button onClick={execute} disabled={won || simulating} className="execute">
+               <Plus className="h-4 w-4" /> Add move · הוסף
+             </Button>
+           )}
           </div>
           )}
 </aside>
