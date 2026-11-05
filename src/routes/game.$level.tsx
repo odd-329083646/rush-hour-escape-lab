@@ -80,24 +80,15 @@ function Game() {
   };
 
   useEffect(() => {
-    let alive = true;
-    loadPuzzlesAsync().then((loadedPuzzles) => {
-      if (!alive) return;
-      const finalPuzzles = loadedPuzzles.length > 1 ? loadedPuzzles : DEFAULT_PUZZLES;
-      setPuzzles(finalPuzzles);
-      const saved = parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0;
-      const i = Math.max(0, Math.min(saved, finalPuzzles.length - 1));
-      setMaxSolved(Number.isFinite(parseInt(localStorage.getItem(maxKey) ?? "", 10)) ? parseInt(localStorage.getItem(maxKey)!, 10) : -1);
-      loadPuzzle(i, finalPuzzles);
-    }).catch(() => {
-      if (!alive) return;
-      setPuzzles(DEFAULT_PUZZLES);
-      const saved = parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0;
-      const i = Math.max(0, Math.min(saved, DEFAULT_PUZZLES.length - 1));
-      setMaxSolved(Number.isFinite(parseInt(localStorage.getItem(maxKey) ?? "", 10)) ? parseInt(localStorage.getItem(maxKey)!, 10) : -1);
-      loadPuzzle(i, DEFAULT_PUZZLES);
-    });
-    return () => { alive = false; };
+    // השלבים כבר נטענו בהצלחה ב-__root.tsx, אפשר להשתמש בהם מיד!
+    setPuzzles(DEFAULT_PUZZLES);
+    
+    const saved = parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0;
+    const i = Math.max(0, Math.min(saved, DEFAULT_PUZZLES.length - 1));
+    
+    setMaxSolved(Number.isFinite(parseInt(localStorage.getItem(maxKey) ?? "", 10)) ? parseInt(localStorage.getItem(maxKey)!, 10) : -1);
+    
+    loadPuzzle(i, DEFAULT_PUZZLES);
   }, [level]);
 
   useEffect(() => {
