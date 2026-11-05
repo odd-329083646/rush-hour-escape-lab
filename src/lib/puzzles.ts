@@ -38,7 +38,7 @@ function inflateCars(shortCars: ShortCar[]): Car[] {
   });
 }
 
-// שלב גיבוי ראשוני למקרה שהטעינה מהרשת תכשל
+// שלב גיבוי ראשוני
 const INITIAL_FALLBACK = [
   {
     par: 9,
@@ -77,14 +77,17 @@ function isValidPuzzle(p: unknown): p is PuzzleRaw {
 }
 
 /**
- * טוען את השלבים מ-‎/puzzles.json‎ (קובץ סטטי בתיקיית public).
- * אפשר לערוך את הקובץ בכל עת — רענון הדף יטען את השלבים החדשים.
- * אם הקובץ חסר, פגום או ריק — משתמשים ברשימת הגיבוי המקומית.
+ * טוען את השלבים מ-GitHub בעזרת קישור קבוע.
+ * התוספת של חותמת הזמן מונעת בעיות Cache.
  */
 export async function loadPuzzlesAsync(): Promise<{ par: number; cars: Car[] }[]> {
   try {
-    const response = await fetch("/puzzles.json", { cache: "no-store" });
+    const PUZZLES_URL = "https://raw.githubusercontent.com/odd-329083646/rush-hour-escape-lab/refs/heads/main/public/puzzles.json";
+    
+    // משיכת הקובץ מגיטהאב עם ביטול מטמון לעדכונים בזמן אמת
+    const response = await fetch(`${PUZZLES_URL}?t=${Date.now()}`, { cache: "no-store" });
     if (!response.ok) throw new Error(`Failed to load external puzzles (${response.status})`);
+    
     const data: unknown = await response.json();
 
     const raw = Array.isArray(data) ? data : (data as { puzzles?: unknown[] })?.puzzles;
@@ -95,7 +98,7 @@ export async function loadPuzzlesAsync(): Promise<{ par: number; cars: Car[] }[]
 
     if (!loadedPuzzles.length) throw new Error("No valid puzzles in puzzles.json");
 
-    console.log(`Loaded ${loadedPuzzles.length} puzzles successfully!`);
+    console.log(`Loaded ${loadedPuzzles.length} puzzles successfully from GitHub!`);
     DEFAULT_PUZZLES = loadedPuzzles;
     return loadedPuzzles;
   } catch (err) {
@@ -104,6 +107,7 @@ export async function loadPuzzlesAsync(): Promise<{ par: number; cars: Car[] }[]
   }
 }
 
+// הגדרת הרמות - ללא תלות בפאזל ספציפי, מה שמונע קריסה לפאזל היחיד שבגיבוי
 export const LEVELS: Record<Level, { title: string; he: string }> = {
   easy: { title: "Easy", he: "קל" },
   medium: { title: "Medium", he: "בינוני" },
@@ -156,15 +160,13 @@ export function applyMove(cars: Car[], id: string, move: Move, steps: number): {
     if (id === "X" && row === 2 && move === "right") {
       if (occ.has(`${row},${nc}`)) return { cars, error: "Blocked by another car" };
       col += 1;
-      // אם הגענו או עברנו את שער היציאה (עמודה 5 לפגוש הקדמי)
       if (col + car.len - 1 >= 5) {
-        col = 6 - car.len; // מציב את X בדיוק בשער היציאה
-        break; // עצירת הצעדים והכרזה על ניצחון
+        col = 6 - car.len;
+        break;
       }
       continue;
     }
 
-    // בדיקת גבולות רגילה לשאר המכוניות והכיוונים
     if (nr < 0 || nr > 5 || nc < 0 || nc > 5) return { cars, error: "Can't leave the parking lot" };
     if (occ.has(`${nr},${nc}`)) return { cars, error: "Blocked by another car" };
     if (horiz) col += d; else row += d;
