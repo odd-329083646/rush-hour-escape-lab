@@ -8,10 +8,11 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { loadPuzzlesAsync } from "../lib/puzzles";
 
 function NotFoundComponent() {
   return (
@@ -110,6 +111,25 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    // מריץ טעינה מוקדמת של קובץ הפאזלים
+    loadPuzzlesAsync().finally(() => {
+      setIsLoaded(true);
+    });
+  }, []);
+
+  // מציג מסך טעינה קצר במקום להבהב את פאזל הדיפולט
+  if (!isLoaded) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <p className="text-lg font-medium text-muted-foreground animate-pulse">
+          טוען את השלבים...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
