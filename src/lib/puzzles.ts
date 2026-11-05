@@ -5,6 +5,9 @@ export type Move = "up" | "down" | "left" | "right";
 export type Car = { id: string; name: string; color: string; row: number; col: number; len: 2 | 3; dir: Dir };
 export type ShortCar = { id: string; row: number; col: number; dir: Dir };
 
+// משתנה דגל המציין אם האפליקציה פועלת כרגע במצב אופליין
+export let IS_OFFLINE_MODE = false;
+
 // מיפוי מרכזי לכל מכונית (שם, צבע ואורך מוגדרים פעם אחת בלבד)
 const CAR_DEFAULTS: Record<string, { name: string; color: string; len: 2 | 3 }> = {
   X: { name: "Red Racer", color: "var(--car-red)", len: 2 },
@@ -25,7 +28,6 @@ const CAR_DEFAULTS: Record<string, { name: string; color: string; len: 2 | 3 }> 
   R: { name: "Green Truck", color: "var(--car-green)", len: 3 },
 };
 
-// פונקציית עזר שמתרגמת את הרשימה המקוצרת לרשימה מלאה עבור המשחק
 function inflateCars(shortCars: ShortCar[]): Car[] {
   return shortCars.map((c) => {
     const defs = CAR_DEFAULTS[c.id] || { name: `Car ${c.id}`, color: "var(--car-slate)", len: 2 };
@@ -38,7 +40,6 @@ function inflateCars(shortCars: ShortCar[]): Car[] {
   });
 }
 
-// שלב גיבוי ראשוני
 const INITIAL_FALLBACK = [
   {
     par: 9,
@@ -52,7 +53,6 @@ const INITIAL_FALLBACK = [
   },
 ];
 
-// מאגר השלבים שיתעדכן מטעינת הקובץ החיצוני
 export let DEFAULT_PUZZLES: { par: number; cars: Car[] }[] = INITIAL_FALLBACK;
 
 export interface PuzzleRaw {
@@ -60,7 +60,6 @@ export interface PuzzleRaw {
   cars: { id: string; row: number; col: number; dir: "h" | "v" }[];
 }
 
-/** מחזיר true רק לשלב תקין: par מספרי, מכונית X קיימת וכל המכוניות בתוך הלוח */
 function isValidPuzzle(p: unknown): p is PuzzleRaw {
   if (!p || typeof p !== "object") return false;
   const { par, cars } = p as PuzzleRaw;
@@ -76,20 +75,74 @@ function isValidPuzzle(p: unknown): p is PuzzleRaw {
   );
 }
 
-/**
- * טוען את השלבים מ-GitHub בעזרת קישור קבוע.
- * התוספת של חותמת הזמן מונעת בעיות Cache.
+/** 
+ * מחולל שלבים אקראיים בזמן אמת בעזרת ה-BFS. 
+ * מציב מכוניות באופן אקראי ומאמת שהשלב פתיר ומאתגר (par >= minPar).
  */
+export function generateRandomPuzzleOnTheFly(minPar: number = 7): { par: number; cars: Car[] } {
+  const availableIds = Object.keys(CAR_DEFAULTS).filter((id) => id !== "X");
+
+  while (true) {
+    const cars: Car[] = [];
+    const occupied = new Set<string>();
+
+    const canPlace = (r: number, c: number, len: number, dir: Dir) => {
+      if (dir === "h" && c + len > 6) return false;
+      if (dir === "v" && r + len > 6) return false;
+      if (dir === "h" && r === 2) return false; // מונע חסימה רוחבית ישירה בשורת היציאה
+      for (let i = 0; i < len; i++) {
+        const key = dir === "h" ? `${r},${c + i}` : `${r + i},${c}`;
+        if (occupied.has(key)) return false;
+      }
+      return true;
+    };
+
+    const place = (cid: string, r: number, c: number, dir: Dir, len: 2 | 3) => {
+      const defs = CAR_DEFAULTS[cid] || { name: `Car ${cid}`, color: "var(--car-slate)", len };
+      cars.push({ id: cid, name: defs.name, color: defs.color, row: r, col: c, len: defs.len, dir });
+      for (let i = 0; i < len; i++) {
+        occupied.add(dir === "h" ? `${r},${c + i}` : `${r + i},${c}`);
+      }
+    };
+
+    // 1. המכונית האדומה X בשורה 2
+    const xCol = Math.floor(Math.random() * 3);
+    place("X", 2, xCol, "h", 2);
+
+    // 2. הגרלת 6-9 מכוניות נוספות
+    const shuffled = [...availableIds].sort(() => Math.random() - 0.5);
+    const numCars = Math.floor(Math.random() * 4) + 6;
+
+    for (let i = 0; i < Math.min(numCars, shuffled.length); i++) {
+      const cid = shuffled[i]!;
+      const len = CAR_DEFAULTS[cid]?.len ?? 2;
+      for (let attempt = 0; attempt < 25; attempt++) {
+        const dir: Dir = Math.random() > 0.5 ? "h" : "v";
+        const r = Math.floor(Math.random() * 6);
+        const c = Math.floor(Math.random() * 6);
+        if (canPlace(r, c, len, dir)) {
+          place(cid, r, c, dir, len);
+          break;
+        }
+      }
+    }
+
+    // 3. אימות בעזרת ה-BFS
+    const par = minSolution(cars);
+    if (par >= minPar) {
+      return { par, cars };
+    }
+  }
+}
+
 export async function loadPuzzlesAsync(): Promise<{ par: number; cars: Car[] }[]> {
   try {
     const PUZZLES_URL = "https://raw.githubusercontent.com/odd-329083646/rush-hour-escape-lab/refs/heads/main/public/puzzles.json";
     
-    // משיכת הקובץ מגיטהאב עם ביטול מטמון לעדכונים בזמן אמת
     const response = await fetch(`${PUZZLES_URL}?t=${Date.now()}`, { cache: "no-store" });
     if (!response.ok) throw new Error(`Failed to load external puzzles (${response.status})`);
     
     const data: unknown = await response.json();
-
     const raw = Array.isArray(data) ? data : (data as { puzzles?: unknown[] })?.puzzles;
     const loadedPuzzles = (Array.isArray(raw) ? raw : [])
       .filter(isValidPuzzle)
@@ -99,15 +152,20 @@ export async function loadPuzzlesAsync(): Promise<{ par: number; cars: Car[] }[]
     if (!loadedPuzzles.length) throw new Error("No valid puzzles in puzzles.json");
 
     console.log(`Loaded ${loadedPuzzles.length} puzzles successfully from GitHub!`);
+    IS_OFFLINE_MODE = false;
     DEFAULT_PUZZLES = loadedPuzzles;
     return loadedPuzzles;
   } catch (err) {
-    console.error("Could not load puzzles.json, using fallback:", err);
-    return INITIAL_FALLBACK;
+    console.warn("Could not load puzzles.json from network. Switching to offline generator mode:", err);
+    IS_OFFLINE_MODE = true;
+
+    // במידה ואין אינטרנט, ייצור 5 שלבים אקראיים בזמן אמת במקום להיכשל
+    const offlinePuzzles = Array.from({ length: 5 }, () => generateRandomPuzzleOnTheFly(6));
+    DEFAULT_PUZZLES = offlinePuzzles;
+    return offlinePuzzles;
   }
 }
 
-// הגדרת הרמות - ללא תלות בפאזל ספציפי, מה שמונע קריסה לפאזל היחיד שבגיבוי
 export const LEVELS: Record<Level, { title: string; he: string }> = {
   easy: { title: "Easy", he: "קל" },
   medium: { title: "Medium", he: "בינוני" },
@@ -115,7 +173,6 @@ export const LEVELS: Record<Level, { title: string; he: string }> = {
   murderer: { title: "Murderer", he: "רוצח" },
 };
 
-/** Applies a list of planned moves in order; stops at the first invalid one. */
 export function runPlan(cars: Car[], plan: { id: string; move: Move; steps: number }[]): { cars: Car[]; failedAt?: number; error?: string } {
   let cur = cars;
   for (let i = 0; i < plan.length; i++) {
@@ -126,8 +183,11 @@ export function runPlan(cars: Car[], plan: { id: string; move: Move; steps: numb
   return { cars: cur };
 }
 
-/** פונקציה ששולפת שלב אקראי (כולל המכוניות וה-par שלו) מתוך המאגר */
 export function getRandomPuzzle(rand: () => number = Math.random): { par: number; cars: Car[] } {
+  // אם במצב אופליין - מייצר שלב חדש לגמרי בכל פעם שמבקשים
+  if (IS_OFFLINE_MODE) {
+    return generateRandomPuzzleOnTheFly(7);
+  }
   const index = Math.floor(rand() * DEFAULT_PUZZLES.length);
   return DEFAULT_PUZZLES[index]!;
 }
@@ -136,13 +196,11 @@ export function cells(c: Car): [number, number][] {
   return Array.from({ length: c.len }, (_, i) => (c.dir === "h" ? [c.row, c.col + i] : [c.row + i, c.col]));
 }
 
-/** Solved when the red car's front bumper reaches or passes the exit cell (row 2, col 5). */
 export function isSolved(cars: Car[]): boolean {
   const x = cars.find((c) => c.id === "X");
   return !!x && x.row === 2 && x.col + x.len - 1 >= 5;
 }
 
-/** Moves a car exactly `steps` cells; never through other cars or off the grid. */
 export function applyMove(cars: Car[], id: string, move: Move, steps: number): { cars: Car[]; error?: string } {
   const car = cars.find((c) => c.id === id);
   if (!car) return { cars, error: "Select a car first" };
@@ -156,7 +214,6 @@ export function applyMove(cars: Car[], id: string, move: Move, steps: number): {
     const nr = horiz ? row : d > 0 ? row + car.len : row - 1;
     const nc = horiz ? (d > 0 ? col + car.len : col - 1) : col;
 
-    // גמישות מיוחדת למכונית X בדרך ליציאה (שורה 2, תנועה ימינה)
     if (id === "X" && row === 2 && move === "right") {
       if (occ.has(`${row},${nc}`)) return { cars, error: "Blocked by another car" };
       col += 1;
@@ -199,7 +256,6 @@ export function minSolution(start: Car[]): number {
   return -1;
 }
 
-/** Easy: none. Medium: random half of the non-red cars. Hard/Murderer: every car. */
 export function pickHidden(cars: Car[], level: Level, rand: () => number = Math.random): Set<string> {
   if (level === "easy") return new Set();
   if (level === "hard" || level === "murderer") return new Set(cars.map((c) => c.id));
