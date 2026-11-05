@@ -8,7 +8,7 @@ type Props = {
   he: string;
   blurb: string;
   bullets: string[];
-  note?: string;
+  note?: string | undefined;
 };
 
 export function ComingSoon({ Icon, title, he, blurb, bullets, note }: Props) {

@@ -60,7 +60,7 @@ const ENTRIES: Entry[] = [
 
 function Index() {
   return (
-    <main className="lot-bg flex min-h-dvh flex-col items-center justify-center gap-5 px-4 py-6 sm:gap-8 sm:px-5 sm:py-10">
+    <main className="lot-bg flex min-h-dvh flex-col items-center justify-center gap-4 px-4 py-4 sm:gap-8 sm:px-5 sm:py-10">
       <header className="text-center">
         <p className="font-display text-[10px] uppercase tracking-[0.4em] text-primary sm:text-sm">
           Parking Puzzle
