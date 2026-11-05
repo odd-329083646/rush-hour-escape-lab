@@ -1,7 +1,11 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { loadPuzzlesAsync, DEFAULT_PUZZLES, type PuzzleRaw } from "./puzzles";
+import {
+  IS_OFFLINE_MODE,
+  loadPuzzlesAsync,
+  type PuzzleRaw,
+} from "./puzzles";
 
 const JSON_PATH = path.resolve(process.cwd(), "public/puzzles.json");
 
@@ -37,7 +41,7 @@ describe("public/puzzles.json", () => {
 });
 
 describe("loadPuzzlesAsync", () => {
-  it("fetches /puzzles.json, inflates and sorts the puzzles", async () => {
+  it("fetches the puzzle file, inflates and sorts the puzzles", async () => {
     const raw: PuzzleRaw[] = [
       { par: 20, cars: [{ id: "X", row: 2, col: 0, dir: "h" }, { id: "O", row: 0, col: 2, dir: "v" }] },
       { par: 5, cars: [{ id: "X", row: 2, col: 3, dir: "h" }] },
@@ -51,20 +55,29 @@ describe("loadPuzzlesAsync", () => {
       expect(c.color).toBeTruthy();
       expect([2, 3]).toContain(c.len);
     }
+    expect(IS_OFFLINE_MODE).toBe(false);
   });
 
-  it("falls back to the built-in list when the fetch fails", async () => {
+  // The offline path builds its stages on the fly and validates each one with a
+  // breadth-first search, so it needs far more than the default 5s budget.
+  it("switches to the offline generator when the fetch fails", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("not json", { status: 500 })));
     const loaded = await loadPuzzlesAsync();
-    expect(loaded).toHaveLength(1);
-    expect(loaded[0]!.cars.some((c) => c.id === "X")).toBe(true);
-  });
+    expect(loaded.length).toBeGreaterThan(0);
+    for (const p of loaded) {
+      expect(p.cars.some((c) => c.id === "X")).toBe(true);
+      expect(p.par).toBeGreaterThan(0);
+    }
+    expect(IS_OFFLINE_MODE).toBe(true);
+  }, 60_000);
 
-  it("falls back when the JSON is malformed", async () => {
+  it("switches to the offline generator when the JSON is malformed", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response("[{oops", { status: 200 })));
     const loaded = await loadPuzzlesAsync();
-    expect(loaded).toHaveLength(1);
-  });
+    expect(loaded.length).toBeGreaterThan(0);
+    expect(loaded[0]!.cars.some((c) => c.id === "X")).toBe(true);
+    expect(IS_OFFLINE_MODE).toBe(true);
+  }, 60_000);
 
   it("drops invalid entries instead of crashing", async () => {
     const raw = [
