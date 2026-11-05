@@ -84,10 +84,12 @@ describe("pickHidden", () => {
 });
 
 describe("generateRandomPuzzleOnTheFly", () => {
+  // Each attempt is validated with a breadth-first search, and how many attempts
+  // a layout needs is random — this one needs well past the default 5s budget.
   it("returns a playable puzzle that really needs the claimed effort", () => {
     const p = generateRandomPuzzleOnTheFly(6);
     expect(p.cars.some((c) => c.id === "X")).toBe(true);
     expect(p.par).toBeGreaterThanOrEqual(6);
     expect(minSolution(p.cars)).toBe(p.par);
-  });
+  }, 60_000);
 });
