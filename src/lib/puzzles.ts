@@ -40,16 +40,6 @@ function inflateCars(shortCars: ShortCar[]): Car[] {
 
 // שלב גיבוי ראשוני למקרה שהטעינה מהרשת תכשל
 const INITIAL_FALLBACK = [
-  {
-    par: 9,
-    cars: inflateCars([
-      { id: "X", row: 2, col: 0, dir: "h" },
-      { id: "A", row: 0, col: 4, dir: "h" },
-      { id: "O", row: 0, col: 2, dir: "v" },
-      { id: "Q", row: 3, col: 5, dir: "v" },
-      { id: "P", row: 3, col: 0, dir: "h" },
-    ]),
-  },
 ];
 
 // מאגר השלבים שיתעדכן מטעינת הקובץ החיצוני
@@ -88,10 +78,10 @@ export async function loadPuzzlesAsync(): Promise<{ par: number; cars: Car[] }[]
     const data: unknown = await response.json();
 
     const raw = Array.isArray(data) ? data : (data as { puzzles?: unknown[] })?.puzzles;
+    // כאן הוסרה פונקציית ה-sort כדי לשמור על הסדר המקורי מהקובץ
     const loadedPuzzles = (Array.isArray(raw) ? raw : [])
       .filter(isValidPuzzle)
-      .map((p) => ({ par: p.par, cars: inflateCars(p.cars) }))
-      .sort((a, b) => a.par - b.par);
+      .map((p) => ({ par: p.par, cars: inflateCars(p.cars) }));
 
     if (!loadedPuzzles.length) throw new Error("No valid puzzles in puzzles.json");
 
@@ -150,57 +140,4 @@ export function applyMove(cars: Car[], id: string, move: Move, steps: number): {
 
   for (let s = 0; s < steps; s++) {
     const nr = horiz ? row : d > 0 ? row + car.len : row - 1;
-    const nc = horiz ? (d > 0 ? col + car.len : col - 1) : col;
-
-    // גמישות מיוחדת למכונית X בדרך ליציאה (שורה 2, תנועה ימינה)
-    if (id === "X" && row === 2 && move === "right") {
-      if (occ.has(`${row},${nc}`)) return { cars, error: "Blocked by another car" };
-      col += 1;
-      // אם הגענו או עברנו את שער היציאה (עמודה 5 לפגוש הקדמי)
-      if (col + car.len - 1 >= 5) {
-        col = 6 - car.len; // מציב את X בדיוק בשער היציאה
-        break; // עצירת הצעדים והכרזה על ניצחון
-      }
-      continue;
-    }
-
-    // בדיקת גבולות רגילה לשאר המכוניות והכיוונים
-    if (nr < 0 || nr > 5 || nc < 0 || nc > 5) return { cars, error: "Can't leave the parking lot" };
-    if (occ.has(`${nr},${nc}`)) return { cars, error: "Blocked by another car" };
-    if (horiz) col += d; else row += d;
-  }
-
-  return { cars: cars.map((c) => (c.id === id ? { ...c, row, col } : c)) };
-}
-
-/** Breadth-first search; returns the minimum number of slides to solve, or -1. */
-export function minSolution(start: Car[]): number {
-  const key = (cs: Car[]) => cs.map((c) => `${c.row}${c.col}`).join("");
-  const seen = new Set([key(start)]);
-  let frontier = [start];
-  for (let depth = 0; frontier.length; depth++) {
-    const next: Car[][] = [];
-    for (const st of frontier) {
-      if (isSolved(st)) return depth;
-      for (const c of st) {
-        const dirs: Move[] = c.dir === "h" ? ["left", "right"] : ["up", "down"];
-        for (const m of dirs) for (let s = 1; s <= 4; s++) {
-          const r = applyMove(st, c.id, m, s);
-          if (r.error) break;
-          const k = key(r.cars);
-          if (!seen.has(k)) { seen.add(k); next.push(r.cars); }
-        }
-      }
-    }
-    frontier = next;
-  }
-  return -1;
-}
-
-/** Easy: none. Medium: random half of the non-red cars. Hard/Murderer: every car. */
-export function pickHidden(cars: Car[], level: Level, rand: () => number = Math.random): Set<string> {
-  if (level === "easy") return new Set();
-  if (level === "hard" || level === "murderer") return new Set(cars.map((c) => c.id));
-  const pool = cars.filter((c) => c.id !== "X").map((c) => c.id).sort(() => rand() - 0.5);
-  return new Set(pool.slice(0, Math.ceil(pool.length / 2)));
-}
+    const nc = horiz ? (d > 0 ? col + car.
