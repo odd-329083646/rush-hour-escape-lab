@@ -64,6 +64,7 @@ export function DailyGame({ date }: { date: string }) {
       const hit = cars.find((o) => o.id !== c.id && cells(o).some(([a, b]) => a === rr && b === cc));
       if (hit) return hit.id;
     }
+    return undefined;
   };
 
   const go = async (m: Move) => {
