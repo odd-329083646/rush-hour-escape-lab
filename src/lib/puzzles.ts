@@ -262,3 +262,25 @@ export function pickHidden(cars: Car[], level: Level, rand: () => number = Math.
   const pool = cars.filter((c) => c.id !== "X").map((c) => c.id).sort(() => rand() - 0.5);
   return new Set(pool.slice(0, Math.ceil(pool.length / 2)));
 }
+
+/** Today's date as YYYY-MM-DD in the player's local time zone. */
+export function todayKey(d: Date = new Date()): string {
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+/** Loads the daily puzzle for a date from /daily_puzzles.json; random fallback on any error. */
+export async function getDailyPuzzleAsync(dateStr?: string): Promise<{ par: number; cars: Car[] }> {
+  const key = dateStr ?? todayKey();
+  try {
+    const res = await fetch(`/daily_puzzles.json?t=${Date.now()}`, { cache: "no-store" });
+    if (!res.ok) throw new Error(`daily_puzzles.json ${res.status}`);
+    const data = (await res.json()) as Record<string, unknown>;
+    const p = data?.[key];
+    if (!isValidPuzzle(p)) throw new Error(`No valid daily puzzle for ${key}`);
+    return { par: p.par, cars: inflateCars(p.cars) };
+  } catch (err) {
+    console.warn("Daily puzzle unavailable, generating one:", err);
+    return generateRandomPuzzleOnTheFly(10);
+  }
+}
