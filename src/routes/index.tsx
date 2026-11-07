@@ -84,7 +84,7 @@ function Index() {
         className="grid w-full max-w-4xl gap-3 md:grid-cols-3 md:gap-5 lg:max-w-5xl"
       >
         {ENTRIES.map(({ to, title, he, desc, tag, Icon }) => (
-          <Link key={to} to={to} search={to === "/daily" && dailySolved ? { calendar: true } : undefined} className="menu-card">
+          <Link key={to} to={to} search={(to === "/daily" && dailySolved ? { calendar: true } : {}) as never} className="menu-card">
             <span className="menu-icon">
               <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
             </span>

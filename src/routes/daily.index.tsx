@@ -15,7 +15,7 @@ export const Route = createFileRoute("/daily/")({
     ],
   }),
   validateSearch: (s: Record<string, unknown>): { calendar?: boolean } =>
-    s.calendar === true || s.calendar === "true" || s.calendar === 1 ? { calendar: true } : {},
+    [true, "true", 1].includes(s["calendar"] as never) ? { calendar: true } : {},
   component: Today,
 });
 

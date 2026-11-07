@@ -32,6 +32,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
   const dragStart = useRef<{ id: string; pointerId: number; x: number; y: number; pitch: number; min: number; max: number } | null>(null);
   const [drag, setDrag] = useState<{ id: string; offset: number } | null>(null);
   const submitting = useRef(false);
+  const failed = bumps >= 3 && !result;
 
   const reset = (cs: Car[]) => {
     setCars(cs); setSel(null); setHidden(new Set()); setStartedAt(null);
@@ -55,7 +56,6 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
     return () => clearInterval(t);
   }, [startedAt, result, failed]);
 
-  const failed = bumps >= 3 && !result;
   const elapsed = startedAt ? Math.floor(((result ? startedAt + result.time * 1000 : now) - startedAt) / 1000) : 0;
   const started = startedAt !== null;
 
