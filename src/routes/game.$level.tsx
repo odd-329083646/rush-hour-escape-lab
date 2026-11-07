@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, Eye, EyeOff, Home, Layers, Lock, Play, Plus, RotateCcw, Send, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
-import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, IS_OFFLINE_MODE, getRandomPuzzle, type Car, type Level, type Move } from "@/lib/puzzles";
+import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, IS_OFFLINE_MODE, getRandomPuzzle, saveLevelProgress, type Car, type Level, type Move } from "@/lib/puzzles";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/game/$level")({
@@ -98,8 +98,26 @@ function Game() {
   }, [startedAt, won]);
 
   const markWon = () => {
-    setWonAt(Date.now()); setMsg("Solved!"); setSel(null);
-    if (idx > maxSolved) { setMaxSolved(idx); localStorage.setItem(maxKey, String(idx)); }
+    setWonAt(Date.now());
+    setSel(null);
+
+    // חישוב ושמירת הכוכבים, המטבעות והשיאים
+    const timeInSeconds = elapsed;
+    const { stars, coinsEarned } = saveLevelProgress(
+      level,
+      idx,
+      moves,
+      puzzle.par,
+      timeInSeconds,
+      invisibleBumps
+    );
+
+    setMsg(`פתרת ב-${stars} כוכבים והרווחת ${coinsEarned} מטבעות! 🎉`);
+
+    if (idx > maxSolved) {
+      setMaxSolved(idx);
+      localStorage.setItem(maxKey, String(idx));
+    }
   };
 
   const jumpTo = (i: number) => {
