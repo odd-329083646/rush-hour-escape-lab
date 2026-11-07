@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, Coins, Eye, EyeOff, Home, Layers, Lightbulb, Lock, Play, Plus, RotateCcw, Send, Star, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
-import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, IS_OFFLINE_MODE, getRandomPuzzle, saveLevelProgress, getSavedProgress, getCoins, addCoins, getNextBestMove, type Car, type Level, type Move } from "@/lib/puzzles";
+import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, IS_OFFLINE_MODE, getRandomPuzzle, saveLevelProgress, getSavedProgress, getCoins, addCoins, getNextBestMove, TIERS, isTierUnlocked, getSolvesCountInTier, type Car, type Level, type Move } from "@/lib/puzzles";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/game/$level")({
@@ -630,32 +630,71 @@ function Game() {
         </aside>
       </div>
 
+      {/* דיאלוג בחירת השלבים המעודכן לפי Tiers */}
       {levelsOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4" onClick={() => setLevelsOpen(false)}>
-          <div className="panel max-h-[80vh] w-full max-w-lg overflow-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-4 flex items-center justify-between">
+          <div className="panel max-h-[85vh] w-full max-w-xl overflow-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="mb-4 flex items-center justify-between border-b pb-3">
               <h2 className="font-display text-xl font-bold">Choose Level · בחר שלב</h2>
               <button aria-label="Close" onClick={() => setLevelsOpen(false)} className="chip"><X className="h-4 w-4" /></button>
             </div>
-            <div className="grid grid-cols-5 gap-2">
-              {puzzles.map((_, i) => {
-                const locked = i > maxSolved + 1;
-                const done = i <= maxSolved;
-                const starCount = progress[i]?.stars ?? 0;
+
+            <div className="flex flex-col gap-5">
+              {TIERS.map((tier, tierIdx) => {
+                const unlocked = isTierUnlocked(tierIdx, puzzles, progress);
+                const solvedCount = getSolvesCountInTier(tier, puzzles, progress);
+                const tierPuzzles = puzzles
+                  .map((p, originalIdx) => ({ puzzle: p, originalIdx }))
+                  .filter(({ puzzle }) => puzzle.par >= tier.minPar && puzzle.par <= tier.maxPar);
+
+                if (tierPuzzles.length === 0) return null;
 
                 return (
-                  <button key={i} disabled={locked} onClick={() => jumpTo(i)} data-active={i === idx} className="ctrl relative font-display disabled:opacity-40 flex flex-col items-center justify-center p-2 min-h-[3.5rem]">
-                    {locked ? <Lock className="h-4 w-4" /> : i + 1}
-                    {done && <CheckCircle2 className="absolute -right-1 -top-1 h-4 w-4 text-primary" />}
-                    
-                    {!locked && starCount > 0 && (
-                      <div className="flex gap-0.5 mt-1">
-                        {[1, 2, 3].map((s) => (
-                          <Star key={s} className={`h-2.5 w-2.5 ${s <= starCount ? "fill-yellow-400 text-yellow-400" : "text-gray-400"}`} />
-                        ))}
+                  <div key={tier.id} className="rounded-lg border bg-card p-3">
+                    <div className="mb-3 flex items-center justify-between border-b pb-2">
+                      <div className="flex items-center gap-2 font-bold text-sm sm:text-base">
+                        {!unlocked ? (
+                          <Lock className="h-4 w-4 text-amber-500 shrink-0" />
+                        ) : (
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                        )}
+                        <span>{tier.heTitle}</span>
                       </div>
-                    )}
-                  </button>
+                      <span className="text-xs text-muted-foreground">
+                        {unlocked
+                          ? `נפתרו: ${solvedCount}/${tierPuzzles.length}`
+                          : `פתור עוד ${Math.max(0, tier.requiredSolvesToNext - getSolvesCountInTier(TIERS[tierIdx - 1]!, puzzles, progress))} שלבים ברמה הקודמת`}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-5 gap-2">
+                      {tierPuzzles.map(({ originalIdx }) => {
+                        const done = (progress[originalIdx]?.stars ?? 0) > 0;
+                        const starCount = progress[originalIdx]?.stars ?? 0;
+
+                        return (
+                          <button
+                            key={originalIdx}
+                            disabled={!unlocked}
+                            onClick={() => jumpTo(originalIdx)}
+                            data-active={originalIdx === idx}
+                            className="ctrl relative font-display disabled:opacity-40 flex flex-col items-center justify-center p-2 min-h-[3.5rem]"
+                          >
+                            {!unlocked ? <Lock className="h-4 w-4 text-muted-foreground" /> : originalIdx + 1}
+                            {done && <CheckCircle2 className="absolute -right-1 -top-1 h-4 w-4 text-primary" />}
+                            
+                            {unlocked && starCount > 0 && (
+                              <div className="flex gap-0.5 mt-1">
+                                {[1, 2, 3].map((s) => (
+                                  <Star key={s} className={`h-2.5 w-2.5 ${s <= starCount ? "fill-yellow-400 text-yellow-400" : "text-gray-400"}`} />
+                                ))}
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 );
               })}
             </div>
