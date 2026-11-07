@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Both daily routes use the shared DailyGame screen and finalize pointer, keyboard, and button moves through applyMove, keeping collision rules and daily scoring consistent.
