@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, Eye, EyeOff, Home, Layers, Lock, Play, Plus, RotateCcw, Send, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
-import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, IS_OFFLINE_MODE, getRandomPuzzle, saveLevelProgress, type Car, type Level, type Move } from "@/lib/puzzles";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, Eye, EyeOff, Home, Layers, Lock, Play, Plus, RotateCcw, Send, Star, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
+import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, IS_OFFLINE_MODE, getRandomPuzzle, saveLevelProgress, getSavedProgress, type Car, type Level, type Move } from "@/lib/puzzles";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/game/$level")({
@@ -62,10 +62,13 @@ function Game() {
   const [failed, setFailed] = useState(false);
   const [simulating, setSimulating] = useState(false);
   const [invisibleBumps, setInvisibleBumps] = useState(0);
+  const [wonStars, setWonStars] = useState(3);
 
   const won = wonAt !== null;
   const elapsed = startedAt ? Math.floor(((wonAt ?? now) - startedAt) / 1000) : 0;
   const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
+
+  const progress = getSavedProgress(level);
 
   const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
     const p = currentPuzzles[i] ?? currentPuzzles[0];
@@ -77,6 +80,7 @@ function Game() {
     setWarn(null); setStarted(false); setHidden(new Set()); setReveal(false);
     setStartedAt(null); setWonAt(null); setPlan([]); setFailed(false); setSimulating(false);
     setInvisibleBumps(0);
+    setWonStars(3);
   };
 
   useEffect(() => {
@@ -112,6 +116,7 @@ function Game() {
       invisibleBumps
     );
 
+    setWonStars(stars);
     setMsg(`פתרת ב-${stars} כוכבים והרווחת ${coinsEarned} מטבעות! 🎉`);
 
     if (idx > maxSolved) {
@@ -491,8 +496,19 @@ function Game() {
               ))}
               {won && (
                 <div className="win flex-col gap-2 text-center">
-                  <Trophy className="h-12 w-12" />
-                  <span className="text-3xl">Victory! · ניצחון</span>
+                  <Trophy className="h-12 w-12 text-yellow-500 animate-bounce" />
+                  <span className="text-3xl font-bold">Victory! · ניצחון</span>
+                  
+                  {/* תצוגת הכוכבים במסך הניצחון */}
+                  <div className="flex justify-center gap-1 my-1">
+                    {[1, 2, 3].map((s) => (
+                      <Star 
+                        key={s} 
+                        className={`h-8 w-8 ${s <= wonStars ? "fill-yellow-400 text-yellow-400" : "text-gray-600"}`} 
+                      />
+                    ))}
+                  </div>
+
                   <span className="text-base text-muted-foreground">
                     {isLast ? "סיימת את כל השלבים במשחק בהצלחה רבה! כל הכבוד! 🎉" : `${moves} moves · ${clock} · best possible ${puzzle.par}`}
                   </span>
@@ -581,10 +597,21 @@ function Game() {
               {puzzles.map((_, i) => {
                 const locked = i > maxSolved + 1;
                 const done = i <= maxSolved;
+                const starCount = progress[i]?.stars ?? 0;
+
                 return (
-                  <button key={i} disabled={locked} onClick={() => jumpTo(i)} data-active={i === idx} className="ctrl relative font-display disabled:opacity-40">
+                  <button key={i} disabled={locked} onClick={() => jumpTo(i)} data-active={i === idx} className="ctrl relative font-display disabled:opacity-40 flex flex-col items-center justify-center p-2 min-h-[3.5rem]">
                     {locked ? <Lock className="h-4 w-4" /> : i + 1}
                     {done && <CheckCircle2 className="absolute -right-1 -top-1 h-4 w-4 text-primary" />}
+                    
+                    {/* תצוגת הכוכבים מתחת למספר השלב */}
+                    {!locked && starCount > 0 && (
+                      <div className="flex gap-0.5 mt-1">
+                        {[1, 2, 3].map((s) => (
+                          <Star key={s} className={`h-2.5 w-2.5 ${s <= starCount ? "fill-yellow-400 text-yellow-400" : "text-gray-400"}`} />
+                        ))}
+                      </div>
+                    )}
                   </button>
                 );
               })}
