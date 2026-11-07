@@ -427,3 +427,58 @@ export function getNextBestMove(startCars: Car[]): HintResult | null {
 
   return null;
 }
+
+// ==========================================
+// חלוקת שלבים ל-Tiers (קושי לפי מהלכים)
+// ==========================================
+
+export interface TierConfig {
+  id: string;
+  heTitle: string;
+  minPar: number;
+  maxPar: number;
+  requiredSolvesToNext: number; // 4 שלבים כדי לפתוח את הרמה הבאה
+}
+
+export const TIERS: TierConfig[] = [
+  { id: "tier_1", heTitle: "רמה 1 (5–10 מהלכים)", minPar: 5, maxPar: 10, requiredSolvesToNext: 0 },
+  { id: "tier_2", heTitle: "רמה 2 (11–20 מהלכים)", minPar: 11, maxPar: 20, requiredSolvesToNext: 4 },
+  { id: "tier_3", heTitle: "רמה 3 (21–30 מהלכים)", minPar: 21, maxPar: 30, requiredSolvesToNext: 4 },
+  { id: "tier_4", heTitle: "רמה 4 (31–40 מהלכים)", minPar: 31, maxPar: 40, requiredSolvesToNext: 4 },
+  { id: "tier_5", heTitle: "רמה 5 (41–51 מהלכים)", minPar: 41, maxPar: 51, requiredSolvesToNext: 4 },
+];
+
+/**
+ * מחזיר כמה שלבים נפתרו בקטגוריה מסוימת
+ */
+export function getSolvesCountInTier(
+  tier: TierConfig,
+  puzzles: { par: number }[],
+  progress: Record<number, LevelStats>
+): number {
+  let count = 0;
+  puzzles.forEach((p, idx) => {
+    if (p.par >= tier.minPar && p.par <= tier.maxPar) {
+      if (progress[idx] && progress[idx].stars > 0) {
+        count++;
+      }
+    }
+  });
+  return count;
+}
+
+/**
+ * בודק אם קטגוריה מסוימת פתוחה למשחק
+ */
+export function isTierUnlocked(
+  tierIdx: number,
+  puzzles: { par: number }[],
+  progress: Record<number, LevelStats>
+): boolean {
+  if (tierIdx === 0) return true; // רמה 1 פתוחה תמיד
+  const prevTier = TIERS[tierIdx - 1];
+  if (!prevTier) return true;
+  
+  const solvedInPrev = getSolvesCountInTier(prevTier, puzzles, progress);
+  return solvedInPrev >= prevTier.requiredSolvesToNext;
+}
