@@ -13,7 +13,7 @@ const DIRS: { m: Move; Icon: typeof ArrowUp; cls: string }[] = [
   { m: "down", Icon: ArrowDown, cls: "col-start-2 row-start-3" },
 ];
 
-export function DailyGame({ date }: { date: string }) {
+export function DailyGame({ date, openCalendar = false }: { date: string; openCalendar?: boolean }) {
   const [start, setStart] = useState<Car[]>([]);
   const [par, setPar] = useState(0);
   const [cars, setCars] = useState<Car[]>([]);
@@ -28,7 +28,7 @@ export function DailyGame({ date }: { date: string }) {
   const [bumps, setBumps] = useState(0);
   const [warn, setWarn] = useState<string | null>(null);
   const [result, setResult] = useState<{ time: number; best: number | null; isRecord: boolean } | null>(null);
-  const [calOpen, setCalOpen] = useState(false);
+  const [calOpen, setCalOpen] = useState(openCalendar);
   const dragStart = useRef<{ id: string; pointerId: number; x: number; y: number; pitch: number; min: number; max: number } | null>(null);
   const [drag, setDrag] = useState<{ id: string; offset: number } | null>(null);
   const submitting = useRef(false);
@@ -50,11 +50,12 @@ export function DailyGame({ date }: { date: string }) {
   }, [date]);
 
   useEffect(() => {
-    if (!startedAt || result) return;
+    if (!startedAt || result || failed) return;
     const t = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(t);
-  }, [startedAt, result]);
+  }, [startedAt, result, failed]);
 
+  const failed = bumps >= 3 && !result;
   const elapsed = startedAt ? Math.floor(((result ? startedAt + result.time * 1000 : now) - startedAt) / 1000) : 0;
   const started = startedAt !== null;
 
@@ -73,7 +74,7 @@ export function DailyGame({ date }: { date: string }) {
   }, [cars]);
 
   const go = useCallback(async (m: Move, id = sel, count = steps) => {
-    if (startedAt === null || result || submitting.current) return;
+    if (startedAt === null || result || failed || submitting.current) return;
     const c = cars.find((x) => x.id === id);
     if (!c) return flash("Select a car first");
     const r = applyMove(cars, c.id, m, count);
@@ -90,12 +91,12 @@ export function DailyGame({ date }: { date: string }) {
       const res = await submitScore({ date, solve_time: time, player_name: name });
       setResult({ time, ...res });
     }
-  }, [sel, steps, startedAt, result, cars, blockerOf, hidden, flash, date]);
+  }, [sel, steps, startedAt, result, failed, cars, blockerOf, hidden, flash, date]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target;
-      if (e.altKey || e.ctrlKey || e.metaKey || e.repeat || calOpen || result || !started || submitting.current) return;
+      if (e.altKey || e.ctrlKey || e.metaKey || e.repeat || calOpen || result || failed || !started || submitting.current) return;
       if (target instanceof HTMLElement && (target.isContentEditable || target.closest("input, textarea, select, [role='dialog']"))) return;
       const char = e.code.startsWith("Key") ? e.code.slice(3) : e.key.toUpperCase();
       if (cars.some((c) => c.id === char)) { e.preventDefault(); setSel(char); return; }
@@ -110,10 +111,10 @@ export function DailyGame({ date }: { date: string }) {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [cars, calOpen, result, started, move, go, flash]);
+  }, [cars, calOpen, result, failed, started, move, go, flash]);
 
   const handlePointerDown = (c: Car, e: PointerEvent<HTMLButtonElement>) => {
-    if (!started || result || calOpen || submitting.current || !e.isPrimary || e.button !== 0 || dragStart.current) return;
+    if (!started || result || failed || calOpen || submitting.current || !e.isPrimary || e.button !== 0 || dragStart.current) return;
     const board = e.currentTarget.parentElement;
     const cell = board?.querySelector(".cell");
     if (!board || !cell) return;
@@ -265,11 +266,24 @@ export function DailyGame({ date }: { date: string }) {
             </h2>
             <p className="mt-2 text-muted-foreground">
               {fmtTime(result.time)} · {moves} moves · {bumps} bumps
-              {result.best != null && !result.isRecord && <> · best {fmtTime(result.best)}</>}
+              </p>
+            {!result.isRecord && <p className="mt-1 text-sm">Your time {fmtTime(result.time)} · World best {result.best != null ? fmtTime(result.best) : "—"}</p>}
+            <p className="hidden">
             </p>
             <div className="mt-4 flex justify-center gap-2">
               <Button variant="ghost" className="chip" onClick={() => reset(start)}>Play again · שחק שוב</Button>
               <Button variant="ghost" className="chip" onClick={() => setCalOpen(true)}><CalendarDays className="h-4 w-4" /> Calendar</Button>
+            </div>
+          </div>
+        </div>
+      )}
+      {failed && (
+        <div className="fixed inset-0 z-40 grid place-items-center bg-background/80 p-4 backdrop-blur">
+          <div className="panel max-w-sm text-center" role="dialog" aria-label="Game over">
+            <h2 className="font-display text-2xl font-bold">Game over · המשחק נגמר</h2>
+            <p className="mt-2 text-muted-foreground">You bumped into invisible cars 3 times.</p>
+            <div className="mt-4 flex justify-center gap-2">
+              <Button variant="ghost" className="chip" onClick={() => reset(start)}><RotateCcw className="h-4 w-4" /> Try again · נסה שוב</Button>
             </div>
           </div>
         </div>
