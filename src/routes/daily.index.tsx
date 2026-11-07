@@ -14,12 +14,15 @@ export const Route = createFileRoute("/daily/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  validateSearch: (s: Record<string, unknown>): { calendar?: boolean } =>
+    s.calendar === true || s.calendar === "true" || s.calendar === 1 ? { calendar: true } : {},
   component: Today,
 });
 
 function Today() {
+  const { calendar } = Route.useSearch();
   // The player's local date, read after hydration.
   const [date, setDate] = useState<string | null>(null);
   useEffect(() => setDate(todayKey()), []);
-  return date ? <DailyGame date={date} /> : <main className="lot-bg h-dvh" />;
+  return date ? <DailyGame date={date} openCalendar={!!calendar} /> : <main className="lot-bg h-dvh" />;
 }

@@ -268,8 +268,6 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
               {fmtTime(result.time)} · {moves} moves · {bumps} bumps
               </p>
             {!result.isRecord && <p className="mt-1 text-sm">Your time {fmtTime(result.time)} · World best {result.best != null ? fmtTime(result.best) : "—"}</p>}
-            <p className="hidden">
-            </p>
             <div className="mt-4 flex justify-center gap-2">
               <Button variant="ghost" className="chip" onClick={() => reset(start)}>Play again · שחק שוב</Button>
               <Button variant="ghost" className="chip" onClick={() => setCalOpen(true)}><CalendarDays className="h-4 w-4" /> Calendar</Button>

@@ -1,4 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { isSolvedOn } from "@/lib/daily-scores";
+import { todayKey } from "@/lib/puzzles";
 import { CalendarDays, ChevronRight, Gamepad2, Trophy, type LucideIcon } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -45,7 +48,7 @@ const ENTRIES: Entry[] = [
     title: "Daily Challenge",
     he: "משחק יומי",
     desc: "One fresh lot every day — the same puzzle for everyone who plays it.",
-    tag: "Coming soon",
+    tag: "Play today",
     Icon: CalendarDays,
   },
   {
@@ -59,6 +62,9 @@ const ENTRIES: Entry[] = [
 ];
 
 function Index() {
+  // Read after hydration: solves are stored on this device.
+  const [dailySolved, setDailySolved] = useState(false);
+  useEffect(() => setDailySolved(isSolvedOn(todayKey())), []);
   return (
     <main className="lot-bg flex min-h-dvh flex-col items-center justify-center gap-4 px-4 py-4 sm:gap-8 sm:px-5 sm:py-10">
       <header className="text-center">
@@ -78,7 +84,7 @@ function Index() {
         className="grid w-full max-w-4xl gap-3 md:grid-cols-3 md:gap-5 lg:max-w-5xl"
       >
         {ENTRIES.map(({ to, title, he, desc, tag, Icon }) => (
-          <Link key={to} to={to} className="menu-card">
+          <Link key={to} to={to} search={to === "/daily" && dailySolved ? { calendar: true } : undefined} className="menu-card">
             <span className="menu-icon">
               <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
             </span>
@@ -93,7 +99,7 @@ function Index() {
             </span>
             <span className="mt-auto flex items-center justify-between gap-2 pt-1">
               <span className="chip px-2.5 py-1 text-[11px] sm:px-3 sm:py-1.5 sm:text-xs">
-                {tag}
+                {to === "/daily" && dailySolved ? "Solved · נפתר" : tag}
               </span>
               <ChevronRight className="h-5 w-5 shrink-0 text-primary" aria-hidden />
             </span>
