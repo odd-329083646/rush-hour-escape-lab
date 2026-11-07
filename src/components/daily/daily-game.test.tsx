@@ -47,7 +47,7 @@ describe("Daily gameplay controls", () => {
   it("executes an arrow move for a car selected from the palette", async () => {
     await startGame();
     fireEvent.click(screen.getByRole("button", { name: "Select A · Green Car" }));
-    fireEvent.click(screen.getByRole("button", { name: "right", exact: true }));
+    fireEvent.click(screen.getByRole("button", { name: "right" }));
     expect(screen.getByRole("button", { name: "Green Car" }).style.gridColumn).toBe("2 / span 2");
   });
 });
