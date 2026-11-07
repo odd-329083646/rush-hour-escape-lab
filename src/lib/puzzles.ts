@@ -284,3 +284,91 @@ export async function getDailyPuzzleAsync(dateStr?: string): Promise<{ par: numb
     return generateRandomPuzzleOnTheFly(10);
   }
 }
+
+// ==========================================
+// ניהול כוכבים, התקדמות ומטבעות
+// ==========================================
+
+export interface LevelStats {
+  stars: number; // 1, 2 או 3 כוכבים
+  bestTime: number; // זמן בשניות
+  bestMoves: number; // מספר מהלכים הכי טוב
+}
+
+/**
+ * מחשב כמה כוכבים מגיעים לשחקן לפי מספר המהלכים וההתנגשויות
+ */
+export function calculateStars(moves: number, par: number, bumps: number = 0): number {
+  if (bumps > 0) {
+    // כל התנגשות מורידה כוכב
+    if (bumps >= 2) return 1;
+    if (moves <= par + 2) return 2;
+    return 1;
+  }
+  if (moves <= par) return 3; // פתרון במינימום מהלכים = 3 כוכבים
+  if (moves <= par + 3) return 2; // סטייה קלה = 2 כוכבים
+  return 1;
+}
+
+/**
+ * טוען את נתוני ההתקדמות (כוכבים וזמנים) לרמה מסוימת מ-localStorage
+ */
+export function getSavedProgress(levelKey: string): Record<number, LevelStats> {
+  try {
+    const raw = localStorage.getItem(`rush_hour_progress_${levelKey}`);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * שומר את תוצאת השלב, מעדכן שיאים ומעניק מטבעות
+ */
+export function saveLevelProgress(
+  levelKey: string,
+  puzzleIdx: number,
+  moves: number,
+  par: number,
+  timeInSeconds: number,
+  bumps: number = 0
+): { stars: number; coinsEarned: number } {
+  const stars = calculateStars(moves, par, bumps);
+  const current = getSavedProgress(levelKey);
+  const prev = current[puzzleIdx];
+
+  // מעדכנים אם זו פעם ראשונה או שהתוצאה טובה יותר
+  const newStars = Math.max(stars, prev?.stars ?? 0);
+  const newBestTime = prev ? Math.min(timeInSeconds, prev.bestTime) : timeInSeconds;
+  const newBestMoves = prev ? Math.min(moves, prev.bestMoves) : moves;
+
+  current[puzzleIdx] = {
+    stars: newStars,
+    bestTime: newBestTime,
+    bestMoves: newBestMoves,
+  };
+
+  localStorage.setItem(`rush_hour_progress_${levelKey}`, JSON.stringify(current));
+
+  // חישוב מטבעות: 10 מטבעות לכל כוכב
+  const coinsEarned = stars * 10;
+  addCoins(coinsEarned);
+
+  return { stars, coinsEarned };
+}
+
+/**
+ * משיג את כמות המטבעות הנוכחית של השחקן
+ */
+export function getCoins(): number {
+  return parseInt(localStorage.getItem("rush_hour_coins") ?? "0", 10) || 0;
+}
+
+/**
+ * מוסיף (או מוריד) מטבעות למאזן המשתמש
+ */
+export function addCoins(amount: number): number {
+  const newBalance = Math.max(0, getCoins() + amount);
+  localStorage.setItem("rush_hour_coins", String(newBalance));
+  return newBalance;
+}
