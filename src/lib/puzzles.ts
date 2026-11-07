@@ -372,3 +372,58 @@ export function addCoins(amount: number): number {
   localStorage.setItem("rush_hour_coins", String(newBalance));
   return newBalance;
 }
+
+// ==========================================
+// מנוע רמזים (Hint Engine - BFS)
+// ==========================================
+
+export interface HintResult {
+  id: string;
+  move: Move;
+  steps: number;
+}
+
+/**
+ * מוצא את המהלך הבא הטוב ביותר מהמצב הנוכחי של הלוח בעזרת BFS
+ */
+export function getNextBestMove(startCars: Car[]): HintResult | null {
+  if (isSolved(startCars)) return null;
+
+  const key = (cs: Car[]) => cs.map((c) => `${c.row}${c.col}`).join("");
+  const seen = new Set([key(startCars)]);
+
+  type QueueItem = {
+    cars: Car[];
+    firstMove: HintResult | null;
+  };
+
+  let frontier: QueueItem[] = [{ cars: startCars, firstMove: null }];
+
+  while (frontier.length > 0) {
+    const next: QueueItem[] = [];
+    for (const item of frontier) {
+      for (const c of item.cars) {
+        const dirs: Move[] = c.dir === "h" ? ["left", "right"] : ["up", "down"];
+        for (const m of dirs) {
+          for (let s = 1; s <= 4; s++) {
+            const r = applyMove(item.cars, c.id, m, s);
+            if (r.error) break;
+
+            const k = key(r.cars);
+            if (!seen.has(k)) {
+              seen.add(k);
+              const moveTaken = item.firstMove ?? { id: c.id, move: m, steps: s };
+              if (isSolved(r.cars)) {
+                return moveTaken;
+              }
+              next.push({ cars: r.cars, firstMove: moveTaken });
+            }
+          }
+        }
+      }
+    }
+    frontier = next;
+  }
+
+  return null;
+}
