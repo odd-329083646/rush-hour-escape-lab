@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, Coins, Eye, EyeOff, Home, Layers, Lightbulb, Lock, Play, Plus, RotateCcw, Send, Star, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, ChevronDown, ChevronUp, Coins, Eye, EyeOff, Home, Layers, Lightbulb, Lock, Play, Plus, RotateCcw, Send, Star, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
 import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, IS_OFFLINE_MODE, getRandomPuzzle, saveLevelProgress, getSavedProgress, getCoins, addCoins, getNextBestMove, TIERS, isTierUnlocked, getSolvesCountInTier, type Car, type Level, type Move } from "@/lib/puzzles";
 import { Button } from "@/components/ui/button";
 
@@ -64,12 +64,23 @@ function Game() {
   const [invisibleBumps, setInvisibleBumps] = useState(0);
   const [wonStars, setWonStars] = useState(3);
   const [coins, setCoinsState] = useState(0);
+  const [collapsedTiers, setCollapsedTiers] = useState<Record<string, boolean>>({});
 
   const won = wonAt !== null;
   const elapsed = startedAt ? Math.floor(((wonAt ?? now) - startedAt) / 1000) : 0;
   const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
 
   const progress = getSavedProgress(level);
+
+  const toggleTier = (tierId: string) => {
+    setCollapsedTiers((prev) => ({ ...prev, [tierId]: !prev[tierId] }));
+  };
+
+  const formatTime = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = String(secs % 60).padStart(2, "0");
+    return `${m}:${s}`;
+  };
 
   const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
     const p = currentPuzzles[i] ?? currentPuzzles[0];
@@ -630,16 +641,18 @@ function Game() {
         </aside>
       </div>
 
-      {/* דיאלוג בחירת השלבים המעודכן לפי Tiers */}
+      {/* דיאלוג בחירת השלבים המעודכן עם כותרת דביקה, אקורדיון וזמני שיא */}
       {levelsOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4" onClick={() => setLevelsOpen(false)}>
-          <div className="panel max-h-[85vh] w-full max-w-xl overflow-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="mb-4 flex items-center justify-between border-b pb-3">
+          <div className="panel flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden p-0" onClick={(e) => e.stopPropagation()}>
+            {/* כותרת דביקה עליונה */}
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-card px-4 py-3">
               <h2 className="font-display text-xl font-bold">Choose Level · בחר שלב</h2>
               <button aria-label="Close" onClick={() => setLevelsOpen(false)} className="chip"><X className="h-4 w-4" /></button>
             </div>
 
-            <div className="flex flex-col gap-5">
+            {/* תוכן נגלל */}
+            <div className="flex-1 overflow-auto p-4 flex flex-col gap-4">
               {TIERS.map((tier, tierIdx) => {
                 const unlocked = isTierUnlocked(tierIdx, puzzles, progress);
                 const solvedCount = getSolvesCountInTier(tier, puzzles, progress);
@@ -648,10 +661,15 @@ function Game() {
                   .filter(({ puzzle }) => puzzle.par >= tier.minPar && puzzle.par <= tier.maxPar);
 
                 if (tierPuzzles.length === 0) return null;
+                const isCollapsed = !!collapsedTiers[tier.id];
 
                 return (
                   <div key={tier.id} className="rounded-lg border bg-card p-3">
-                    <div className="mb-3 flex items-center justify-between border-b pb-2">
+                    {/* כותרת קטגוריה מתקפלת */}
+                    <button
+                      onClick={() => toggleTier(tier.id)}
+                      className="flex w-full items-center justify-between text-left transition-colors hover:opacity-80"
+                    >
                       <div className="flex items-center gap-2 font-bold text-sm sm:text-base">
                         {!unlocked ? (
                           <Lock className="h-4 w-4 text-amber-500 shrink-0" />
@@ -659,41 +677,58 @@ function Game() {
                           <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
                         )}
                         <span>{tier.heTitle}</span>
+                        {isCollapsed ? (
+                          <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+                        ) : (
+                          <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
+                        )}
                       </div>
                       <span className="text-xs text-muted-foreground">
                         {unlocked
                           ? `נפתרו: ${solvedCount}/${tierPuzzles.length}`
                           : `פתור עוד ${Math.max(0, tier.requiredSolvesToNext - getSolvesCountInTier(TIERS[tierIdx - 1]!, puzzles, progress))} שלבים ברמה הקודמת`}
                       </span>
-                    </div>
+                    </button>
 
-                    <div className="grid grid-cols-5 gap-2">
-                      {tierPuzzles.map(({ originalIdx }) => {
-                        const done = (progress[originalIdx]?.stars ?? 0) > 0;
-                        const starCount = progress[originalIdx]?.stars ?? 0;
+                    {/* גריד השלבים - מוצג רק אם הרמה אינה מוקטנת */}
+                    {!isCollapsed && (
+                      <div className="grid grid-cols-5 gap-2 mt-3 pt-2 border-t border-border/50">
+                        {tierPuzzles.map(({ originalIdx }) => {
+                          const done = (progress[originalIdx]?.stars ?? 0) > 0;
+                          const starCount = progress[originalIdx]?.stars ?? 0;
+                          const bestSecs = progress[originalIdx]?.bestTime;
 
-                        return (
-                          <button
-                            key={originalIdx}
-                            disabled={!unlocked}
-                            onClick={() => jumpTo(originalIdx)}
-                            data-active={originalIdx === idx}
-                            className="ctrl relative font-display disabled:opacity-40 flex flex-col items-center justify-center p-2 min-h-[3.5rem]"
-                          >
-                            {!unlocked ? <Lock className="h-4 w-4 text-muted-foreground" /> : originalIdx + 1}
-                            {done && <CheckCircle2 className="absolute -right-1 -top-1 h-4 w-4 text-primary" />}
-                            
-                            {unlocked && starCount > 0 && (
-                              <div className="flex gap-0.5 mt-1">
-                                {[1, 2, 3].map((s) => (
-                                  <Star key={s} className={`h-2.5 w-2.5 ${s <= starCount ? "fill-yellow-400 text-yellow-400" : "text-gray-400"}`} />
-                                ))}
-                              </div>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
+                          return (
+                            <button
+                              key={originalIdx}
+                              disabled={!unlocked}
+                              onClick={() => jumpTo(originalIdx)}
+                              data-active={originalIdx === idx}
+                              className="ctrl relative font-display disabled:opacity-40 flex flex-col items-center justify-center p-2 min-h-[4rem]"
+                            >
+                              {!unlocked ? <Lock className="h-4 w-4 text-muted-foreground" /> : originalIdx + 1}
+                              {done && <CheckCircle2 className="absolute -right-1 -top-1 h-4 w-4 text-primary" />}
+                              
+                              {/* כוכבים */}
+                              {unlocked && starCount > 0 && (
+                                <div className="flex gap-0.5 mt-1">
+                                  {[1, 2, 3].map((s) => (
+                                    <Star key={s} className={`h-2.5 w-2.5 ${s <= starCount ? "fill-yellow-400 text-yellow-400" : "text-gray-400"}`} />
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* זמן הפתרון הכי טוב */}
+                              {unlocked && done && bestSecs !== undefined && (
+                                <span className="mt-0.5 text-[10px] text-muted-foreground font-display font-semibold">
+                                  {formatTime(bestSecs)}
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 );
               })}
