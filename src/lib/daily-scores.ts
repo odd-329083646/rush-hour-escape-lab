@@ -1,34 +1,51 @@
-// Daily scores. Stored on this device until an online scoreboard is connected.
+// Daily scores: the global record lives in the shared daily_scores table;
+// the player's own solves are also kept on this device for the calendar.
+import { supabase } from "@/integrations/supabase/client";
+
 export type DailyScore = { date: string; solve_time: number; player_name: string };
 
-const ALL_KEY = "daily_scores";
 const MINE_KEY = "daily_my_solves";
 
-function read<T>(k: string, fb: T): T {
-  try { return JSON.parse(localStorage.getItem(k) ?? "") as T; } catch { return fb; }
-}
-
-/** Fastest recorded time (seconds) for a date, or null. */
+/** Fastest recorded time (seconds) for a date across all players, or null. */
 export async function getBestTime(date: string): Promise<number | null> {
-  const times = read<DailyScore[]>(ALL_KEY, []).filter((s) => s.date === date).map((s) => s.solve_time);
-  return times.length ? Math.min(...times) : null;
+  const { data, error } = await supabase
+    .from("daily_scores").select("solve_time").eq("date", date)
+    .order("solve_time", { ascending: true }).limit(1);
+  if (error) throw error;
+  return data?.[0]?.solve_time ?? null;
 }
 
-/** Saves a solve and reports whether it beat the previous best for that date. */
+/** A record only when strictly faster than the global best, or the first score of the date. */
+export function isRecord(time: number, best: number | null): boolean {
+  return best === null || time < best;
+}
+
+/** Reads the global best, then saves the solve. Reports the previous best and whether it was beaten. */
 export async function submitScore(score: DailyScore): Promise<{ best: number | null; isRecord: boolean }> {
-  const prev = await getBestTime(score.date);
-  const all = read<DailyScore[]>(ALL_KEY, []);
-  all.push(score);
-  localStorage.setItem(ALL_KEY, JSON.stringify(all));
+  saveMine(score);
+  let best: number | null = null;
+  try {
+    best = await getBestTime(score.date);
+  } catch {
+    return { best: null, isRecord: false }; // can't verify a world record offline
+  }
+  await supabase.from("daily_scores").insert(score);
+  return { best, isRecord: isRecord(score.solve_time, best) };
+}
+
+function saveMine(score: DailyScore) {
   const mine = getMySolves();
   if (mine[score.date] == null || score.solve_time < mine[score.date]!) mine[score.date] = score.solve_time;
   localStorage.setItem(MINE_KEY, JSON.stringify(mine));
-  return { best: prev, isRecord: prev === null || score.solve_time < prev };
 }
 
 /** The player's own best time per date. */
 export function getMySolves(): Record<string, number> {
-  return read<Record<string, number>>(MINE_KEY, {});
+  try { return JSON.parse(localStorage.getItem(MINE_KEY) ?? "") ?? {}; } catch { return {}; }
+}
+
+export function isSolvedOn(date: string): boolean {
+  return getMySolves()[date] != null;
 }
 
 export function fmtTime(s: number): string {
