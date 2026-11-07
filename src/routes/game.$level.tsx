@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, Eye, EyeOff, Home, Layers, Lock, Play, Plus, RotateCcw, Send, Star, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
-import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, IS_OFFLINE_MODE, getRandomPuzzle, saveLevelProgress, getSavedProgress, type Car, type Level, type Move } from "@/lib/puzzles";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, Coins, Eye, EyeOff, Home, Layers, Lightbulb, Lock, Play, Plus, RotateCcw, Send, Star, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
+import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, IS_OFFLINE_MODE, getRandomPuzzle, saveLevelProgress, getSavedProgress, getCoins, addCoins, getNextBestMove, type Car, type Level, type Move } from "@/lib/puzzles";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/game/$level")({
@@ -63,6 +63,7 @@ function Game() {
   const [simulating, setSimulating] = useState(false);
   const [invisibleBumps, setInvisibleBumps] = useState(0);
   const [wonStars, setWonStars] = useState(3);
+  const [coins, setCoinsState] = useState(0);
 
   const won = wonAt !== null;
   const elapsed = startedAt ? Math.floor(((wonAt ?? now) - startedAt) / 1000) : 0;
@@ -81,10 +82,12 @@ function Game() {
     setStartedAt(null); setWonAt(null); setPlan([]); setFailed(false); setSimulating(false);
     setInvisibleBumps(0);
     setWonStars(3);
+    setCoinsState(getCoins());
   };
 
   useEffect(() => {
     setPuzzles(DEFAULT_PUZZLES);
+    setCoinsState(getCoins());
     
     const saved = parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0;
     const i = Math.max(0, Math.min(saved, DEFAULT_PUZZLES.length - 1));
@@ -105,7 +108,6 @@ function Game() {
     setWonAt(Date.now());
     setSel(null);
 
-    // חישוב ושמירת הכוכבים, המטבעות והשיאים
     const timeInSeconds = elapsed;
     const { stars, coinsEarned } = saveLevelProgress(
       level,
@@ -117,6 +119,7 @@ function Game() {
     );
 
     setWonStars(stars);
+    setCoinsState(getCoins());
     setMsg(`פתרת ב-${stars} כוכבים והרווחת ${coinsEarned} מטבעות! 🎉`);
 
     if (idx > maxSolved) {
@@ -142,6 +145,29 @@ function Game() {
     const key = Date.now();
     setWarn({ text, key });
     setTimeout(() => setWarn((w) => (w?.key === key ? null : w)), 1800);
+  };
+
+  const handleUseHint = () => {
+    const HINT_COST = 15;
+    const currentCoins = getCoins();
+
+    if (currentCoins < HINT_COST) {
+      return flash(`נדרשים ${HINT_COST} מטבעות לרמז! (יש לך ${currentCoins})`);
+    }
+
+    const nextMove = getNextBestMove(cars);
+    if (!nextMove) {
+      return flash("לא נמצא רמז מתאים למצב זה.");
+    }
+
+    const newBalance = addCoins(-HINT_COST);
+    setCoinsState(newBalance);
+
+    setSel(nextMove.id);
+    setMove(nextMove.move);
+    setSteps(nextMove.steps);
+
+    flash(`💡 רמז: הזז את מכונית ${nextMove.id} ${ARROW[nextMove.move]} (${nextMove.steps} צעדים)`);
   };
 
   const checkInvisibleBump = (c: Car, moveDir: Move, attemptedSteps: number) => {
@@ -417,7 +443,14 @@ function Game() {
       <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2 overflow-x-auto">
         <Button asChild variant="ghost" className="chip shrink-0 px-2 sm:px-3.5" disabled={simulating}><Link to="/" aria-label="Back to Home" title="Back to Home"><Home className="h-4 w-4" /><span className="hidden sm:inline">Back to Home</span></Link></Button>
         <h1 className="min-w-0 truncate font-display text-sm font-bold md:text-xl">{cfg.title} <span className="text-muted-foreground">· {cfg.he} (שלב {idx + 1})</span></h1>
-        <div className="flex shrink-0 gap-2">
+        
+        <div className="flex shrink-0 items-center gap-2">
+          {/* מאזן מטבעות */}
+          <div className="chip font-display flex items-center gap-1.5 px-2.5 py-1 text-amber-400 border border-amber-500/30 bg-amber-500/10 rounded-full" title="המטבעות שלך">
+            <Coins className="h-4 w-4 text-amber-400 fill-amber-400" />
+            <span className="font-bold">{coins}</span>
+          </div>
+
           {started && hidden.size > 0 && !murderer && (
             <button onClick={() => setReveal((v) => !v)} data-active={reveal} className="chip" disabled={simulating}>
               {reveal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {reveal ? "Hide cars" : "Reveal cars"}
@@ -452,6 +485,18 @@ function Game() {
               ))}
             </div>
           </div>
+
+          {/* כפתור רמז */}
+          <Button
+            onClick={handleUseHint}
+            variant="outline"
+            disabled={simulating || won || failed}
+            className="w-full gap-2 border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 font-bold"
+          >
+            <Lightbulb className="h-4 w-4 fill-amber-500" />
+            <span>Hint · רמז (15 🪙)</span>
+          </Button>
+
            {murderer && (
              <Button onClick={execute} disabled={won || simulating} className="execute">
                <Plus className="h-4 w-4" /> Add move · הוסף
@@ -499,7 +544,6 @@ function Game() {
                   <Trophy className="h-12 w-12 text-yellow-500 animate-bounce" />
                   <span className="text-3xl font-bold">Victory! · ניצחון</span>
                   
-                  {/* תצוגת הכוכבים במסך הניצחון */}
                   <div className="flex justify-center gap-1 my-1">
                     {[1, 2, 3].map((s) => (
                       <Star 
@@ -604,7 +648,6 @@ function Game() {
                     {locked ? <Lock className="h-4 w-4" /> : i + 1}
                     {done && <CheckCircle2 className="absolute -right-1 -top-1 h-4 w-4 text-primary" />}
                     
-                    {/* תצוגת הכוכבים מתחת למספר השלב */}
                     {!locked && starCount > 0 && (
                       <div className="flex gap-0.5 mt-1">
                         {[1, 2, 3].map((s) => (
