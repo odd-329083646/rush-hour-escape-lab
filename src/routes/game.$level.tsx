@@ -100,12 +100,16 @@ function Game() {
     setPuzzles(DEFAULT_PUZZLES);
     setCoinsState(getCoins());
     
-    const saved = parseInt(localStorage.getItem(idxKey) ?? "0", 10) || 0;
-    const i = Math.max(0, Math.min(saved, DEFAULT_PUZZLES.length - 1));
+    // קוראים את השלב הכי מתקדם שנפתר ברמה הזו
+    const maxS = Number.isFinite(parseInt(localStorage.getItem(maxKey) ?? "", 10))
+      ? parseInt(localStorage.getItem(maxKey)!, 10)
+      : -1;
     
-    setMaxSolved(Number.isFinite(parseInt(localStorage.getItem(maxKey) ?? "", 10)) ? parseInt(localStorage.getItem(maxKey)!, 10) : -1);
+    setMaxSolved(maxS);
     
-    loadPuzzle(i, DEFAULT_PUZZLES);
+    // טוענים אוטומטית את השלב הבא בתור שטרם נפתר (maxSolved + 1)
+    const nextLevelIdx = Math.max(0, Math.min(maxS + 1, DEFAULT_PUZZLES.length - 1));
+    loadPuzzle(nextLevelIdx, DEFAULT_PUZZLES);
   }, [level]);
 
   useEffect(() => {
