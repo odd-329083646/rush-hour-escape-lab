@@ -1,17 +1,18 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CalendarDays, Coins, Home, Play, RotateCcw, Trophy } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CalendarDays, Coins, Home, Lightbulb, Play, RotateCcw, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DailyCalendar } from "./daily-calendar";
-import { addCoins, applyMove, cells, getCoins, getDailyPuzzleAsync, isSolved, pickHidden, type Car, type Move } from "@/lib/puzzles";
+import { addCoins, applyMove, cells, getCoins, getDailyPuzzleAsync, getNextBestMove, isSolved, pickHidden, type Car, type Move } from "@/lib/puzzles";
 import { fmtTime, isSolvedOn, submitScore } from "@/lib/daily-scores";
 
 const DIRS: { m: Move; Icon: typeof ArrowUp; cls: string }[] = [
-  { m: "up", Icon: ArrowUp, cls: "col-start-2" },
+  { m: "up", Icon: ArrowUp, cls: "col-start-2 row-start-1" },
   { m: "left", Icon: ArrowLeft, cls: "col-start-1 row-start-2" },
   { m: "right", Icon: ArrowRight, cls: "col-start-3 row-start-2" },
   { m: "down", Icon: ArrowDown, cls: "col-start-2 row-start-3" },
 ];
+const ARROW: Record<Move, string> = { up: "↑", down: "↓", left: "←", right: "→" };
 
 export function DailyGame({ date, openCalendar = false }: { date: string; openCalendar?: boolean }) {
   const [start, setStart] = useState<Car[]>([]);
@@ -63,6 +64,30 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
 
   const flash = useCallback((t: string) => { setWarn(t); setTimeout(() => setWarn((w) => (w === t ? null : w)), 1600); }, []);
 
+  const handleUseHint = () => {
+    if (!started || result || failed) return;
+    const HINT_COST = 15;
+    const currentCoins = getCoins();
+
+    if (currentCoins < HINT_COST) {
+      return flash(`נדרשים ${HINT_COST} מטבעות לרמז! (יש לך ${currentCoins})`);
+    }
+
+    const nextMove = getNextBestMove(cars);
+    if (!nextMove) {
+      return flash("לא נמצא רמז מתאים למצב זה.");
+    }
+
+    addCoins(-HINT_COST);
+    setCoins(getCoins());
+
+    setSel(nextMove.id);
+    setMove(nextMove.move);
+    setSteps(nextMove.steps);
+
+    flash(`💡 רמז: הזז את מכונית ${nextMove.id} ${ARROW[nextMove.move]} (${nextMove.steps} צעדים)`);
+  };
+
   const blockerOf = useCallback((c: Car, m: Move, count: number): string | undefined => {
     const d = m === "right" || m === "down" ? 1 : -1;
     const front = d > 0 ? c.len : -1;
@@ -91,13 +116,13 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
       const time = Math.max(1, Math.round((Date.now() - startedAt) / 1000));
       const name = localStorage.getItem("player_name") || "Player";
 
-      // 1. בדיקה האם זו פתירה ראשונה של החידה היומית הזו (לפני הגשת התוצאה והעדכון)
+      // 1. בדיקה האם זו פתירה ראשונה של החידה היומית הזו במכשיר זה
       const isFirstSolve = !isSolvedOn(date);
 
       // 2. הגשת התוצאה לשרת
       const res = await submitScore({ date, solve_time: time, player_name: name });
 
-      // 3. חישוב תגמול המטבעות
+      // 3. תגמול מטבעות
       let coinsEarned = 0;
       if (isFirstSolve) {
         coinsEarned += 30; // 30 מטבעות בפתירה ראשונה
@@ -223,6 +248,18 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
                   {DIRS.map(({ m, Icon, cls }) => (
                     <Button variant="ghost" key={m} aria-label={m} data-active={move === m} onClick={() => { setMove(m); void go(m); }} className={`ctrl ${cls}`}><Icon className="h-5 w-5" /></Button>
                   ))}
+
+                  {/* כפתור רמז במרכז החיצים (שורה 2, עמודה 2) */}
+                  <Button
+                    onClick={handleUseHint}
+                    variant="outline"
+                    disabled={!started || !!result || failed}
+                    title="Hint · רמז (15 🪙)"
+                    className="ctrl col-start-2 row-start-2 border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 font-bold p-0 flex flex-col items-center justify-center gap-0.5"
+                  >
+                    <Lightbulb className="h-4 w-4 fill-amber-500 shrink-0" />
+                    <span className="text-[10px] font-sans">15🪙</span>
+                  </Button>
                 </div>
               </div>
               <div>
