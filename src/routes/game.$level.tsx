@@ -480,42 +480,43 @@ function Game() {
             <Button onClick={start} className="execute start-control whitespace-normal"><Play className="h-4 w-4" /><span>Start Solving · התחל פתירה</span></Button>
           ) : (
           <div className="solving-controls flex flex-col gap-2">
-          <div>
-            <h2 className="panel-title">Direction</h2>
-            <div className="grid grid-cols-3 grid-rows-3 gap-2">
-              {DIRS.map(({ m, Icon, cls }) => (
-                 <Button variant="ghost" key={m} aria-label={m} title={m} onClick={() => setMove(m)} data-active={move === m} className={`ctrl ${cls}`} disabled={simulating}>
-                  <Icon className="h-5 w-5" />
-                 </Button>
-              ))}
+            <div>
+              <h2 className="panel-title">Direction</h2>
+              <div className="grid grid-cols-3 grid-rows-3 gap-2">
+                {DIRS.map(({ m, Icon, cls }) => (
+                   <Button variant="ghost" key={m} aria-label={m} title={m} onClick={() => setMove(m)} data-active={move === m} className={`ctrl ${cls}`} disabled={simulating}>
+                    <Icon className="h-5 w-5" />
+                   </Button>
+                ))}
 
-              {/* כפתור רמז במרכז החיצים (שורה 2, עמודה 2) */}
-              <Button
-                onClick={handleUseHint}
-                variant="outline"
-                disabled={simulating || won || failed}
-                title="Hint · רמז (15 🪙)"
-                className="ctrl col-start-2 row-start-2 border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 font-bold p-0 flex flex-col items-center justify-center gap-0.5"
-              >
-                <Lightbulb className="h-4 w-4 fill-amber-500 shrink-0" />
-                <span className="text-[10px] font-sans">15🪙</span>
-              </Button>
+                {/* כפתור רמז במרכז החיצים (שורה 2, עמודה 2) */}
+                <Button
+                  onClick={handleUseHint}
+                  variant="outline"
+                  disabled={simulating || won || failed}
+                  title="Hint · רמז (15 🪙)"
+                  className="ctrl col-start-2 row-start-2 border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 font-bold p-0 flex flex-col items-center justify-center gap-0.5"
+                >
+                  <Lightbulb className="h-4 w-4 fill-amber-500 shrink-0" />
+                  <span className="text-[10px] font-sans">15🪙</span>
+                </Button>
+              </div>
             </div>
-          </div>
-          <div>
-            <h2 className="panel-title">Steps</h2>
-            <div className="grid grid-cols-4 gap-2">
-              {[1, 2, 3, 4].map((n) => (
-                 <Button variant="ghost" key={n} onClick={() => setSteps(n)} data-active={steps === n} className="ctrl px-0 font-display" disabled={simulating}>{n}</Button>
-              ))}
-            </div>
-          </div>
 
-           {murderer && (
-             <Button onClick={execute} disabled={won || simulating} className="execute">
-               <Plus className="h-4 w-4" /> Add move · הוסף
-             </Button>
-           )}
+            <div>
+              <h2 className="panel-title">Steps</h2>
+              <div className="grid grid-cols-4 gap-2">
+                {[1, 2, 3, 4].map((n) => (
+                   <Button variant="ghost" key={n} onClick={() => setSteps(n)} data-active={steps === n} className="ctrl px-0 font-display" disabled={simulating}>{n}</Button>
+                ))}
+              </div>
+            </div>
+
+            {/* כפתור בצע - מופעל ומוצג תמיד לכל רמות המשחק */}
+            <Button onClick={execute} disabled={won || simulating} className="execute mt-1">
+              {murderer ? <Plus className="h-4 w-4 shrink-0" /> : <Play className="h-4 w-4 shrink-0" />}
+              <span>{murderer ? "Add move · הוסף" : "Execute · בצע"}</span>
+            </Button>
           </div>
           )}
         </aside>
