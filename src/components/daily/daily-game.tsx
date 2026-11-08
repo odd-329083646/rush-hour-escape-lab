@@ -4,7 +4,7 @@ import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CalendarDays, Coins, Home, P
 import { Button } from "@/components/ui/button";
 import { DailyCalendar } from "./daily-calendar";
 import { addCoins, applyMove, cells, getCoins, getDailyPuzzleAsync, isSolved, pickHidden, type Car, type Move } from "@/lib/puzzles";
-import { fmtTime, submitScore } from "@/lib/daily-scores";
+import { fmtTime, isSolvedOn, submitScore } from "@/lib/daily-scores";
 
 const DIRS: { m: Move; Icon: typeof ArrowUp; cls: string }[] = [
   { m: "up", Icon: ArrowUp, cls: "col-start-2" },
@@ -90,16 +90,17 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
       submitting.current = true;
       const time = Math.max(1, Math.round((Date.now() - startedAt) / 1000));
       const name = localStorage.getItem("player_name") || "Player";
+
+      // 1. בדיקה האם זו פתירה ראשונה של החידה היומית הזו (לפני הגשת התוצאה והעדכון)
+      const isFirstSolve = !isSolvedOn(date);
+
+      // 2. הגשת התוצאה לשרת
       const res = await submitScore({ date, solve_time: time, player_name: name });
 
-      // בדיקה אם זו פתירה ראשונה של החידה היומית הזו
-      const solvedKey = `rush_hour_daily_solved_${date}`;
-      const isFirstSolve = !localStorage.getItem(solvedKey);
-
+      // 3. חישוב תגמול המטבעות
       let coinsEarned = 0;
       if (isFirstSolve) {
-        coinsEarned += 30; // 30 מטבעות על פתירה ראשונה
-        localStorage.setItem(solvedKey, "true");
+        coinsEarned += 30; // 30 מטבעות בפתירה ראשונה
       }
       if (res.isRecord) {
         coinsEarned += 50; // 50 מטבעות בונוס על שבירת שיא עולמי
@@ -304,7 +305,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
                   <span>+{result.coinsEarned} מטבעות! {result.isRecord ? "👑 (בונוס שיא עולמי)" : ""}</span>
                 </div>
               ) : (
-                <span className="text-xs text-muted-foreground">פתירה חוזרת (ללא שיא עולמי חדש) — 0 🪙</span>
+                <span className="text-xs text-muted-foreground">פתירה חוזרת — 0 🪙</span>
               )}
             </div>
 
