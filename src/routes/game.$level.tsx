@@ -25,7 +25,7 @@ export const Route = createFileRoute("/game/$level")({
 });
 
 const DIRS: { m: Move; Icon: typeof ArrowUp; cls: string }[] = [
-  { m: "up", Icon: ArrowUp, cls: "col-start-2" },
+  { m: "up", Icon: ArrowUp, cls: "col-start-2 row-start-1" },
   { m: "left", Icon: ArrowLeft, cls: "col-start-1 row-start-2" },
   { m: "right", Icon: ArrowRight, cls: "col-start-3 row-start-2" },
   { m: "down", Icon: ArrowDown, cls: "col-start-2 row-start-3" },
@@ -100,14 +100,12 @@ function Game() {
     setPuzzles(DEFAULT_PUZZLES);
     setCoinsState(getCoins());
     
-    // קוראים את השלב הכי מתקדם שנפתר ברמה הזו
     const maxS = Number.isFinite(parseInt(localStorage.getItem(maxKey) ?? "", 10))
       ? parseInt(localStorage.getItem(maxKey)!, 10)
       : -1;
     
     setMaxSolved(maxS);
     
-    // טוענים אוטומטית את השלב הבא בתור שטרם נפתר (maxSolved + 1)
     const nextLevelIdx = Math.max(0, Math.min(maxS + 1, DEFAULT_PUZZLES.length - 1));
     loadPuzzle(nextLevelIdx, DEFAULT_PUZZLES);
   }, [level]);
@@ -490,6 +488,18 @@ function Game() {
                   <Icon className="h-5 w-5" />
                  </Button>
               ))}
+
+              {/* כפתור רמז במרכז החיצים (שורה 2, עמודה 2) */}
+              <Button
+                onClick={handleUseHint}
+                variant="outline"
+                disabled={simulating || won || failed}
+                title="Hint · רמז (15 🪙)"
+                className="ctrl col-start-2 row-start-2 border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 font-bold p-0 flex flex-col items-center justify-center gap-0.5"
+              >
+                <Lightbulb className="h-4 w-4 fill-amber-500 shrink-0" />
+                <span className="text-[10px] font-sans">15🪙</span>
+              </Button>
             </div>
           </div>
           <div>
@@ -500,17 +510,6 @@ function Game() {
               ))}
             </div>
           </div>
-
-          {/* כפתור רמז */}
-          <Button
-            onClick={handleUseHint}
-            variant="outline"
-            disabled={simulating || won || failed}
-            className="w-full gap-2 border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 font-bold"
-          >
-            <Lightbulb className="h-4 w-4 fill-amber-500" />
-            <span>Hint · רמז (15 🪙)</span>
-          </Button>
 
            {murderer && (
              <Button onClick={execute} disabled={won || simulating} className="execute">
@@ -645,17 +644,15 @@ function Game() {
         </aside>
       </div>
 
-      {/* דיאלוג בחירת השלבים המעודכן (שלבים קיימים בלבד) */}
+      {/* דיאלוג בחירת השלבים */}
       {levelsOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4" onClick={() => setLevelsOpen(false)}>
           <div className="panel flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden p-0" onClick={(e) => e.stopPropagation()}>
-            {/* כותרת דביקה עליונה */}
             <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-card px-4 py-3">
               <h2 className="font-display text-xl font-bold">Choose Level · בחר שלב</h2>
               <button aria-label="Close" onClick={() => setLevelsOpen(false)} className="chip"><X className="h-4 w-4" /></button>
             </div>
 
-            {/* תוכן נגלל */}
             <div className="flex-1 overflow-auto p-4 flex flex-col gap-4">
               {TIERS.map((tier, tierIdx) => {
                 const unlocked = isTierUnlocked(tierIdx, puzzles, progress);
@@ -667,7 +664,6 @@ function Game() {
 
                 return (
                   <div key={tier.id} className="rounded-lg border bg-card p-3">
-                    {/* כותרת קטגוריה מתקפלת */}
                     <button
                       onClick={() => toggleTier(tier.id)}
                       className="flex w-full items-center justify-between text-left transition-colors hover:opacity-80"
@@ -692,7 +688,6 @@ function Game() {
                       </span>
                     </button>
 
-                    {/* גריד השלבים - מוצג רק אם הרמה אינה מוקטנת */}
                     {!isCollapsed && (
                       <div className="grid grid-cols-5 gap-2 mt-3 pt-2 border-t border-border/50">
                         {tierItems.map(({ originalIdx, tierLevelNum }) => {
@@ -711,7 +706,6 @@ function Game() {
                               {!unlocked ? <Lock className="h-4 w-4 text-muted-foreground" /> : tierLevelNum}
                               {done && <CheckCircle2 className="absolute -right-1 -top-1 h-4 w-4 text-primary" />}
                               
-                              {/* כוכבים */}
                               {unlocked && starCount > 0 && (
                                 <div className="flex gap-0.5 mt-1">
                                   {[1, 2, 3].map((s) => (
@@ -720,7 +714,6 @@ function Game() {
                                 </div>
                               )}
 
-                              {/* זמן הפתרון הכי טוב */}
                               {unlocked && done && bestSecs !== undefined && (
                                 <span className="mt-0.5 text-[10px] text-muted-foreground font-display font-semibold">
                                   {formatTime(bestSecs)}
