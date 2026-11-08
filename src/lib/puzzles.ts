@@ -323,7 +323,7 @@ export function getSavedProgress(levelKey: string): Record<number, LevelStats> {
 }
 
 /**
- * שומר את תוצאת השלב, מעדכן שיאים ומעניק מטבעות
+ * שומר את תוצאת השלב, מעדכן שיאים ומעניק מטבעות (בפתירה ראשונה בלבד)
  */
 export function saveLevelProgress(
   levelKey: string,
@@ -336,6 +336,9 @@ export function saveLevelProgress(
   const stars = calculateStars(moves, par, bumps);
   const current = getSavedProgress(levelKey);
   const prev = current[puzzleIdx];
+
+  // בדיקה האם זו הפעם הראשונה שהשלב נפתר
+  const isFirstSolve = !prev || (prev.stars ?? 0) === 0;
 
   // מעדכנים אם זו פעם ראשונה או שהתוצאה טובה יותר
   const newStars = Math.max(stars, prev?.stars ?? 0);
@@ -350,11 +353,14 @@ export function saveLevelProgress(
 
   localStorage.setItem(`rush_hour_progress_${levelKey}`, JSON.stringify(current));
 
-  // חישוב מטבעות: 10 מטבעות לכל כוכב
-  const coinsEarned = stars * 10;
-  addCoins(coinsEarned);
+  // חישוב מטבעות: 10 מטבעות לכל כוכב — מוענקים אך ורק בפתירה הראשונה
+  let coinsEarned = 0;
+  if (isFirstSolve) {
+    coinsEarned = stars * 10;
+    addCoins(coinsEarned);
+  }
 
-  return { stars, coinsEarned };
+  return { stars: newStars, coinsEarned };
 }
 
 /**
