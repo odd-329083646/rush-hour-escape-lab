@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CalendarDays, Home, Play, RotateCcw, Trophy } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CalendarDays, Coins, Home, Play, RotateCcw, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DailyCalendar } from "./daily-calendar";
-import { applyMove, cells, getDailyPuzzleAsync, isSolved, pickHidden, type Car, type Move } from "@/lib/puzzles";
+import { addCoins, applyMove, cells, getCoins, getDailyPuzzleAsync, isSolved, pickHidden, type Car, type Move } from "@/lib/puzzles";
 import { fmtTime, submitScore } from "@/lib/daily-scores";
 
 const DIRS: { m: Move; Icon: typeof ArrowUp; cls: string }[] = [
@@ -27,7 +27,8 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
   const [moves, setMoves] = useState(0);
   const [bumps, setBumps] = useState(0);
   const [warn, setWarn] = useState<string | null>(null);
-  const [result, setResult] = useState<{ time: number; best: number | null; isRecord: boolean } | null>(null);
+  const [coins, setCoins] = useState(getCoins());
+  const [result, setResult] = useState<{ time: number; best: number | null; isRecord: boolean; coinsEarned: number; isFirstSolve: boolean } | null>(null);
   const [calOpen, setCalOpen] = useState(openCalendar);
   const dragStart = useRef<{ id: string; pointerId: number; x: number; y: number; pitch: number; min: number; max: number } | null>(null);
   const [drag, setDrag] = useState<{ id: string; offset: number } | null>(null);
@@ -38,6 +39,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
     setCars(cs); setSel(null); setHidden(new Set()); setStartedAt(null);
     setMoves(0); setBumps(0); setResult(null); setWarn(null);
     setMove(null); setSteps(1); setDrag(null); dragStart.current = null; submitting.current = false;
+    setCoins(getCoins());
   };
 
   useEffect(() => {
@@ -89,7 +91,26 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
       const time = Math.max(1, Math.round((Date.now() - startedAt) / 1000));
       const name = localStorage.getItem("player_name") || "Player";
       const res = await submitScore({ date, solve_time: time, player_name: name });
-      setResult({ time, ...res });
+
+      // בדיקה אם זו פתירה ראשונה של החידה היומית הזו
+      const solvedKey = `rush_hour_daily_solved_${date}`;
+      const isFirstSolve = !localStorage.getItem(solvedKey);
+
+      let coinsEarned = 0;
+      if (isFirstSolve) {
+        coinsEarned += 30; // 30 מטבעות על פתירה ראשונה
+        localStorage.setItem(solvedKey, "true");
+      }
+      if (res.isRecord) {
+        coinsEarned += 50; // 50 מטבעות בונוס על שבירת שיא עולמי
+      }
+
+      if (coinsEarned > 0) {
+        addCoins(coinsEarned);
+        setCoins(getCoins());
+      }
+
+      setResult({ time, ...res, coinsEarned, isFirstSolve });
     }
   }, [sel, steps, startedAt, result, failed, cars, blockerOf, hidden, flash, date]);
 
@@ -174,7 +195,14 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
       <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2">
         <Button asChild variant="ghost" className="chip px-2 sm:px-3.5"><Link to="/" aria-label="Back to Home"><Home className="h-4 w-4" /><span className="hidden sm:inline">Back to Home</span></Link></Button>
         <h1 className="min-w-0 truncate font-display text-sm font-bold md:text-xl">Daily · משחק יומי <span className="text-muted-foreground">· {label}</span></h1>
-        <div className="flex shrink-0 gap-2">
+        
+        <div className="flex shrink-0 items-center gap-2">
+          {/* מאזן מטבעות */}
+          <div className="chip font-display flex items-center gap-1.5 px-2.5 py-1 text-amber-400 border border-amber-500/30 bg-amber-500/10 rounded-full" title="המטבעות שלך">
+            <Coins className="h-4 w-4 text-amber-400 fill-amber-400" />
+            <span className="font-bold">{coins}</span>
+          </div>
+
           <Button variant="ghost" className="chip px-2 sm:px-3.5" onClick={() => setCalOpen(true)} aria-label="Calendar · לוח שנה"><CalendarDays className="h-4 w-4" /><span className="hidden sm:inline">Calendar · לוח שנה</span></Button>
           <Button variant="ghost" className="chip px-2 sm:px-3.5" onClick={() => reset(start)} aria-label="Reset"><RotateCcw className="h-4 w-4" /><span className="hidden sm:inline">Reset</span></Button>
         </div>
@@ -267,6 +295,19 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
               {fmtTime(result.time)} · {moves} moves · {bumps} bumps
             </p>
             {!result.isRecord && <p className="mt-1 text-sm">Your time {fmtTime(result.time)} · World best {result.best != null ? fmtTime(result.best) : "—"}</p>}
+            
+            {/* פירוט המטבעות שהורווחו */}
+            <div className="mt-3 flex justify-center">
+              {result.coinsEarned > 0 ? (
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-sm font-bold text-amber-400">
+                  <Coins className="h-4 w-4 fill-amber-400" />
+                  <span>+{result.coinsEarned} מטבעות! {result.isRecord ? "👑 (בונוס שיא עולמי)" : ""}</span>
+                </div>
+              ) : (
+                <span className="text-xs text-muted-foreground">פתירה חוזרת (ללא שיא עולמי חדש) — 0 🪙</span>
+              )}
+            </div>
+
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               <Button variant="ghost" className="chip" onClick={() => reset(start)}>Play again · שחק שוב</Button>
               <Button variant="ghost" className="chip" onClick={() => setCalOpen(true)}><CalendarDays className="h-4 w-4" /> Calendar</Button>
