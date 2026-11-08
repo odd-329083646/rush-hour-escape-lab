@@ -429,7 +429,7 @@ export function getNextBestMove(startCars: Car[]): HintResult | null {
 }
 
 // ==========================================
-// חלוקת שלבים ל-Tiers (קושי לפי מהלכים)
+// חלוקת שלבים ל-Tiers (קושי לפי מהלכים - שלבים קיימים בלבד)
 // ==========================================
 
 export interface TierConfig {
@@ -437,31 +437,51 @@ export interface TierConfig {
   heTitle: string;
   minPar: number;
   maxPar: number;
-  requiredSolvesToNext: number; // 4 שלבים כדי לפתוח את הרמה הבאה
+  requiredSolvesToNext: number;
 }
 
 export const TIERS: TierConfig[] = [
-  { id: "tier_1", heTitle: "רמה 1 (5–10 מהלכים)", minPar: 5, maxPar: 10, requiredSolvesToNext: 0 },
-  { id: "tier_2", heTitle: "רמה 2 (11–20 מהלכים)", minPar: 11, maxPar: 20, requiredSolvesToNext: 4 },
-  { id: "tier_3", heTitle: "רמה 3 (21–30 מהלכים)", minPar: 21, maxPar: 30, requiredSolvesToNext: 4 },
-  { id: "tier_4", heTitle: "רמה 4 (31–40 מהלכים)", minPar: 31, maxPar: 40, requiredSolvesToNext: 4 },
-  { id: "tier_5", heTitle: "רמה 5 (41–51 מהלכים)", minPar: 41, maxPar: 51, requiredSolvesToNext: 4 },
+  { id: "tier_1", heTitle: "רמה 1 (5–9 מהלכים)", minPar: 5, maxPar: 9, requiredSolvesToNext: 0 },
+  { id: "tier_2", heTitle: "רמה 2 (10–14 מהלכים)", minPar: 10, maxPar: 14, requiredSolvesToNext: 4 },
+  { id: "tier_3", heTitle: "רמה 3 (15–19 מהלכים)", minPar: 15, maxPar: 19, requiredSolvesToNext: 4 },
+  { id: "tier_4", heTitle: "רמה 4 (20–24 מהלכים)", minPar: 20, maxPar: 24, requiredSolvesToNext: 4 },
+  { id: "tier_5", heTitle: "רמה 5 (25–29 מהלכים)", minPar: 25, maxPar: 29, requiredSolvesToNext: 4 },
+  { id: "tier_6", heTitle: "רמה 6 (30–34 מהלכים)", minPar: 30, maxPar: 34, requiredSolvesToNext: 4 },
+  { id: "tier_7", heTitle: "רמה 7 (35–39 מהלכים)", minPar: 35, maxPar: 39, requiredSolvesToNext: 4 },
+  { id: "tier_8", heTitle: "רמה 8 (40–44 מהלכים)", minPar: 40, maxPar: 44, requiredSolvesToNext: 4 },
+  { id: "tier_9", heTitle: "רמה 9 (45–49 מהלכים)", minPar: 45, maxPar: 49, requiredSolvesToNext: 4 },
+  { id: "tier_10", heTitle: "רמה 10 (50+ מהלכים)", minPar: 50, maxPar: 60, requiredSolvesToNext: 4 },
 ];
 
 /**
- * מחזיר כמה שלבים נפתרו בקטגוריה מסוימת
+ * מחזיר רק את רשימת השלבים הקיימים במאגר השייכים לרמה מסוימת
+ */
+export function getPuzzlesForTier(
+  tier: TierConfig,
+  allPuzzles: { par: number; cars: Car[] }[]
+): { puzzle: { par: number; cars: Car[] }; originalIdx: number; tierLevelNum: number }[] {
+  return allPuzzles
+    .map((p, originalIdx) => ({ puzzle: p, originalIdx }))
+    .filter(({ puzzle }) => puzzle.par >= tier.minPar && puzzle.par <= tier.maxPar)
+    .map((item, index) => ({
+      ...item,
+      tierLevelNum: index + 1,
+    }));
+}
+
+/**
+ * מחזיר כמה שלבים נפתרו בקטגוריה מסוימת מתוך השלבים הקיימים בה
  */
 export function getSolvesCountInTier(
   tier: TierConfig,
-  puzzles: { par: number }[],
+  puzzles: { par: number; cars: Car[] }[],
   progress: Record<number, LevelStats>
 ): number {
+  const tierItems = getPuzzlesForTier(tier, puzzles);
   let count = 0;
-  puzzles.forEach((p, idx) => {
-    if (p.par >= tier.minPar && p.par <= tier.maxPar) {
-      if (progress[idx] && progress[idx].stars > 0) {
-        count++;
-      }
+  tierItems.forEach(({ originalIdx }) => {
+    if (progress[originalIdx] && progress[originalIdx].stars > 0) {
+      count++;
     }
   });
   return count;
@@ -472,10 +492,10 @@ export function getSolvesCountInTier(
  */
 export function isTierUnlocked(
   tierIdx: number,
-  puzzles: { par: number }[],
+  puzzles: { par: number; cars: Car[] }[],
   progress: Record<number, LevelStats>
 ): boolean {
-  if (tierIdx === 0) return true; // רמה 1 פתוחה תמיד
+  if (tierIdx === 0) return true;
   const prevTier = TIERS[tierIdx - 1];
   if (!prevTier) return true;
   
