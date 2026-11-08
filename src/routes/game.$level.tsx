@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, ChevronDown, ChevronUp, Coins, Eye, EyeOff, Home, Layers, Lightbulb, Lock, Play, Plus, RotateCcw, Send, Star, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
-import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, IS_OFFLINE_MODE, getRandomPuzzle, saveLevelProgress, getSavedProgress, getCoins, addCoins, getNextBestMove, TIERS, isTierUnlocked, getSolvesCountInTier, type Car, type Level, type Move } from "@/lib/puzzles";
+import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, IS_OFFLINE_MODE, getRandomPuzzle, saveLevelProgress, getSavedProgress, getCoins, addCoins, getNextBestMove, TIERS, isTierUnlocked, getSolvesCountInTier, getPuzzlesForTier, type Car, type Level, type Move } from "@/lib/puzzles";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/game/$level")({
@@ -645,7 +645,7 @@ function Game() {
         </aside>
       </div>
 
-      {/* דיאלוג בחירת השלבים המעודכן עם כותרת דביקה, אקורדיון וזמני שיא */}
+      {/* דיאלוג בחירת השלבים המעודכן (שלבים קיימים בלבד) */}
       {levelsOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4" onClick={() => setLevelsOpen(false)}>
           <div className="panel flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden p-0" onClick={(e) => e.stopPropagation()}>
@@ -660,11 +660,9 @@ function Game() {
               {TIERS.map((tier, tierIdx) => {
                 const unlocked = isTierUnlocked(tierIdx, puzzles, progress);
                 const solvedCount = getSolvesCountInTier(tier, puzzles, progress);
-                const tierPuzzles = puzzles
-                  .map((p, originalIdx) => ({ puzzle: p, originalIdx }))
-                  .filter(({ puzzle }) => puzzle.par >= tier.minPar && puzzle.par <= tier.maxPar);
+                const tierItems = getPuzzlesForTier(tier, puzzles);
 
-                if (tierPuzzles.length === 0) return null;
+                if (tierItems.length === 0) return null;
                 const isCollapsed = !!collapsedTiers[tier.id];
 
                 return (
@@ -689,7 +687,7 @@ function Game() {
                       </div>
                       <span className="text-xs text-muted-foreground">
                         {unlocked
-                          ? `נפתרו: ${solvedCount}/${tierPuzzles.length}`
+                          ? `נפתרו: ${solvedCount}/${tierItems.length}`
                           : `פתור עוד ${Math.max(0, tier.requiredSolvesToNext - getSolvesCountInTier(TIERS[tierIdx - 1]!, puzzles, progress))} שלבים ברמה הקודמת`}
                       </span>
                     </button>
@@ -697,20 +695,20 @@ function Game() {
                     {/* גריד השלבים - מוצג רק אם הרמה אינה מוקטנת */}
                     {!isCollapsed && (
                       <div className="grid grid-cols-5 gap-2 mt-3 pt-2 border-t border-border/50">
-                        {tierPuzzles.map(({ originalIdx }) => {
+                        {tierItems.map(({ originalIdx, tierLevelNum }) => {
                           const done = (progress[originalIdx]?.stars ?? 0) > 0;
                           const starCount = progress[originalIdx]?.stars ?? 0;
                           const bestSecs = progress[originalIdx]?.bestTime;
 
                           return (
                             <button
-                              key={originalIdx}
+                              key={`${tier.id}_${tierLevelNum}`}
                               disabled={!unlocked}
                               onClick={() => jumpTo(originalIdx)}
                               data-active={originalIdx === idx}
                               className="ctrl relative font-display disabled:opacity-40 flex flex-col items-center justify-center p-2 min-h-[4rem]"
                             >
-                              {!unlocked ? <Lock className="h-4 w-4 text-muted-foreground" /> : originalIdx + 1}
+                              {!unlocked ? <Lock className="h-4 w-4 text-muted-foreground" /> : tierLevelNum}
                               {done && <CheckCircle2 className="absolute -right-1 -top-1 h-4 w-4 text-primary" />}
                               
                               {/* כוכבים */}
