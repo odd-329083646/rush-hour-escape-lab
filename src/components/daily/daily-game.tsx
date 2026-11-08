@@ -121,7 +121,6 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
     const pitch = cell.getBoundingClientRect().width + (parseFloat(getComputedStyle(board).columnGap) || 0);
     if (pitch <= 0) return;
     let back = 0, fwd = 0;
-    // Use the existing move validator for both visible and invisible obstacles.
     for (let n = 1; n <= 4; n++) {
       if (applyMove(cars, c.id, c.dir === "h" ? "left" : "up", n).error) break;
       back = n;
@@ -266,11 +265,12 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
             </h2>
             <p className="mt-2 text-muted-foreground">
               {fmtTime(result.time)} · {moves} moves · {bumps} bumps
-              </p>
+            </p>
             {!result.isRecord && <p className="mt-1 text-sm">Your time {fmtTime(result.time)} · World best {result.best != null ? fmtTime(result.best) : "—"}</p>}
-            <div className="mt-4 flex justify-center gap-2">
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
               <Button variant="ghost" className="chip" onClick={() => reset(start)}>Play again · שחק שוב</Button>
               <Button variant="ghost" className="chip" onClick={() => setCalOpen(true)}><CalendarDays className="h-4 w-4" /> Calendar</Button>
+              <Button asChild variant="ghost" className="chip"><Link to="/"><Home className="h-4 w-4" /> Home · בית</Link></Button>
             </div>
           </div>
         </div>
@@ -280,8 +280,9 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
           <div className="panel max-w-sm text-center" role="dialog" aria-label="Game over">
             <h2 className="font-display text-2xl font-bold">Game over · המשחק נגמר</h2>
             <p className="mt-2 text-muted-foreground">You bumped into invisible cars 3 times.</p>
-            <div className="mt-4 flex justify-center gap-2">
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
               <Button variant="ghost" className="chip" onClick={() => reset(start)}><RotateCcw className="h-4 w-4" /> Try again · נסה שוב</Button>
+              <Button asChild variant="ghost" className="chip"><Link to="/"><Home className="h-4 w-4" /> Home · בית</Link></Button>
             </div>
           </div>
         </div>
