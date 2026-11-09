@@ -42,7 +42,7 @@ describe("Daily gameplay controls", () => {
     fireEvent.keyDown(window, { key: "Enter" });
     fireEvent.click(screen.getByRole("button", { name: "Execute" }));
     await waitFor(() => expect(car.style.gridColumn).toBe("2 / span 2"), { timeout: 4000 });
-    expect(screen.getByRole("button", { name: "Invisible car" })).toHaveAttribute("data-hidden", "true");
+    expect(screen.getByRole("button", { name: "Hidden car" })).toHaveAttribute("data-hidden", "true");
     expect(getCoins()).toBe(75);
   });
   it("reveals one chosen car permanently for 40 coins without moving it", async () => {
