@@ -129,6 +129,7 @@ const en = {
   hintPlanValid: "No collisions in your queued moves.",
   hintPlanInvalid: "Move {n}: {error}",
   hintMenu: "Hints",
+  hintRevealedBoard: "Revealed car",
 } as const;
 
 export type TKey = keyof typeof en;
@@ -259,6 +260,7 @@ const he: Record<TKey, string> = {
   hintPlanValid: "אין התנגשויות במהלכים המתוכננים.",
   hintPlanInvalid: "מהלך {n}: {error}",
   hintMenu: "רמזים",
+  hintRevealedBoard: "מכונית שנחשפה",
 };
 
 const DICT: Record<Lang, Record<TKey, string>> = { en, he };

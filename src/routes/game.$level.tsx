@@ -71,6 +71,7 @@ function Game() {
   const [coins, setCoinsState] = useState(0);
   const hints = useHints(setCoinsState);
   const boardRevealed = reveal || hints.peek;
+  const [murdererBoard, setMurdererBoard] = useState(false);
   const [collapsedTiers, setCollapsedTiers] = useState<Record<string, boolean>>({});
 
   const won = wonAt !== null;
@@ -95,6 +96,7 @@ function Game() {
     const p = currentPuzzles[i] ?? currentPuzzles[0];
     if (!p) return;
     hints.reset();
+    setMurdererBoard(false);
     setIdx(currentPuzzles.indexOf(p));
     setCars(p.cars);
     setSel(null); setMove(null); setSteps(1); setMoves(0);
@@ -186,6 +188,7 @@ function Game() {
       if (!id || !hidden.has(id)) return t("noHint");
       if (!hints.charge(type)) return t("noHint");
       setHidden((previous) => { const next = new Set(previous); next.delete(id); return next; });
+      if (murderer) setMurdererBoard(true);
     } else {
       const result = validateHintPlan(cars, plan);
       if (!hints.charge(type)) return t("noHint");
@@ -289,7 +292,7 @@ function Game() {
   const standard = cars.filter((c) => c.len === 2);
   const trucks = cars.filter((c) => c.len === 3);
   
-  const showBoard = hints.peek || (murderer && hidden.size < cars.length) || simulating || !(murderer && started && !won && !failed);
+  const showBoard = hints.peek || murdererBoard || simulating || !(murderer && started && !won && !failed);
 
   const carBtn = (c: Car) => (
     <button key={c.id} onClick={() => setSel(c.id)} data-active={sel === c.id} title={c.name} className="palette-cell" disabled={simulating}>
@@ -370,7 +373,7 @@ function Game() {
   };
 
   const handlePointerDown = (c: Car, e: React.PointerEvent) => {
-    if (simulating) return;
+    if (simulating || (murderer && started) || hints.open) return;
     try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch (err) {}
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const gap = 6;
@@ -535,6 +538,12 @@ function Game() {
         </aside>
 
         <section className="flex min-h-0 flex-col items-center gap-2" style={{ gridArea: "board" }}>
+          {murderer && started && !won && !failed && !hints.peek && hidden.size < cars.length && (
+            <Button variant="ghost" className="chip" onClick={() => setMurdererBoard((value) => !value)}>
+              {murdererBoard ? <Layers className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {t(murdererBoard ? "plannedMoves" : "hintRevealedBoard")}
+            </Button>
+          )}
           {showBoard ? (
             <div className="board">
               {warn && <div key={warn.key} className="warn" role="alert">{warn.text}</div>}

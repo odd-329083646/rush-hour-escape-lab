@@ -12,3 +12,4 @@
 - Both daily routes use the shared DailyGame screen and finalize pointer, keyboard, and button moves through applyMove, keeping collision rules and daily scoring consistent.
 - All UI text comes from src/lib/i18n.ts (useI18n); update document lang with the selected language while keeping document and hook direction LTR to decouple translation from layout geometry.
 - The player profile (username, country) lives in src/lib/profile.ts on the device; stats are derived from saved level progress instead of being stored separately.
+- Share hint pricing/availability through lib/hints and timed peek/charging through useHints; keep dry plan validation separate from gameplay state to prevent penalties or move commits.

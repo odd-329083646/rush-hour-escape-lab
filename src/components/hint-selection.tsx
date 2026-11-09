@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Coins, Eye, ScanEye, ListChecks, X } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -20,13 +20,14 @@ export function HintSelection({ open, onOpenChange, level, cars, hidden, plan = 
   const { t } = useI18n();
   const [selecting, setSelecting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  useEffect(() => { if (!open) { setSelecting(false); setMessage(null); } }, [open]);
   const use = (type: HintType, id?: string) => {
     const response = onUse(type, id);
     if (response) setMessage(response);
     else onOpenChange(false);
   };
   return <Dialog open={open} onOpenChange={(value) => { setSelecting(false); setMessage(null); onOpenChange(value); }}>
-    <DialogContent dir="ltr" aria-describedby={undefined} className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-md overflow-auto rounded-lg [&>button:last-child]:hidden">
+    <DialogContent dir="ltr" aria-describedby={undefined} className="max-h-[90dvh] w-[calc(100%_-_2rem)] max-w-md overflow-auto rounded-lg [&>button:last-child]:hidden">
       <div className="flex items-center justify-between gap-2">
         <DialogTitle>{t(selecting ? "hintSelectCar" : "hintSelection")}</DialogTitle>
         <DialogClose asChild><Button variant="ghost" size="icon" aria-label={t("close")}><X className="h-4 w-4" /></Button></DialogClose>
