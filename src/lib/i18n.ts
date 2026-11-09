@@ -120,6 +120,15 @@ const en = {
   noSolves: "—",
   save: "Save",
   saved: "Saved",
+  hintSelection: "Choose a hint",
+  hintNext: "Next Move",
+  hintPeek: "Peek at Board · 3 seconds",
+  hintReveal: "Reveal Single Car",
+  hintValidate: "Validate Plan",
+  hintSelectCar: "Choose a hidden car · 40 coins",
+  hintPlanValid: "No collisions in your queued moves.",
+  hintPlanInvalid: "Move {n}: {error}",
+  hintMenu: "Hints",
 } as const;
 
 export type TKey = keyof typeof en;
@@ -241,6 +250,15 @@ const he: Record<TKey, string> = {
   noSolves: "—",
   save: "שמור",
   saved: "נשמר",
+  hintSelection: "בחר רמז",
+  hintNext: "המהלך הבא",
+  hintPeek: "הצצה בלוח · 3 שניות",
+  hintReveal: "חשיפת מכונית אחת",
+  hintValidate: "בדיקת תוכנית",
+  hintSelectCar: "בחר מכונית מוסתרת · 40 מטבעות",
+  hintPlanValid: "אין התנגשויות במהלכים המתוכננים.",
+  hintPlanInvalid: "מהלך {n}: {error}",
+  hintMenu: "רמזים",
 };
 
 const DICT: Record<Lang, Record<TKey, string>> = { en, he };
