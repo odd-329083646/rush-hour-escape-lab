@@ -308,3 +308,5 @@
 .win { opacity: 0; animation: win-in .35s ease .65s forwards; }
 
 [dir="rtl"] .panel-title { letter-spacing: 0; }
+.tutorial .board { width: min(20rem, 82vw, calc(100dvh - 22rem)); padding: 6px; gap: 4px; }
+.tutorial .exit { top: calc(6px + 2 * ((100% - 12px - 20px) / 6 + 4px)); height: calc((100% - 32px) / 6); }
