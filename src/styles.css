@@ -308,10 +308,5 @@
 .win { opacity: 0; animation: win-in .35s ease .65s forwards; }
 
 [dir="rtl"] .panel-title { letter-spacing: 0; }
-.tutorial .game-grid { --board: min(94vw, calc(100dvh - 32rem)); }
-@media (orientation: landscape) {
-  .tutorial .game-grid { --board: min(calc(100dvh - 13rem), calc(100vw - 31rem)); }
-}
-.tutorial .lesson-intro { flex-shrink: 0; }
 .tutorial .panel-title { letter-spacing: 0; }
 .tutorial .lesson-plan { max-height: 4rem; overflow: auto; }
