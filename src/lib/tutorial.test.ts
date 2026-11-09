@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { completeTutorial } from "./tutorial";
+import { completeTutorial, hasSeenTutorial, markTutorialSeen } from "./tutorial";
 import { getCoins } from "./puzzles";
 
 describe("tutorial reward", () => {
@@ -12,5 +12,15 @@ describe("tutorial reward", () => {
     completeTutorial();
     expect(completeTutorial()).toBe(false);
     expect(getCoins()).toBe(50);
+  });
+});
+
+describe("first-time tutorial flag", () => {
+  beforeEach(() => localStorage.clear());
+  it("is unset for new visitors and set after viewing", () => {
+    expect(hasSeenTutorial()).toBe(false);
+    markTutorialSeen();
+    expect(localStorage.getItem("has_seen_tutorial")).toBe("1");
+    expect(hasSeenTutorial()).toBe(true);
   });
 });

@@ -348,9 +348,11 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
             <h2 className="font-display text-2xl font-bold">
               {result.isRecord ? t("newRecord") : t("solved")}
             </h2>
-            <p className="mt-2 text-muted-foreground">
-              {t("resultSummary", { time: fmtTime(result.time), moves, bumps })}
-            </p>
+            <div className="mt-2 flex flex-col items-center text-muted-foreground">
+              <span>{t("statMoves", { n: moves })}</span>
+              <span>{t("statTime", { t: fmtTime(result.time) })}</span>
+              <span>{t("statPar", { n: par })}</span>
+            </div>
             {!result.isRecord && <p className="mt-1 text-sm">{t("yourVsBest", { time: fmtTime(result.time), best: result.best != null ? fmtTime(result.best) : "—" })}</p>}
             
             {/* פירוט המטבעות שהורווחו */}

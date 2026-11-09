@@ -1,10 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Home, Play, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { applyMove, isSolved, runPlan, type Car, type Move } from "@/lib/puzzles";
 import { useI18n, type TKey } from "@/lib/i18n";
-import { completeTutorial } from "@/lib/tutorial";
+import { completeTutorial, markTutorialSeen } from "@/lib/tutorial";
 
 export const Route = createFileRoute("/tutorial")({
   head: () => ({
@@ -40,6 +40,8 @@ function Tutorial() {
   const { t } = useI18n();
   const [step, setStep] = useState(0);
   const [finished, setFinished] = useState<null | boolean>(null);
+  // First visit counts as seen, so the menu never redirects here again.
+  useEffect(() => markTutorialSeen(), []);
   const next = () => {
     if (step < 3) setStep(step + 1);
     else setFinished(completeTutorial());

@@ -14,3 +14,11 @@ export function completeTutorial(): boolean {
   addCoins(TUTORIAL_REWARD);
   return true;
 }
+
+const SEEN_KEY = "has_seen_tutorial";
+export function hasSeenTutorial(): boolean {
+  return typeof window !== "undefined" && localStorage.getItem(SEEN_KEY) === "1";
+}
+export function markTutorialSeen(): void {
+  localStorage.setItem(SEEN_KEY, "1");
+}

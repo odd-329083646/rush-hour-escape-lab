@@ -1,10 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { isSolvedOn } from "@/lib/daily-scores";
 import { todayKey } from "@/lib/puzzles";
 import { useI18n, type TKey } from "@/lib/i18n";
+import { hasSeenTutorial } from "@/lib/tutorial";
 import { SettingsButton } from "@/components/settings-dialog";
-import { GraduationCap, CalendarDays, ChevronRight, Gamepad2, Trophy, type LucideIcon } from "lucide-react";
+import { CalendarDays, ChevronRight, Gamepad2, Trophy, type LucideIcon } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -63,7 +64,11 @@ function Index() {
   // Read after hydration: solves are stored on this device.
   const [dailySolved, setDailySolved] = useState(false);
   const { t } = useI18n();
-  useEffect(() => setDailySolved(isSolvedOn(todayKey())), []);
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!hasSeenTutorial()) { navigate({ to: "/tutorial", replace: true }); return; }
+    setDailySolved(isSolvedOn(todayKey()));
+  }, [navigate]);
   return (
     <main className="lot-bg relative flex min-h-dvh flex-col items-center justify-center gap-4 px-4 py-4 sm:gap-8 sm:px-5 sm:py-10">
       <div className="absolute end-3 top-3"><SettingsButton /></div>
@@ -103,8 +108,6 @@ function Index() {
           </Link>
         ))}
       </nav>
-
-      <Link to="/tutorial" className="chip flex items-center gap-2 px-4 py-2 text-sm"><GraduationCap className="h-4 w-4" />{t("tutorial")}</Link>
 
       <p className="max-w-md text-center text-[11px] text-muted-foreground sm:text-sm">
         {t("tagline")}
