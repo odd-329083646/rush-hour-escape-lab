@@ -7,3 +7,8 @@
 - [x] Add shared hint selection and coin pricing to regular and daily games.
 - [x] Add timed peek, permanent single-car reveal, and penalty-free plan validation.
 - [x] Test hint rules and verify gameplay in the browser.
+
+# Starting-board peek
+- [x] Remove the header's Show Cars toggle.
+- [x] Preview original positions for three seconds in regular and daily games without changing progress.
+- [ ] Verify hint prices, mode availability, and starting-board restoration.

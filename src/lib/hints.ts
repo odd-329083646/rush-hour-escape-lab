@@ -6,7 +6,7 @@ export type HintType = keyof typeof HINT_COSTS;
 export type PlannedMove = { id: string; move: Move; steps: number };
 
 export function hintAvailable(type: HintType, level: Level, hidden: Set<string>, plan: PlannedMove[]) {
-  if (type === "peek") return level !== "easy" && hidden.size > 0;
+  if (type === "peek") return level !== "easy";
   if (type === "reveal") return hidden.size > 0;
   if (type === "validate") return level === "murderer" && plan.length > 0;
   return true;
@@ -15,4 +15,8 @@ export function hintAvailable(type: HintType, level: Level, hidden: Set<string>,
 export function validateHintPlan(cars: Car[], plan: PlannedMove[]) {
   const result = runPlan(cars, plan);
   return { failedAt: result.failedAt, error: result.error };
+}
+
+export function peekBoardCars(initial: Car[], current: Car[], peek: boolean) {
+  return peek ? initial : current;
 }

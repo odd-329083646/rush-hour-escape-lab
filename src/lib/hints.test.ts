@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { HINT_COSTS, PEEK_DURATION, hintAvailable, validateHintPlan } from "./hints";
+import { HINT_COSTS, PEEK_DURATION, hintAvailable, peekBoardCars, validateHintPlan } from "./hints";
 import { type Car } from "./puzzles";
 
 describe("hint rules", () => {
@@ -9,7 +9,18 @@ describe("hint rules", () => {
   it("peeks for exactly three seconds", () => { expect(PEEK_DURATION).toBe(3000); });
   it("allows peek only in Medium, Hard, and Murderer", () => {
     expect(hintAvailable("peek", "easy", new Set(["A"]), [])).toBe(false);
-    for (const level of ["medium", "hard", "murderer"] as const) expect(hintAvailable("peek", level, new Set(["A"]), [])).toBe(true);
+    for (const level of ["medium", "hard", "murderer"] as const) {
+      expect(hintAvailable("peek", level, new Set(["A"]), [])).toBe(true);
+      expect(hintAvailable("peek", level, new Set(), [])).toBe(true);
+    }
+  });
+  it("shows original starting positions only during peek without replacing current progress", () => {
+    const initial: Car[] = [{ id: "A", name: "A", color: "var(--car-green)", row: 0, col: 0, len: 2, dir: "h" }];
+    const current: Car[] = [{ ...initial[0], col: 3 } as Car];
+    expect(peekBoardCars(initial, current, true)[0]?.col).toBe(0);
+    expect(peekBoardCars(initial, current, false)[0]?.col).toBe(3);
+    expect(current[0]?.col).toBe(3);
+    expect(initial[0]?.col).toBe(0);
   });
   it("allows validation only for a queued Murderer plan", () => {
     const plan = [{ id: "X", move: "right" as const, steps: 1 }];

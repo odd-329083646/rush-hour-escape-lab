@@ -6,7 +6,7 @@ import { SettingsButton } from "@/components/settings-dialog";
 import { useI18n } from "@/lib/i18n";
 import { HintSelection } from "@/components/hint-selection";
 import { useHints } from "@/hooks/use-hints";
-import { HINT_COSTS, hintAvailable, type HintType } from "@/lib/hints";
+import { HINT_COSTS, hintAvailable, peekBoardCars, type HintType } from "@/lib/hints";
 import { DailyCalendar } from "./daily-calendar";
 import { addCoins, applyMove, cells, getCoins, getDailyPuzzleAsync, getNextBestMove, isSolved, pickHidden, type Car, type Move } from "@/lib/puzzles";
 import { fmtTime, isSolvedOn, submitScore } from "@/lib/daily-scores";
@@ -37,6 +37,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
   const [coins, setCoins] = useState(getCoins());
   const [result, setResult] = useState<{ time: number; best: number | null; isRecord: boolean; coinsEarned: number; isFirstSolve: boolean } | null>(null);
   const hints = useHints(setCoins);
+  const boardCars = peekBoardCars(start, cars, hints.peek);
   const [calOpen, setCalOpen] = useState(openCalendar);
   const dragStart = useRef<{ id: string; pointerId: number; x: number; y: number; pitch: number; min: number; max: number } | null>(null);
   const [drag, setDrag] = useState<{ id: string; offset: number } | null>(null);
@@ -104,7 +105,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
   }, [cars]);
 
   const go = useCallback(async (m: Move, id = sel, count = steps) => {
-    if (startedAt === null || result || failed || submitting.current) return;
+    if (startedAt === null || result || failed || submitting.current || hints.peek) return;
     const c = cars.find((x) => x.id === id);
     if (!c) return flash(t("needCar"));
     const r = applyMove(cars, c.id, m, count);
@@ -153,7 +154,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target;
-      if (e.altKey || e.ctrlKey || e.metaKey || e.repeat || hints.open || calOpen || result || failed || !started || submitting.current) return;
+      if (e.altKey || e.ctrlKey || e.metaKey || e.repeat || hints.open || hints.peek || calOpen || result || failed || !started || submitting.current) return;
       if (target instanceof HTMLElement && (target.isContentEditable || target.closest("input, textarea, select, [role='dialog']"))) return;
       const char = e.code.startsWith("Key") ? e.code.slice(3) : e.key.toUpperCase();
       if (cars.some((c) => c.id === char)) { e.preventDefault(); setSel(char); return; }
@@ -168,10 +169,10 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [cars, calOpen, result, failed, started, move, go, flash, hints.open]);
+  }, [cars, calOpen, result, failed, started, move, go, flash, hints.open, hints.peek]);
 
   const handlePointerDown = (c: Car, e: PointerEvent<HTMLButtonElement>) => {
-    if (!started || result || failed || hints.open || calOpen || submitting.current || !e.isPrimary || e.button !== 0 || dragStart.current) return;
+    if (!started || result || failed || hints.open || hints.peek || calOpen || submitting.current || !e.isPrimary || e.button !== 0 || dragStart.current) return;
     const board = e.currentTarget.parentElement;
     const cell = board?.querySelector(".cell");
     if (!board || !cell) return;
@@ -297,7 +298,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
             {warn && <div className="warn" role="alert">{warn}</div>}
             {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" style={{ gridRow: Math.floor(i / 6) + 1, gridColumn: (i % 6) + 1 }} />)}
             <div className="exit" />
-            {cars.map((c) => (
+            {boardCars.map((c) => (
               <Button variant="ghost"
                 key={c.id}
                 draggable={false}
