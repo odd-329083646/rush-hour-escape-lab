@@ -1,3 +1,4 @@
+import { usePlayerSettings } from "@/hooks/usePlayerSettings";
 import { useEffect, useState } from "react";
 import { GraduationCap, Settings, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
@@ -22,14 +23,7 @@ export function SettingsButton({ className = "" }: { className?: string }) {
 }
 
 function SettingsDialog({ onClose }: { onClose: () => void }) {
-  const { t, lang } = useI18n();
-  const [username, setUsername] = useState("");
-  const [country, setCountry] = useState("");
-  const [saved, setSaved] = useState(false);
-
-  useEffect(() => { const p = getProfile(); setUsername(p.username); setCountry(p.country); }, []);
-
-  const commit = (u = username, c = country) => { saveProfile({ username: u, country: c }); setUsername(getProfile().username); setSaved(true); };
+  const { t, lang, username, setUsername, country, setCountry, saved, setSaved, commit, stats, raceStats } = usePlayerSettings();
 
   return (
     <div className="fixed inset-0 z-[60] grid place-items-center bg-background/80 p-3 backdrop-blur" onClick={onClose}>
@@ -72,13 +66,12 @@ function SettingsDialog({ onClose }: { onClose: () => void }) {
 
         <section>
           <h3 className="panel-title">{t("stats")}</h3>
-          <div className="mb-3 flex justify-between gap-3 text-sm"><span>{t("raceWins")}: {tournamentStats().wins}</span><span>{t("raceLosses")}: {tournamentStats().losses}</span></div>
+          <div className="mb-3 flex justify-between gap-3 text-sm"><span>{t("raceWins")}: {raceStats.wins}</span><span>{t("raceLosses")}: {raceStats.losses}</span></div>
           <div className="overflow-hidden rounded-lg border">
             <div className="grid grid-cols-3 bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
               <span /> <span className="text-center">{t("bestTime")}</span><span className="text-center">{t("minMoves")}</span>
             </div>
-            {(Object.keys(LEVELS) as Level[]).map((l) => {
-              const b = levelBests(l);
+            {stats.map(({ level: l, ...b }) => {
               return (
                 <div key={l} className="grid grid-cols-3 border-t px-3 py-2 text-sm">
                   <span className="font-medium">{t(`level.${l}`)}</span>

@@ -1,3 +1,4 @@
+import { useMainMenu } from "@/hooks/useMainMenu";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { isSolvedOn } from "@/lib/daily-scores";
@@ -61,14 +62,7 @@ const ENTRIES: Entry[] = [
 ];
 
 function Index() {
-  // Read after hydration: solves are stored on this device.
-  const [dailySolved, setDailySolved] = useState(false);
-  const { t } = useI18n();
-  const navigate = useNavigate();
-  useEffect(() => {
-    if (!hasSeenTutorial()) { navigate({ to: "/tutorial", replace: true }); return; }
-    setDailySolved(isSolvedOn(todayKey()));
-  }, [navigate]);
+  const { dailySolved, t } = useMainMenu();
   return (
     <main className="lot-bg relative flex min-h-dvh flex-col items-center justify-center gap-4 px-4 py-4 sm:gap-8 sm:px-5 sm:py-10">
       <div className="absolute end-3 top-3"><SettingsButton /></div>
