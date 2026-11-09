@@ -15,3 +15,4 @@
 # Tutorial
 - [x] /tutorial with 4 lessons, linked from Home and Settings, 50-coin first-completion reward.
 - [x] Add initial language choice, standard gameplay layout and pointer/keyboard controls; verify all lessons and reward.
+- [ ] Limit language setup to first visits, show lesson intro modals, and auto-advance on escape; verify navigation and reward.

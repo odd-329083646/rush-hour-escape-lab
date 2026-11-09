@@ -15,3 +15,4 @@
 - Share hint pricing/availability through lib/hints and timed peek/charging through useHints; keep dry plan validation separate from gameplay state to prevent penalties or move commits.
 - Render timed peeks from the initial puzzle snapshot, never the mutable gameplay board; block move commits during peek so starting-position previews cannot alter progress.
 - Tutorial lessons reuse game-grid, board, controls and palette styles; pointer, keyboard and button actions share applyMove validation, while plan actions queue without committing until submission.
+- Tutorial uses hydration-safe language/intro/play/completion phases; successful moves transition immediately, keeping dialogs separate from live lesson state.

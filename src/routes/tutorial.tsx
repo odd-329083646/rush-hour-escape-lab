@@ -2,9 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Home, Languages, Play, Plus, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { applyMove, isSolved, runPlan, type Car, type Move } from "@/lib/puzzles";
 import { setLang, translate, useI18n, type Lang, type TKey } from "@/lib/i18n";
-import { completeTutorial, markTutorialSeen } from "@/lib/tutorial";
+import { completeTutorial, hasSeenTutorial, markTutorialSeen } from "@/lib/tutorial";
 
 export const Route = createFileRoute("/tutorial")({
   head: () => ({
@@ -37,29 +38,19 @@ const DIRS: { m: Move; Icon: typeof ArrowUp }[] = [
 ];
 
 export function Tutorial() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [step, setStep] = useState(0);
-  const [languageChosen, setLanguageChosen] = useState(false);
-  const chooseLanguage = (language: Lang) => { setLang(language); setLanguageChosen(true); };
+  const [phase, setPhase] = useState<"language" | "intro" | "play" | "complete" | null>(null);
+  const chooseLanguage = (language: Lang) => { setLang(language); setPhase("intro"); };
   const [finished, setFinished] = useState<null | boolean>(null);
-  // First visit counts as seen, so the menu never redirects here again.
-  useEffect(() => markTutorialSeen(), []);
+  useEffect(() => {
+    setPhase(hasSeenTutorial() ? "intro" : "language");
+    markTutorialSeen();
+  }, []);
   const next = () => {
-    if (step < 3) setStep(step + 1);
-    else setFinished(completeTutorial());
+    if (step < LESSONS.length - 1) { setStep(step + 1); setPhase("intro"); }
+    else { setFinished(completeTutorial()); setPhase("complete"); }
   };
-  if (!languageChosen) return (
-    <main className="lot-bg flex h-dvh items-center justify-center overflow-hidden px-4" dir="ltr">
-      <section className="panel flex w-full max-w-sm flex-col items-center gap-5 text-center">
-        <Languages className="h-10 w-10 text-primary" />
-        <h1 className="font-display text-xl font-bold"><span className="block">{translate("en", "tutorialLanguage")}</span><span className="block" lang="he">{translate("he", "tutorialLanguage")}</span></h1>
-        <div className="grid w-full grid-cols-2 gap-3">
-          <Button className="execute" onClick={() => chooseLanguage("en")}>{t("languageEnglish")}</Button>
-          <Button className="execute" onClick={() => chooseLanguage("he")}>{t("languageHebrew")}</Button>
-        </div>
-      </section>
-    </main>
-  );
   const lesson = LESSONS[step];
   return (
     <main className="tutorial lot-bg flex h-dvh flex-col items-center gap-3 overflow-hidden px-3 py-3">
@@ -68,21 +59,38 @@ export function Tutorial() {
         <h1 className="font-display text-xl font-bold">{t("tutorial")}</h1>
         <span className="chip px-3 py-1 text-xs">{t("tutLesson", { n: step + 1 })}</span>
       </header>
-      {finished !== null ? (
-        <div className="panel mt-8 flex max-w-sm flex-col items-center gap-3 text-center">
-          <Trophy className="h-10 w-10 text-primary" />
-          <h2 className="font-display text-2xl font-bold">{t("tutDone")}</h2>
-          <p className="text-muted-foreground">{finished ? t("tutReward") : t("tutNoReward")}</p>
-          <Button asChild className="execute"><Link to="/play">{t("regularGames")}</Link></Button>
-        </div>
-      ) : (
-        lesson && <LessonView key={step} lesson={lesson} onNext={next} last={step === 3} />
-      )}
+      {phase === "play" && lesson && <LessonView key={step} lesson={lesson} onNext={next} />}
+      <Dialog open={phase !== null && phase !== "play"}>
+        <DialogContent className="w-[calc(100%-2rem)] max-w-lg rounded-lg border-border bg-card text-center [&>button:last-child]:hidden" dir="ltr" onEscapeKeyDown={(event) => event.preventDefault()} onPointerDownOutside={(event) => event.preventDefault()}>
+          {phase === "language" ? <>
+            <Languages className="mx-auto h-10 w-10 text-primary" />
+            <DialogTitle className="font-display text-xl"><span className="block">{translate("en", "tutorialLanguage")}</span><span className="block" lang="he">{translate("he", "tutorialLanguage")}</span></DialogTitle>
+            <DialogDescription className="sr-only">{t("language")}</DialogDescription>
+            <div className="grid grid-cols-2 gap-3">
+              <Button className="execute" onClick={() => chooseLanguage("en")}>{t("languageEnglish")}</Button>
+              <Button className="execute" onClick={() => chooseLanguage("he")}>{t("languageHebrew")}</Button>
+            </div>
+          </> : phase === "complete" ? <>
+            <Trophy className="mx-auto h-12 w-12 text-primary" />
+            <DialogTitle className="font-display text-2xl">{t("tutDone")}</DialogTitle>
+            <DialogDescription>{finished ? t("tutReward") : t("tutNoReward")}</DialogDescription>
+            <Button asChild className="execute"><Link to="/play">{t("regularGames")}</Link></Button>
+          </> : lesson && <>
+            <span className="font-display text-sm text-primary">{t("tutLesson", { n: step + 1 })}</span>
+            <DialogTitle className="font-display text-xl leading-snug" dir={lang === "he" ? "rtl" : "ltr"}>{t(lesson.title)}</DialogTitle>
+            <DialogDescription asChild><ul className="flex flex-col gap-3 text-sm leading-relaxed text-muted-foreground" dir={lang === "he" ? "rtl" : "ltr"}>{t(lesson.body).split("\n").map((line) => <li key={line}>{line}</li>)}</ul></DialogDescription>
+            <div className="flex flex-wrap justify-center gap-3 pt-2">
+              <Button className="execute" onClick={() => setPhase("play")}>{t("tutUnderstand")}</Button>
+              {step > 0 && <Button variant="outline" onClick={() => setStep(step - 1)}>{t("tutPrevious")}</Button>}
+            </div>
+          </>}
+        </DialogContent>
+      </Dialog>
     </main>
   );
 }
 
-function LessonView({ lesson, onNext, last }: { lesson: Lesson; onNext: () => void; last: boolean }) {
+function LessonView({ lesson, onNext }: { lesson: Lesson; onNext: () => void }) {
   const { t, te, lang } = useI18n();
   const [cars, setCars] = useState(lesson.cars);
   const [sel, setSel] = useState<string | null>(null);
@@ -105,10 +113,11 @@ function LessonView({ lesson, onNext, last }: { lesson: Lesson; onNext: () => vo
     const result = applyMove(cars, id, direction, count);
     setMsg(result.error ? te(result.error) : null);
     setCars(result.cars);
+    if (!result.error && isSolved(result.cars)) onNext();
   };
   const submit = () => {
     const result = runPlan(cars, plan);
-    if (result.failedAt === undefined && isSolved(result.cars)) { setCars(result.cars); setMsg(null); }
+    if (result.failedAt === undefined && isSolved(result.cars)) { setCars(result.cars); setMsg(null); onNext(); }
     else setMsg(t("tutPlanFail"));
   };
 
@@ -185,10 +194,6 @@ function LessonView({ lesson, onNext, last }: { lesson: Lesson; onNext: () => vo
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col gap-3" dir="ltr">
-      <section className="lesson-intro mx-auto w-full max-w-3xl text-center">
-        <h2 className="font-display text-lg font-bold" dir={lang === "he" ? "rtl" : "ltr"}>{t(lesson.title)}</h2>
-        <ul className="mt-1 flex flex-col gap-1 text-sm text-muted-foreground" dir={lang === "he" ? "rtl" : "ltr"}>{t(lesson.body).split("\n").map((line) => <li key={line}>{line}</li>)}</ul>
-      </section>
       <div className="game-grid">
         <aside className="panel flex flex-col gap-2" style={{ gridArea: "ctrl" }}>
           {!started ? <Button className="execute start-control whitespace-normal" onClick={() => setStarted(true)}><Play className="h-4 w-4" />{t("tut3Start")}</Button> : (
@@ -218,7 +223,6 @@ function LessonView({ lesson, onNext, last }: { lesson: Lesson; onNext: () => vo
             ))}
           </div>
           {msg && <p role="alert" className="text-center text-sm text-destructive">{msg}</p>}
-          {done && <div className="flex flex-col items-center gap-2"><p className="font-display text-primary">{t("tutLessonDone")}</p><Button className="execute" onClick={onNext}>{t(last ? "tutDone" : "tutNext")}</Button></div>}
         </section>
         <aside className="panel flex flex-col gap-2" style={{ gridArea: "cars" }}>
           <h2 className="panel-title">{t("cars")}</h2>
