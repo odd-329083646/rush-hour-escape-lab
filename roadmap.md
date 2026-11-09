@@ -18,7 +18,7 @@
 - [x] Limit language setup to first visits, show lesson intro modals, and auto-advance on escape; verify navigation and reward.
 
 # Live 1v1 tournaments
-- [ ] Confirm account/profile setup and treatment of existing device-only coins.
-- [ ] Add 50-coin entry, random matchmaking with a 15-second bot fallback, and friend invites with 30-second refunds.
+- [x] Use device-based guests without registration, six-digit friend room codes, and a one-time existing-coin import.
+- [ ] Add 50-coin entry, random matchmaking with a 15-second bot fallback, and private rooms with 30-second refunds.
 - [ ] Add synchronized countdown, three shared puzzles, live opponent progress, and first-finisher results.
 - [ ] Award 90 coins to the winner once, record win/loss stats, and verify two-player and bot flows.
