@@ -560,7 +560,7 @@ function Game() {
                   data-shake={sel === c.id && !!warn}
                   data-selected={sel === c.id}
                   data-hidden={hidden.has(c.id) && !boardRevealed}
-                  data-ghost={hidden.has(c.id) && boardRevealed}
+                  data-ghost={hidden.has(c.id) && reveal && !hints.peek}
                   data-escaping={won && c.id === "X"}
                   aria-label={hidden.has(c.id) && !boardRevealed ? t("hiddenCar") : c.name}
                   className="car touch-none select-none"

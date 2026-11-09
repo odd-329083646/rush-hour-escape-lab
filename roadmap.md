@@ -4,6 +4,6 @@
 - [x] Verify both daily routes and run gameplay regression tests.
 
 # Expanded hints
-- [ ] Add shared hint selection and coin pricing to regular and daily games.
-- [ ] Add timed peek, permanent single-car reveal, and penalty-free plan validation.
-- [ ] Test hint rules and verify gameplay in the browser.
+- [x] Add shared hint selection and coin pricing to regular and daily games.
+- [x] Add timed peek, permanent single-car reveal, and penalty-free plan validation.
+- [x] Test hint rules and verify gameplay in the browser.

@@ -31,7 +31,7 @@ describe("Daily gameplay controls", () => {
     await startGame();
     fireEvent.click(screen.getByRole("button", { name: "Hints" }));
     fireEvent.click(screen.getByRole("button", { name: /Reveal Single Car/ }));
-    fireEvent.click(screen.getByRole("dialog").querySelector('button:not([aria-label])') ?? screen.getByRole("button", { name: "A", exact: true }));
+    fireEvent.click(screen.getByRole("button", { name: "A" }));
     expect(getCoins()).toBe(60);
     const car = screen.getByRole("button", { name: "Green Car" });
     expect(car).toHaveAttribute("data-hidden", "false");
