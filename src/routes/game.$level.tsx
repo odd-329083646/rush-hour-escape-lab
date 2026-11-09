@@ -1,13 +1,13 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, ChevronDown, ChevronUp, Coins, Eye, EyeOff, Home, Layers, Lightbulb, Lock, Play, Plus, RotateCcw, Send, Star, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, ChevronDown, ChevronUp, Coins, Eye, Home, Layers, Lightbulb, Lock, Play, Plus, RotateCcw, Send, Star, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
 import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, IS_OFFLINE_MODE, getRandomPuzzle, saveLevelProgress, getSavedProgress, getCoins, addCoins, getNextBestMove, TIERS, isTierUnlocked, getSolvesCountInTier, getPuzzlesForTier, type Car, type Level, type Move } from "@/lib/puzzles";
 import { Button } from "@/components/ui/button";
 import { SettingsButton } from "@/components/settings-dialog";
 import { useI18n } from "@/lib/i18n";
 import { HintSelection } from "@/components/hint-selection";
 import { useHints } from "@/hooks/use-hints";
-import { HINT_COSTS, hintAvailable, validateHintPlan, type HintType } from "@/lib/hints";
+import { HINT_COSTS, hintAvailable, peekBoardCars, validateHintPlan, type HintType } from "@/lib/hints";
 
 export const Route = createFileRoute("/game/$level")({
   beforeLoad: ({ params }) => {
@@ -50,6 +50,7 @@ function Game() {
   const [maxSolved, setMaxSolved] = useState(-1);
   const puzzle = puzzles[idx] ?? puzzles[0] ?? { par: 0, cars: [] as Car[] };
   const [cars, setCars] = useState<Car[]>(puzzle?.cars ?? []);
+  const [initialCars, setInitialCars] = useState<Car[]>(puzzle?.cars ?? []);
   const [sel, setSel] = useState<string | null>(null);
   const [move, setMove] = useState<Move | null>(null);
   const [steps, setSteps] = useState(1);
@@ -58,7 +59,6 @@ function Game() {
   const [warn, setWarn] = useState<{ text: string; key: number } | null>(null);
   const [started, setStarted] = useState(false);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
-  const [reveal, setReveal] = useState(false);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [now, setNow] = useState(0);
   const [wonAt, setWonAt] = useState<number | null>(null);
@@ -70,7 +70,8 @@ function Game() {
   const [wonStars, setWonStars] = useState(3);
   const [coins, setCoinsState] = useState(0);
   const hints = useHints(setCoinsState);
-  const boardRevealed = reveal || hints.peek;
+  const boardRevealed = hints.peek;
+  const boardCars = peekBoardCars(initialCars, cars, hints.peek);
   const [murdererBoard, setMurdererBoard] = useState(false);
   const [collapsedTiers, setCollapsedTiers] = useState<Record<string, boolean>>({});
 
@@ -99,9 +100,10 @@ function Game() {
     setMurdererBoard(false);
     setIdx(currentPuzzles.indexOf(p));
     setCars(p.cars);
+    setInitialCars(p.cars);
     setSel(null); setMove(null); setSteps(1); setMoves(0);
     setMsg(t("msgStudy"));
-    setWarn(null); setStarted(false); setHidden(new Set()); setReveal(false);
+    setWarn(null); setStarted(false); setHidden(new Set());
     setStartedAt(null); setWonAt(null); setPlan([]); setFailed(false); setSimulating(false);
     setInvisibleBumps(0);
     setWonStars(3);
@@ -230,6 +232,7 @@ function Game() {
   };
 
   const execute = () => {
+    if (hints.peek) return;
     if (!started) return flash(t("needStart"));
     if (!sel) return flash(t("needCar"));
     if (!move) return flash(t("needDir"));
@@ -254,7 +257,7 @@ function Game() {
   };
 
   const submitPlan = async () => {
-    if (simulating) return;
+    if (simulating || hints.peek) return;
     if (!plan.length) return flash(t("needPlan"));
     
     setSimulating(true);
@@ -373,7 +376,7 @@ function Game() {
   };
 
   const handlePointerDown = (c: Car, e: React.PointerEvent) => {
-    if (simulating || (murderer && started) || hints.open) return;
+    if (simulating || (murderer && started) || hints.open || hints.peek) return;
     try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch (err) {}
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const gap = 6;
@@ -384,7 +387,7 @@ function Game() {
   };
 
   const handlePointerMove = (c: Car, e: React.PointerEvent) => {
-    if (simulating) return;
+    if (simulating || hints.peek) return;
     const d = dragStart.current;
     if (!d || d.id !== c.id) return;
     const raw = c.dir === "h" ? e.clientX - d.x : e.clientY - d.y;
@@ -393,7 +396,7 @@ function Game() {
   };
 
   const handlePointerUp = (c: Car, e: React.PointerEvent) => {
-    if (simulating) return;
+    if (simulating || hints.peek) return;
     try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch (err) {}
     const d = dragStart.current;
     dragStart.current = null;
@@ -458,6 +461,7 @@ function Game() {
             onClick={() => {
               const randPuz = getRandomPuzzle();
               setCars(randPuz.cars);
+              setInitialCars(randPuz.cars);
               setMsg(t("randomDrawn"));
             }}
             className="h-7 gap-1 text-xs"
@@ -478,11 +482,6 @@ function Game() {
             <span className="font-bold">{coins}</span>
           </div>
 
-          {started && hidden.size > 0 && !murderer && (
-            <button onClick={() => setReveal((v) => !v)} data-active={reveal} className="chip" disabled={simulating}>
-              {reveal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {reveal ? t("hideCars") : t("revealCars")}
-            </button>
-          )}
            <Button variant="ghost" onClick={() => setLevelsOpen(true)} aria-label={t("chooseLevel")} title={t("chooseLevel")} className="chip px-2 sm:px-3.5" disabled={simulating}><Layers className="h-4 w-4" /><span className="hidden sm:inline">{t("levels")}</span></Button>
            <Button variant="ghost" onClick={() => loadPuzzle(idx)} aria-label={t("reset")} title={t("reset")} className="chip px-2 sm:px-3.5" disabled={simulating}><RotateCcw className="h-4 w-4" /><span className="hidden sm:inline">{t("reset")}</span></Button>
            <SettingsButton />
@@ -549,7 +548,7 @@ function Game() {
               {warn && <div key={warn.key} className="warn" role="alert">{warn.text}</div>}
               {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" style={{ gridRow: Math.floor(i / 6) + 1, gridColumn: (i % 6) + 1 }} />)}
               <div className="exit" />
-              {cars.map((c) => (
+              {boardCars.map((c) => (
                 <button
                   key={c.id}
                   draggable={false}
@@ -560,7 +559,6 @@ function Game() {
                   data-shake={sel === c.id && !!warn}
                   data-selected={sel === c.id}
                   data-hidden={hidden.has(c.id) && !boardRevealed}
-                  data-ghost={hidden.has(c.id) && reveal && !hints.peek}
                   data-escaping={won && c.id === "X"}
                   aria-label={hidden.has(c.id) && !boardRevealed ? t("hiddenCar") : c.name}
                   className="car touch-none select-none"
