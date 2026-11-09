@@ -1,3 +1,4 @@
+import { storageService } from "@/services/storageService";
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CalendarDays, Coins, Home, Lightbulb, Play, RotateCcw, Trophy } from "lucide-react";
@@ -118,7 +119,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
     if (isSolved(r.cars)) {
       submitting.current = true;
       const time = Math.max(1, Math.round((Date.now() - startedAt) / 1000));
-      const name = localStorage.getItem("player_name") || "Player";
+      const name = storageService.getItem("player_name") || "Player";
 
       // 1. בדיקה האם זו פתירה ראשונה של החידה היומית הזו במכשיר זה
       const isFirstSolve = !isSolvedOn(date);

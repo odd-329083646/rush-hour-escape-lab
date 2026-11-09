@@ -1,3 +1,4 @@
+import { storageService } from "@/services/storageService";
 import { useSyncExternalStore } from "react";
 
 export type Lang = "en" | "he";
@@ -417,11 +418,11 @@ export function translateError(lang: Lang, msg: string): string {
 
 const listeners = new Set<() => void>();
 function read(): Lang {
-  try { return localStorage.getItem(KEY) === "he" ? "he" : "en"; } catch { return "en"; }
+  try { return storageService.getItem(KEY) === "he" ? "he" : "en"; } catch { return "en"; }
 }
 export function getLang(): Lang { return typeof window === "undefined" ? "en" : read(); }
 export function setLang(l: Lang) {
-  localStorage.setItem(KEY, l);
+  storageService.setItem(KEY, l);
   applyDocumentLang(l);
   listeners.forEach((f) => f());
 }

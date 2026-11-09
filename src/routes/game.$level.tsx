@@ -1,3 +1,4 @@
+import { storageService } from "@/services/storageService";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, ChevronDown, ChevronUp, Coins, Eye, Home, Layers, Lightbulb, Lock, Play, Plus, RotateCcw, Send, Star, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
@@ -114,8 +115,8 @@ function Game() {
     setPuzzles(DEFAULT_PUZZLES);
     setCoinsState(getCoins());
     
-    const maxS = Number.isFinite(parseInt(localStorage.getItem(maxKey) ?? "", 10))
-      ? parseInt(localStorage.getItem(maxKey)!, 10)
+    const maxS = Number.isFinite(parseInt(storageService.getItem(maxKey) ?? "", 10))
+      ? parseInt((storageService.getItem(maxKey) ?? ""), 10)
       : -1;
     
     setMaxSolved(maxS);
@@ -151,12 +152,12 @@ function Game() {
 
     if (idx > maxSolved) {
       setMaxSolved(idx);
-      localStorage.setItem(maxKey, String(idx));
+      storageService.setItem(maxKey, String(idx));
     }
   };
 
   const jumpTo = (i: number) => {
-    localStorage.setItem(idxKey, String(i));
+    storageService.setItem(idxKey, String(i));
     loadPuzzle(i);
     setLevelsOpen(false);
   };
@@ -220,8 +221,8 @@ function Game() {
       for (let k = 0; k < c.len; k++) {
          const cell = c.dir === "h" ? `${r},${col + k}` : `${r + k},${col}`;
          if (occ.has(cell)) {
-            const blockerId = occ.get(cell)!;
-            if (hidden.has(blockerId) && !boardRevealed) {
+            const blockerId = occ.get(cell);
+            if (blockerId && hidden.has(blockerId) && !boardRevealed) {
                return true; 
             }
             return false;
@@ -267,7 +268,8 @@ function Game() {
     let currentCars = [...cars];
 
     for (let i = 0; i < plan.length; i++) {
-      const p = plan[i]!;
+      const p = plan[i];
+      if (!p) continue;
       const r = applyMove(currentCars, p.id, p.move, p.steps);
       
       if (r.error) {

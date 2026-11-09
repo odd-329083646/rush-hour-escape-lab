@@ -1,3 +1,4 @@
+import { storageService } from "@/services/storageService";
 import { getSavedProgress, type Level } from "./puzzles";
 
 export type Profile = { username: string; country: string };
@@ -43,7 +44,7 @@ export function randomUsername(rand: () => number = Math.random): string {
 /** Loads the profile, creating and saving a random username on first load. */
 export function getProfile(): Profile {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = storageService.getItem(KEY);
     if (raw) {
       const p = JSON.parse(raw) as Partial<Profile>;
       if (p.username) return { username: p.username, country: p.country ?? "" };
@@ -56,8 +57,8 @@ export function getProfile(): Profile {
 
 export function saveProfile(p: Profile) {
   const username = p.username.trim().slice(0, 24) || randomUsername();
-  localStorage.setItem(KEY, JSON.stringify({ ...p, username }));
-  localStorage.setItem("player_name", username);
+  storageService.setItem(KEY, JSON.stringify({ ...p, username }));
+  storageService.setItem("player_name", username);
 }
 
 /** Best time (seconds) and fewest moves across all solved puzzles of a level. */

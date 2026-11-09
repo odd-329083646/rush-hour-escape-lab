@@ -1,3 +1,4 @@
+import { storageService } from "@/services/storageService";
 import { supabase } from "@/integrations/supabase/client";
 
 export type DailyScore = { date: string; solve_time: number; player_name: string };
@@ -46,13 +47,13 @@ function saveMine(score: DailyScore) {
   if (mine[score.date] == null || score.solve_time < mine[score.date]!) {
     mine[score.date] = score.solve_time;
   }
-  localStorage.setItem(MINE_KEY, JSON.stringify(mine));
+  storageService.setItem(MINE_KEY, JSON.stringify(mine));
 }
 
 /** מחזיר את הפתירות של השחקן מתוך LocalStorage (מתוקן ללא שגיאות parse) */
 export function getMySolves(): Record<string, number> {
   try {
-    const raw = localStorage.getItem(MINE_KEY);
+    const raw = storageService.getItem(MINE_KEY);
     return raw ? JSON.parse(raw) : {};
   } catch {
     return {};
