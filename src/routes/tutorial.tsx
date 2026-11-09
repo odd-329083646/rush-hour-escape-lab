@@ -68,7 +68,7 @@ function Tutorial() {
 }
 
 function LessonView({ lesson, onNext, last }: { lesson: Lesson; onNext: () => void; last: boolean }) {
-  const { t, te } = useI18n();
+  const { t, te, lang } = useI18n();
   const [cars, setCars] = useState(lesson.cars);
   const [sel, setSel] = useState<string | null>(null);
   const [steps, setSteps] = useState(1);
@@ -94,8 +94,8 @@ function LessonView({ lesson, onNext, last }: { lesson: Lesson; onNext: () => vo
   return (
     <div className="flex min-h-0 w-full max-w-3xl flex-1 flex-col items-center gap-3">
       <div className="panel w-full py-3">
-        <h2 className="font-display text-lg font-bold">{t(lesson.title)}</h2>
-        <p className="text-sm text-muted-foreground">{t(lesson.body)}</p>
+        <h2 className="font-display text-lg font-bold" dir={lang === "he" ? "rtl" : "ltr"}>{t(lesson.title)}</h2>
+        <ul className="mt-1 flex flex-col gap-1 text-sm text-muted-foreground" dir={lang === "he" ? "rtl" : "ltr"}>{t(lesson.body).split("\n").map((line) => <li key={line}>{line}</li>)}</ul>
       </div>
       <div className="board relative">
         {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" style={{ gridRow: Math.floor(i / 6) + 1, gridColumn: (i % 6) + 1 }} />)}
