@@ -17,7 +17,7 @@ describe("App routing", () => {
   });
 
   // The menu links to these three; a missing route file would leave the card dead.
-  it.each(["/play", "/daily", "/competitions"])("serves the menu target %s", (path) => {
+  it.each(["/play", "/daily", "/competitions", "/tutorial"])("serves the menu target %s", (path) => {
     expect(matchLast(path)).not.toBe(rootRouteId);
   });
 

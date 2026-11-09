@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Settings, X } from "lucide-react";
+import { GraduationCap, Settings, X } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { setLang, useI18n, type Lang } from "@/lib/i18n";
 import { COUNTRIES, flag, getProfile, levelBests, saveProfile } from "@/lib/profile";
@@ -65,6 +66,8 @@ function SettingsDialog({ onClose }: { onClose: () => void }) {
             </div>
           </div>
         </section>
+
+        <Link to="/tutorial" onClick={onClose} className="palette-item border-border"><GraduationCap className="h-4 w-4 text-primary" /><span><span className="block font-medium">{t("tutorial")}</span><span className="text-xs text-muted-foreground">{t("tutorialDesc")}</span></span></Link>
 
         <section>
           <h3 className="panel-title">{t("stats")}</h3>
