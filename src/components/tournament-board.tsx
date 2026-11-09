@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { applyMove, type Car, type Move } from "@/lib/puzzles";
 import { useI18n } from "@/lib/i18n";
 import type { RaceState } from "@/lib/tournament";
+import { movementRange } from "@/hooks/useGameEngine";
 
 const directions: { move: Move; Icon: typeof ArrowUp; position: string }[] = [
   { move: "up", Icon: ArrowUp, position: "col-start-2 row-start-1" },
@@ -41,13 +42,7 @@ export function TournamentBoard({ state, blocked, onMove }: { state: RaceState; 
     if (!board || !cell) return;
     const pitch = cell.getBoundingClientRect().width + (parseFloat(getComputedStyle(board).columnGap) || 4);
     if (pitch <= 0) return;
-    let back = 0, forward = 0;
-    const negative = car.dir === "h" ? "left" : "up";
-    const positive = car.dir === "h" ? "right" : "down";
-    while (back < 4 && !applyMove(state.cars, car.id, negative, back + 1).error) back++;
-    while (forward < 4 && !applyMove(state.cars, car.id, positive, forward + 1).error) forward++;
-    const position = car.dir === "h" ? car.col : car.row;
-    forward = Math.min(forward, 6 - position - car.len);
+    const { back, fwd: forward } = movementRange(state.cars, car);
     event.currentTarget.setPointerCapture(event.pointerId);
     dragStart.current = { id: car.id, pointerId: event.pointerId, x: event.clientX, y: event.clientY, pitch, min: -back * pitch, max: forward * pitch };
   };

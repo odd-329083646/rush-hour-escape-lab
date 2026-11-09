@@ -36,7 +36,7 @@ export const Route = createFileRoute("/competitions")({
 
 function Competitions() {
   const { t } = useI18n();
-  const { snapshot, ready, busy, connected, clockOffset, action } = useTournament();
+  const { snapshot, ready, busy, connected, clockOffset, action, commitMove } = useTournament();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [joinOpen, setJoinOpen] = useState(false);
   const [forfeitOpen, setForfeitOpen] = useState(false);
@@ -64,7 +64,7 @@ function Competitions() {
     if (coins < ENTRY_FEE) { toast.error(t("raceNeedCoins")); return; }
     void action(kind, room ? { code: room } : undefined);
   };
-  const commit = (id: string, direction: Move, steps: number) => { void action("move", { move: { id, direction, steps } }); };
+  const commit = commitMove;
   const dismiss = async () => { await action("leave"); };
   return <main className="tournament lot-bg flex h-dvh flex-col gap-3 overflow-hidden px-3 py-3" dir="ltr">
     <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2">
@@ -77,7 +77,7 @@ function Competitions() {
         <div className="min-w-0"><p className="truncate font-semibold">{profile?.country ? flag(profile.country) : ""} {profile?.username}</p><p className="text-xs text-muted-foreground">{t("raceProgress", { n: Math.min(mine.index + 1, 3), moves: mine.moves })} · {fmtTime(elapsed)}</p></div>
         <div className="min-w-0 text-right"><p className="truncate font-semibold">{opponentCountry ? flag(opponentCountry) : ""} {opponentName} {match.bot && <span className="text-xs text-muted-foreground">· {t("raceBot")}</span>}</p><p className="text-xs text-muted-foreground">{opponent?.index === 3 ? t("raceFinished") : t("raceProgress", { n: Math.min((opponent?.index ?? 0) + 1, 3), moves: opponent?.moves ?? 0 })}</p></div>
       </div>
-      <TournamentBoard key={mine.index} state={mine} blocked={busy || countdown > 0 || forfeitOpen || mine.index >= 3} onMove={commit} />
+      <TournamentBoard key={mine.index} state={mine} blocked={countdown > 0 || forfeitOpen || mine.index >= 3} onMove={commit} />
       <p className="mx-auto flex items-center gap-1 text-[10px] text-muted-foreground"><Wifi className="h-3 w-3" />{connected ? t("raceLive") : t("raceReconnecting")}</p>
       {countdown >= 0 && serverNow < start + 700 && <div className="fixed inset-0 z-40 grid place-items-center bg-background/80 backdrop-blur-sm"><span className="font-display text-6xl font-bold text-primary">{countdown > 0 ? countdown : t("raceGo")}</span></div>}
     </> : !match ? <section className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center gap-6">
