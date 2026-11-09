@@ -64,7 +64,12 @@ export const tournamentAction = createServerFn({ method: "POST" })
       ...(state ? { p_state: JSON.parse(JSON.stringify(state)) } : {}), ...(expected !== undefined ? { p_expected: expected } : {}), p_delta: data.delta,
     });
     if (result.error) throw new Error("Tournament unavailable");
-    const snapshot = result.data as unknown as RaceSnapshot;
+    let snapshot = result.data as unknown as RaceSnapshot;
+    if (snapshot.error) {
+      const refreshed = await supabaseAdmin.rpc("tournament_action", { p_guest: verified.data.id, p_hash: tokenHash, p_action: "status", p_delta: 0 });
+      if (refreshed.error) throw new Error("Tournament unavailable");
+      snapshot = { ...(refreshed.data as unknown as RaceSnapshot), error: snapshot.error };
+    }
     if (snapshot.match && data.action !== "status") {
       // Public capability topics carry only a refresh signal, never names, boards, balances or credentials.
       const channel = supabaseAdmin.channel(`race-${snapshot.match.id}`);

@@ -43,6 +43,7 @@ export function useTournament() {
           setClockOffset(Date.parse(data.serverNow) - Date.now());
           setSnapshot(data);
         }
+        if (data.error) toast.error(data.error === "coins" ? t("raceNeedCoins") : t("raceUnavailable"));
       } else if (result.error) {
         toast.error(result.error === "coins" ? t("raceNeedCoins") : result.error === "unavailable" ? t("raceUnavailable") : te(result.error));
       }
