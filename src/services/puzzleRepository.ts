@@ -1,3 +1,4 @@
+import { generatePuzzle } from "./puzzleAnalysisService";
 import { inflateCars, isValidPuzzle, todayKey, setPuzzleCatalogue, type Car } from "@/engine/game";
 
 export async function loadPuzzlesAsync(): Promise<{ par: number; cars: Car[] }[]> {
@@ -25,7 +26,7 @@ export async function loadPuzzlesAsync(): Promise<{ par: number; cars: Car[] }[]
 
     // Serve a validated snapshot immediately; background generation never blocks the board.
     const { DEFAULT_PUZZLES } = await import("@/engine/game");
-    const offlinePuzzles = DEFAULT_PUZZLES;
+    const offlinePuzzles = typeof Worker === "undefined" ? DEFAULT_PUZZLES : await Promise.all(Array.from({ length: 5 }, () => generatePuzzle(6).catch(() => DEFAULT_PUZZLES[0]))).then((items) => items.filter((item): item is { par: number; cars: Car[] } => !!item));
     setPuzzleCatalogue(offlinePuzzles, true);
     return offlinePuzzles;
   }
@@ -43,7 +44,8 @@ export async function getDailyPuzzleAsync(dateStr?: string): Promise<{ par: numb
   } catch (err) {
     console.warn("Daily puzzle unavailable, generating one:", err);
     const { DEFAULT_PUZZLES } = await import("@/engine/game");
-    return DEFAULT_PUZZLES[0] ?? { par: 1, cars: inflateCars([{ id: "X", row: 2, col: 0, dir: "h" }]) };
+    if (typeof Worker !== "undefined") { try { return await generatePuzzle(10); } catch { /* Saved layout fallback. */ } }
+    return DEFAULT_PUZZLES[Math.floor(Math.random() * DEFAULT_PUZZLES.length)] ?? { par: 1, cars: inflateCars([{ id: "X", row: 2, col: 0, dir: "h" }]) };
   }
 }
 

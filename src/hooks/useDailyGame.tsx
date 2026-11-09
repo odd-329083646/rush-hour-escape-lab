@@ -1,3 +1,5 @@
+import { findNextMove } from "@/services/puzzleAnalysisService";
+import { useRewardSystem } from "./useRewardSystem";
 import { storageService } from "@/services/storageService";
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import { useI18n } from "@/lib/i18n";
@@ -25,7 +27,9 @@ export function useDailyGame({ date, openCalendar = false }: { date: string; ope
 
   const [bumps, setBumps] = useState(0);
   const [warn, setWarn] = useState<string | null>(null);
-  const [coins, setCoins] = useState(getCoins());
+  const rewards = useRewardSystem();
+  const [coins, setCoins] = useState(0);
+  useEffect(() => setCoins(rewards.coins), [rewards.coins]);
   const [result, setResult] = useState<{ time: number; best: number | null; isRecord: boolean; coinsEarned: number; isFirstSolve: boolean } | null>(null);
   const hints = useHints(setCoins);
   const boardCars = peekBoardCars(start, cars, hints.peek);
@@ -53,16 +57,16 @@ export function useDailyGame({ date, openCalendar = false }: { date: string; ope
     return () => { live = false; };
   }, [date]);
 
-  const elapsed = startedAt ? Math.floor(((result ? startedAt + result.time * 1000 : now) - startedAt) / 1000) : 0;
+  const elapsed = startedAt ? Math.floor(((result ? startedAt + result.time * 1000 : wonAt ?? now) - startedAt) / 1000) : 0;
   const started = startedAt !== null;
 
   const flash = useCallback((t: string) => { setWarn(t); setTimeout(() => setWarn((w) => (w === t ? null : w)), 1600); }, []);
 
-  const useHint = (type: HintType, id?: string): string | void => {
+  const useHint = async (type: HintType, id?: string): Promise<string | void> => {
     if (!started || result || failed || !hintAvailable(type, "medium", hidden, [])) return t("noHint");
     if (getCoins() < HINT_COSTS[type]) return t("hintCost", { cost: HINT_COSTS[type], have: getCoins() });
     if (type === "next") {
-      const nextMove = getNextBestMove(cars);
+      const nextMove = typeof Worker === "undefined" ? getNextBestMove(cars) : await findNextMove(cars).catch(() => null);
       if (!nextMove) return t("noHint");
       if (!hints.charge(type)) return t("noHint");
       setSel(nextMove.id); setMove(nextMove.move); setSteps(nextMove.steps);
@@ -79,8 +83,8 @@ export function useDailyGame({ date, openCalendar = false }: { date: string; ope
 
   const blockerOf = useCallback((car: Car, direction: Move, count: number) => findBlocker(cars, car, direction, count), [cars]);
 
-  const go = useCallback(async (m: Move, id = sel, count = steps) => {
-    if (startedAt === null || result || failed || submitting.current || hints.peek) return;
+  const go = useCallback((m: Move, id = sel, count = steps) => {
+    if (startedAt === null || result || failed || wonAt !== null || hints.peek) return;
     const c = cars.find((x) => x.id === id);
     if (!c) return flash(t("needCar"));
     const r = commitMove(c.id, m, count);
@@ -100,7 +104,7 @@ export function useDailyGame({ date, openCalendar = false }: { date: string; ope
       const isFirstSolve = !isSolvedOn(date);
 
       // 2. הגשת התוצאה לשרת
-      const res = await submitScore({ date, solve_time: time, player_name: name });
+      void submitScore({ date, solve_time: time, player_name: name }).then((res) => {
 
       // 3. חישוב תגמול מטבעות
       let coinsEarned = 0;
@@ -117,8 +121,9 @@ export function useDailyGame({ date, openCalendar = false }: { date: string; ope
       }
 
       setResult({ time, ...res, coinsEarned, isFirstSolve });
+      });
     }
-  }, [sel, steps, startedAt, result, failed, cars, blockerOf, hidden, flash, date, t, te, hints.peek]);
+  }, [sel, steps, startedAt, result, failed, cars, blockerOf, hidden, flash, date, t, te, hints.peek, wonAt]);
 
   const execute = () => {
     if (!started) return flash(t("needStart"));
@@ -130,7 +135,7 @@ export function useDailyGame({ date, openCalendar = false }: { date: string; ope
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target;
-      if (e.altKey || e.ctrlKey || e.metaKey || e.repeat || hints.open || hints.peek || calOpen || result || failed || !started || submitting.current) return;
+      if (e.altKey || e.ctrlKey || e.metaKey || e.repeat || hints.open || hints.peek || calOpen || result || failed || !started || wonAt !== null) return;
       if (target instanceof HTMLElement && (target.isContentEditable || target.closest("input, textarea, select, [role='dialog']"))) return;
       const char = e.code.startsWith("Key") ? e.code.slice(3) : e.key.toUpperCase();
       if (cars.some((c) => c.id === char)) { e.preventDefault(); setSel(char); return; }
@@ -148,7 +153,7 @@ export function useDailyGame({ date, openCalendar = false }: { date: string; ope
   }, [cars, calOpen, result, failed, started, move, go, flash, hints.open, hints.peek]);
 
   const handlePointerDown = (c: Car, e: PointerEvent<HTMLButtonElement>) => {
-    if (!started || result || failed || hints.open || hints.peek || calOpen || submitting.current || !e.isPrimary || e.button !== 0 || dragStart.current) return;
+    if (!started || result || failed || hints.open || hints.peek || calOpen || wonAt !== null || !e.isPrimary || e.button !== 0 || dragStart.current) return;
     const board = e.currentTarget.parentElement;
     const cell = board?.querySelector(".cell");
     if (!board || !cell) return;

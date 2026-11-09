@@ -1,3 +1,5 @@
+import { generatePuzzle, findNextMove } from "@/services/puzzleAnalysisService";
+import { useRewardSystem } from "./useRewardSystem";
 import { storageService } from "@/services/storageService";
 import { useEffect, useState, useRef } from "react";
 import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, IS_OFFLINE_MODE, getRandomPuzzle, saveLevelProgress, getSavedProgress, getCoins, addCoins, getNextBestMove, TIERS, isTierUnlocked, getSolvesCountInTier, getPuzzlesForTier, type Car, type Level, type Move } from "@/lib/puzzles";
@@ -13,6 +15,8 @@ type Planned = { id: string; move: Move; steps: number };
 
 export function useStandardGame(level: Level) {
   const { t, te, lang } = useI18n();
+  const rewards = useRewardSystem();
+  const startedRef = useRef(false);
   const murderer = level === "murderer";
   const idxKey = `rush_hour_puzzle_index_${level}`;
   const maxKey = `rush_hour_max_solved_${level}`;
@@ -70,6 +74,7 @@ export function useStandardGame(level: Level) {
     if (!p) return;
     hints.reset();
     setMurdererBoard(false);
+    startedRef.current = false;
     setIdx(currentPuzzles.indexOf(p));
     setCars(p.cars);
     setInitialCars(p.cars);
@@ -85,7 +90,7 @@ export function useStandardGame(level: Level) {
   useEffect(() => {
     setPuzzles(DEFAULT_PUZZLES);
     let live = true;
-    void loadPuzzlesAsync().then((loaded) => { if (live && !started) { setPuzzles(loaded); loadPuzzle(Math.min(idx, loaded.length - 1), loaded); } });
+    void loadPuzzlesAsync().then((loaded) => { if (live && !startedRef.current) { setPuzzles(loaded); loadPuzzle(Math.max(0, Math.min(maxS + 1, loaded.length - 1)), loaded); } });
     setCoinsState(getCoins());
     
     const maxS = Number.isFinite(parseInt(storageService.getItem(maxKey) ?? "", 10))
@@ -99,15 +104,16 @@ export function useStandardGame(level: Level) {
     return () => { live = false; };
   }, [level]);
 
-  const markWon = () => {
+  const markWon = (finalMoves = moves) => {
+    if (won) return;
     setWonAt(Date.now());
     setSel(null);
 
-    const timeInSeconds = elapsed;
-    const { stars, coinsEarned } = saveLevelProgress(
+    const timeInSeconds = startedAt === null ? 0 : Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
+    const { stars, coinsEarned } = rewards.saveLevelProgress(
       level,
       idx,
-      moves,
+      finalMoves,
       puzzle.par,
       timeInSeconds,
       invisibleBumps
@@ -130,6 +136,7 @@ export function useStandardGame(level: Level) {
   };
 
   const start = () => {
+    startedRef.current = true;
     setHidden(pickHidden(cars, level));
     setStarted(true);
     setStartedAt(Date.now());
@@ -142,11 +149,13 @@ export function useStandardGame(level: Level) {
     setTimeout(() => setWarn((w) => (w?.key === key ? null : w)), 1800);
   };
 
-  const useHint = (type: HintType, id?: string): string | void => {
+  const useHint = async (type: HintType, id?: string): Promise<string | void> => {
     if (!started || won || failed || simulating || !hintAvailable(type, level, hidden, plan)) return t("noHint");
     if (getCoins() < HINT_COSTS[type]) return t("hintCost", { cost: HINT_COSTS[type], have: getCoins() });
     if (type === "next") {
-      const nextMove = getNextBestMove(cars);
+      const before = cars;
+      const nextMove = typeof Worker === "undefined" ? getNextBestMove(cars) : await findNextMove(cars).catch(() => null);
+      if (before !== cars || !startedRef.current) return t("noHint");
       if (!nextMove) return t("noHint");
       if (!hints.charge(type)) return t("noHint");
       setSel(nextMove.id); setMove(nextMove.move); setSteps(nextMove.steps);
@@ -173,7 +182,7 @@ export function useStandardGame(level: Level) {
   };
 
   const execute = () => {
-    if (hints.peek) return;
+    if (hints.peek || won || failed) return;
     if (!started) return flash(t("needStart"));
     if (!sel) return flash(t("needCar"));
     if (!move) return flash(t("needDir"));
@@ -194,7 +203,7 @@ export function useStandardGame(level: Level) {
     const r = commitMove(sel, move, steps);
     if (r.error) return flash(te(r.error));
     setWarn(null);
-    if (isSolved(r.cars)) markWon(); else setMsg(t("msgMoved"));
+    if (isSolved(r.cars)) markWon(moves + 1); else setMsg(t("msgMoved"));
   };
 
   const submitPlan = async () => {
@@ -226,7 +235,7 @@ export function useStandardGame(level: Level) {
     }
 
     if (isSolved(currentCars)) {
-      markWon();
+      markWon(plan.length);
     } else {
       setFailed(true);
     }
@@ -295,7 +304,7 @@ export function useStandardGame(level: Level) {
   const freeRange = (car: Car) => movementRange(cars, car);
 
   const handlePointerDown = (c: Car, e: React.PointerEvent) => {
-    if (simulating || (murderer && started) || hints.open || hints.peek) return;
+    if (won || failed || simulating || (murderer && started) || hints.open || hints.peek) return;
     try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch (err) {}
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const gap = 6;
@@ -360,8 +369,12 @@ export function useStandardGame(level: Level) {
     const r = commitMove(c.id, moveDir, calculatedSteps);
     if (r.error) return flash(te(r.error));
     setWarn(null);
-    if (isSolved(r.cars)) markWon(); else setMsg(t("msgMoved"));
+    if (isSolved(r.cars)) markWon(moves + 1); else setMsg(t("msgMoved"));
   };
 
-  return { t, te, lang, murderer, idxKey, maxKey, puzzles, setPuzzles, idx, setIdx, maxSolved, setMaxSolved, puzzle, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, initialCars, setInitialCars, sel, setSel, move, setMove, steps, setSteps, msg, setMsg, warn, setWarn, started, setStarted, hidden, setHidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, setFailed, simulating, setSimulating, invisibleBumps, setInvisibleBumps, wonStars, setWonStars, coins, setCoinsState, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, setCollapsedTiers, won, elapsed, clock, progress, toggleTier, formatTime, loadPuzzle, markWon, jumpTo, start, flash, useHint, checkInvisibleBump, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, freeRange, handlePointerDown, handlePointerMove, handlePointerUp };
+  const drawRandom = () => {
+    void generatePuzzle().then((next) => { setCars(next.cars); setInitialCars(next.cars); setMsg(t("randomDrawn")); }).catch(() => flash(t("noHint")));
+  };
+
+  return { drawRandom, t, te, lang, murderer, idxKey, maxKey, puzzles, setPuzzles, idx, setIdx, maxSolved, setMaxSolved, puzzle, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, initialCars, setInitialCars, sel, setSel, move, setMove, steps, setSteps, msg, setMsg, warn, setWarn, started, setStarted, hidden, setHidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, setFailed, simulating, setSimulating, invisibleBumps, setInvisibleBumps, wonStars, setWonStars, coins, setCoinsState, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, setCollapsedTiers, won, elapsed, clock, progress, toggleTier, formatTime, loadPuzzle, markWon, jumpTo, start, flash, useHint, checkInvisibleBump, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, freeRange, handlePointerDown, handlePointerMove, handlePointerUp };
 }

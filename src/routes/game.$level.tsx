@@ -40,12 +40,12 @@ type Planned = { id: string; move: Move; steps: number };
 
 function Game() {
   const { level } = Route.useParams() as { level: Level };
-  const { t, te, lang, murderer, idxKey, maxKey, puzzles, setPuzzles, idx, setIdx, maxSolved, setMaxSolved, puzzle, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, initialCars, setInitialCars, sel, setSel, move, setMove, steps, setSteps, msg, setMsg, warn, setWarn, started, setStarted, hidden, setHidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, setFailed, simulating, setSimulating, invisibleBumps, setInvisibleBumps, wonStars, setWonStars, coins, setCoinsState, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, setCollapsedTiers, won, elapsed, clock, progress, toggleTier, formatTime, loadPuzzle, markWon, jumpTo, start, flash, useHint, checkInvisibleBump, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, freeRange, handlePointerDown, handlePointerMove, handlePointerUp } = useStandardGame(level);
+  const { drawRandom, t, te, lang, murderer, idxKey, maxKey, puzzles, setPuzzles, idx, setIdx, maxSolved, setMaxSolved, puzzle, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, initialCars, setInitialCars, sel, setSel, move, setMove, steps, setSteps, msg, setMsg, warn, setWarn, started, setStarted, hidden, setHidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, setFailed, simulating, setSimulating, invisibleBumps, setInvisibleBumps, wonStars, setWonStars, coins, setCoinsState, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, setCollapsedTiers, won, elapsed, clock, progress, toggleTier, formatTime, loadPuzzle, markWon, jumpTo, start, flash, useHint, checkInvisibleBump, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, freeRange, handlePointerDown, handlePointerMove, handlePointerUp } = useStandardGame(level);
   const carBtn = (c: Car) => (
-    <button key={c.id} onClick={() => setSel(c.id)} data-active={sel === c.id} title={c.name} className="palette-cell" disabled={simulating}>
+    <Button variant="ghost" key={c.id} onClick={() => setSel(c.id)} data-active={sel === c.id} title={c.name} className="palette-cell" disabled={simulating}>
       <span className="h-3 rounded-sm" style={{ background: c.color, width: c.len === 3 ? "2.5rem" : "1.5rem" }} />
       <span className="text-xs">{c.id} {c.dir === "h" ? "↔" : "↕"}</span>
-    </button>
+    </Button>
   );
 
   return (
@@ -60,12 +60,7 @@ function Game() {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => {
-              const randPuz = getRandomPuzzle();
-              setCars(randPuz.cars);
-              setInitialCars(randPuz.cars);
-              setMsg(t("randomDrawn"));
-            }}
+            onClick={drawRandom}
             className="h-7 gap-1 text-xs"
           >
             <Shuffle className="h-3 w-3" /> {t("randomLevel")}
@@ -174,7 +169,7 @@ function Game() {
                   }}
                 >
                   {c.id}
-                </button>
+                </Button>
               ))}
               {won && (
                 <div className="win flex-col gap-2 text-center">
@@ -239,15 +234,15 @@ function Game() {
                         <span className="h-3 w-5 rounded-sm" style={{ background: c.color }} />
                         <span className="flex-1">{c.id} · {c.name}</span>
                         <span className="font-display">{ARROW[p.move]} {p.steps}</span>
-                        <button aria-label={t("removeMove")} onClick={() => setPlan((q) => q.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-foreground" disabled={simulating}><Trash2 className="h-4 w-4" /></button>
+                        <button aria-label={t("removeMove")} onClick={() => setPlan((q) => q.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-foreground" disabled={simulating}><Trash2 className="h-4 w-4" /></Button>
                       </li>
                     );
                   })}
                 </ol>
               )}
               <div className="flex gap-2">
-                <button onClick={() => setPlan([])} disabled={!plan.length || simulating} className="chip">{t("clear")}</button>
-                <button onClick={submitPlan} disabled={simulating} className="execute flex flex-1 items-center justify-center gap-2"><Send className="h-4 w-4" /> {t("submitSolution")}</button>
+                <button onClick={() => setPlan([])} disabled={!plan.length || simulating} className="chip">{t("clear")}</Button>
+                <button onClick={submitPlan} disabled={simulating} className="execute flex flex-1 items-center justify-center gap-2"><Send className="h-4 w-4" /> {t("submitSolution")}</Button>
               </div>
             </div>
           )}
@@ -276,7 +271,7 @@ function Game() {
           <div className="panel flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden p-0" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-card px-4 py-3">
               <h2 className="font-display text-xl font-bold">{t("chooseLevel")}</h2>
-              <button aria-label={t("close")} onClick={() => setLevelsOpen(false)} className="chip"><X className="h-4 w-4" /></button>
+              <button aria-label={t("close")} onClick={() => setLevelsOpen(false)} className="chip"><X className="h-4 w-4" /></Button>
             </div>
 
             <div className="flex-1 overflow-auto p-4 flex flex-col gap-4">
@@ -312,7 +307,7 @@ function Game() {
                           ? t("tierSolved", { a: solvedCount, b: tierItems.length })
                           : t("tierLocked", { n: Math.max(0, tier.requiredSolvesToNext - getSolvesCountInTier(TIERS[tierIdx - 1]!, puzzles, progress)) })}
                       </span>
-                    </button>
+                    </Button>
 
                     {!isCollapsed && (
                       <div className="grid grid-cols-5 gap-2 mt-3 pt-2 border-t border-border/50">
@@ -345,7 +340,7 @@ function Game() {
                                   {formatTime(bestSecs)}
                                 </span>
                               )}
-                            </button>
+                            </Button>
                           );
                         })}
                       </div>
