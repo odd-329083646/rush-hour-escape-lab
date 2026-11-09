@@ -10,5 +10,5 @@
 <!-- LOVABLE:END -->
 
 - Both daily routes use the shared DailyGame screen and finalize pointer, keyboard, and button moves through applyMove, keeping collision rules and daily scoring consistent.
-- All UI text comes from the src/lib/i18n.ts dictionary (useI18n); the chosen language also sets the document lang/dir, so screens get English LTR or Hebrew RTL from one place.
+- All UI text comes from src/lib/i18n.ts (useI18n); update document lang with the selected language while keeping document and hook direction LTR to decouple translation from layout geometry.
 - The player profile (username, country) lives in src/lib/profile.ts on the device; stats are derived from saved level progress instead of being stored separately.
