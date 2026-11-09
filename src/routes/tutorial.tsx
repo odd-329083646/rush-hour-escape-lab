@@ -43,7 +43,10 @@ export function Tutorial() {
   const [phase, setPhase] = useState<"language" | "intro" | "play" | "complete" | null>(null);
   const chooseLanguage = (language: Lang) => { setLang(language); setPhase("intro"); };
   const [finished, setFinished] = useState<null | boolean>(null);
+  const initialized = useRef(false);
   useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
     setPhase(hasSeenTutorial() ? "intro" : "language");
     markTutorialSeen();
   }, []);

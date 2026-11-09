@@ -3,6 +3,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { Tutorial } from "./tutorial";
 import { getCoins } from "@/lib/puzzles";
 import { getLang, setLang } from "@/lib/i18n";
+import { StrictMode } from "react";
 
 vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (options: unknown) => options,
@@ -22,6 +23,12 @@ function move(id: string, direction: string, steps: number) {
   fireEvent.keyDown(window, { key: `Arrow${direction}` });
   fireEvent.keyDown(window, { key: "Enter" });
 }
+
+it("keeps first-visit language setup open when effects are replayed", () => {
+  render(<StrictMode><Tutorial /></StrictMode>);
+  expect(screen.getByRole("button", { name: "English" })).toBeInTheDocument();
+  expect(localStorage.getItem("has_seen_tutorial")).toBe("1");
+});
 
 it("persists Hebrew globally before the first lesson", () => {
   render(<Tutorial />);
