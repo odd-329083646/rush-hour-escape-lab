@@ -4,12 +4,13 @@ import { Check, ChevronLeft, ChevronRight, Lock, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fmtTime, getMySolves } from "@/lib/daily-scores";
 import { todayKey } from "@/lib/puzzles";
+import { useI18n } from "@/lib/i18n";
 
 const FIRST = "2026-01-01";
-const WEEK = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
 export function DailyCalendar({ open, onClose, current }: { open: boolean; onClose: () => void; current: string }) {
   const navigate = useNavigate();
+  const { t, lang } = useI18n();
   const [month, setMonth] = useState(() => new Date(`${current}T12:00:00`));
   const [solves, setSolves] = useState<Record<string, number>>({});
   const [today, setToday] = useState(current);
@@ -27,17 +28,17 @@ export function DailyCalendar({ open, onClose, current }: { open: boolean; onClo
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-3 backdrop-blur" onClick={onClose}>
-      <div className="panel w-full max-w-md" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="Calendar">
+      <div className="panel w-full max-w-md" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={t("calendar")}>
         <div className="mb-3 flex items-center justify-between">
-          <Button variant="ghost" size="icon" onClick={() => shift(-1)} disabled={key(1) <= FIRST} aria-label="Previous month"><ChevronLeft /></Button>
-          <h2 className="font-display font-bold">{month.toLocaleDateString("en-GB", { month: "long", year: "numeric" })} · לוח שנה</h2>
+          <Button variant="ghost" size="icon" onClick={() => shift(-1)} disabled={key(1) <= FIRST} aria-label={t("prevMonth")}><ChevronLeft className="rtl:rotate-180" /></Button>
+          <h2 className="font-display font-bold">{month.toLocaleDateString(lang === "he" ? "he-IL" : "en-GB", { month: "long", year: "numeric" })}</h2>
           <div className="flex">
-            <Button variant="ghost" size="icon" onClick={() => shift(1)} disabled={key(days) >= today} aria-label="Next month"><ChevronRight /></Button>
-            <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close"><X /></Button>
+            <Button variant="ghost" size="icon" onClick={() => shift(1)} disabled={key(days) >= today} aria-label={t("nextMonth")}><ChevronRight className="rtl:rotate-180" /></Button>
+            <Button variant="ghost" size="icon" onClick={onClose} aria-label={t("close")}><X /></Button>
           </div>
         </div>
         <div className="grid grid-cols-7 gap-1 text-center text-xs text-muted-foreground">
-          {WEEK.map((w) => <div key={w}>{w}</div>)}
+          {t("week").split(",").map((w) => <div key={w}>{w}</div>)}
         </div>
         <div className="mt-1 grid grid-cols-7 gap-1">
           {Array.from({ length: first }).map((_, i) => <div key={`e${i}`} />)}

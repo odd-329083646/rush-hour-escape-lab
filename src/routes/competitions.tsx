@@ -1,3 +1,4 @@
+import { useI18n } from "@/lib/i18n";
 import { createFileRoute } from "@tanstack/react-router";
 import { Trophy } from "lucide-react";
 import { ComingSoon } from "@/components/coming-soon";
@@ -24,17 +25,13 @@ export const Route = createFileRoute("/competitions")({
 });
 
 function Competitions() {
+  const { t } = useI18n();
   return (
     <ComingSoon
       Icon={Trophy}
-      title="Competitions"
-      he="תחרויות"
-      blurb="Timed rounds where everyone gets the same lot and the clock. Fewest moves and fastest time take the spot on the board."
-      bullets={[
-        "Scheduled rounds you can join from the menu",
-        "Standings by moves used, then by time",
-        "Badges for every round you finish",
-      ]}
+      title={t("competitions")}
+      blurb={t("compBlurb")}
+      bullets={[t("compB1"), t("compB2"), t("compB3")]}
     />
   );
 }

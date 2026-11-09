@@ -13,6 +13,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { loadPuzzlesAsync } from "../lib/puzzles";
+import { applyDocumentLang, useI18n } from "../lib/i18n";
+import { getProfile } from "../lib/profile";
 
 function NotFoundComponent() {
   return (
@@ -112,8 +114,11 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const [isLoaded, setIsLoaded] = useState(false);
+  const { t } = useI18n();
 
   useEffect(() => {
+    applyDocumentLang();
+    getProfile(); // creates a random username on first load
     // מריץ טעינה מוקדמת של קובץ הפאזלים
     loadPuzzlesAsync().finally(() => {
       setIsLoaded(true);
@@ -125,7 +130,7 @@ function RootComponent() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <p className="text-lg font-medium text-muted-foreground animate-pulse">
-          טוען את השלבים...
+          {t("loading")}
         </p>
       </div>
     );

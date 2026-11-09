@@ -3,6 +3,8 @@ import { useEffect, useState, useRef } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, ChevronDown, ChevronUp, Coins, Eye, EyeOff, Home, Layers, Lightbulb, Lock, Play, Plus, RotateCcw, Send, Star, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
 import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, IS_OFFLINE_MODE, getRandomPuzzle, saveLevelProgress, getSavedProgress, getCoins, addCoins, getNextBestMove, TIERS, isTierUnlocked, getSolvesCountInTier, getPuzzlesForTier, type Car, type Level, type Move } from "@/lib/puzzles";
 import { Button } from "@/components/ui/button";
+import { SettingsButton } from "@/components/settings-dialog";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/game/$level")({
   beforeLoad: ({ params }) => {
@@ -35,7 +37,7 @@ type Planned = { id: string; move: Move; steps: number };
 
 function Game() {
   const { level } = Route.useParams() as { level: Level };
-  const cfg = LEVELS[level];
+  const { t, te, lang } = useI18n();
   const murderer = level === "murderer";
   const idxKey = `rush_hour_puzzle_index_${level}`;
   const maxKey = `rush_hour_max_solved_${level}`;
@@ -49,7 +51,7 @@ function Game() {
   const [move, setMove] = useState<Move | null>(null);
   const [steps, setSteps] = useState(1);
   const [moves, setMoves] = useState(0);
-  const [msg, setMsg] = useState("Study the lot, then press Start Solving");
+  const [msg, setMsg] = useState<string>(t("msgStudy"));
   const [warn, setWarn] = useState<{ text: string; key: number } | null>(null);
   const [started, setStarted] = useState(false);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
@@ -67,6 +69,8 @@ function Game() {
   const [collapsedTiers, setCollapsedTiers] = useState<Record<string, boolean>>({});
 
   const won = wonAt !== null;
+  // Re-render the idle hint in the newly chosen language.
+  useEffect(() => { if (!started) setMsg(t("msgStudy")); }, [lang]);
   const elapsed = startedAt ? Math.floor(((wonAt ?? now) - startedAt) / 1000) : 0;
   const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
 
@@ -88,7 +92,7 @@ function Game() {
     setIdx(currentPuzzles.indexOf(p));
     setCars(p.cars);
     setSel(null); setMove(null); setSteps(1); setMoves(0);
-    setMsg("Study the lot, then press Start Solving");
+    setMsg(t("msgStudy"));
     setWarn(null); setStarted(false); setHidden(new Set()); setReveal(false);
     setStartedAt(null); setWonAt(null); setPlan([]); setFailed(false); setSimulating(false);
     setInvisibleBumps(0);
@@ -133,7 +137,7 @@ function Game() {
 
     setWonStars(stars);
     setCoinsState(getCoins());
-    setMsg(`פתרת ב-${stars} כוכבים והרווחת ${coinsEarned} מטבעות! 🎉`);
+    setMsg(t("msgWon", { stars, coins: coinsEarned }));
 
     if (idx > maxSolved) {
       setMaxSolved(idx);
@@ -151,7 +155,7 @@ function Game() {
     setHidden(pickHidden(cars, level));
     setStarted(true);
     setStartedAt(Date.now());
-    setMsg(murderer ? "Board hidden — plan every move, then submit." : level === "hard" ? "All cars vanished. Good luck!" : level === "medium" ? "Some cars vanished — they still block!" : "Clock's running — free the red car!");
+    setMsg(t(murderer ? "msgMurderer" : level === "hard" ? "msgHard" : level === "medium" ? "msgMedium" : "msgEasy"));
   };
 
   const flash = (text: string) => {
@@ -165,12 +169,12 @@ function Game() {
     const currentCoins = getCoins();
 
     if (currentCoins < HINT_COST) {
-      return flash(`נדרשים ${HINT_COST} מטבעות לרמז! (יש לך ${currentCoins})`);
+      return flash(t("hintCost", { cost: HINT_COST, have: currentCoins }));
     }
 
     const nextMove = getNextBestMove(cars);
     if (!nextMove) {
-      return flash("לא נמצא רמז מתאים למצב זה.");
+      return flash(t("noHint"));
     }
 
     const newBalance = addCoins(-HINT_COST);
@@ -180,7 +184,7 @@ function Game() {
     setMove(nextMove.move);
     setSteps(nextMove.steps);
 
-    flash(`💡 רמז: הזז את מכונית ${nextMove.id} ${ARROW[nextMove.move]} (${nextMove.steps} צעדים)`);
+    flash(t("hintMsg", { id: nextMove.id, arrow: ARROW[nextMove.move], steps: nextMove.steps }));
   };
 
   const checkInvisibleBump = (c: Car, moveDir: Move, attemptedSteps: number) => {
@@ -217,9 +221,9 @@ function Game() {
   };
 
   const execute = () => {
-    if (!started) return flash("Press Start Solving first");
-    if (!sel) return flash("Select a car first");
-    if (!move) return flash("Choose a direction");
+    if (!started) return flash(t("needStart"));
+    if (!sel) return flash(t("needCar"));
+    if (!move) return flash(t("needDir"));
     if (murderer) { setPlan((p) => [...p, { id: sel, move, steps }]); return; }
 
     const c = cars.find((x) => x.id === sel);
@@ -229,24 +233,24 @@ function Game() {
       if (newBumps >= 3) {
         setFailed(true);
       } else {
-        flash(`נחסמת על ידי מכונית בלתי נראית! (ניסיון ${newBumps} מתוך 3)`);
+        flash(t("invisibleBump", { n: newBumps }));
       }
       return;
     }
 
     const r = applyMove(cars, sel, move, steps);
-    if (r.error) return flash(r.error);
+    if (r.error) return flash(te(r.error));
     setCars(r.cars); setMoves((n) => n + 1); setWarn(null);
-    if (isSolved(r.cars)) markWon(); else setMsg("Moved!");
+    if (isSolved(r.cars)) markWon(); else setMsg(t("msgMoved"));
   };
 
   const submitPlan = async () => {
     if (simulating) return;
-    if (!plan.length) return flash("Add some moves first");
+    if (!plan.length) return flash(t("needPlan"));
     
     setSimulating(true);
     setHidden(new Set());
-    setMsg("Simulating moves... · מדמה מהלכים...");
+    setMsg(t("msgSimulating"));
 
     let currentCars = [...cars];
 
@@ -325,7 +329,7 @@ function Game() {
           if (sel && move) {
             setPlan((p) => [...p, { id: sel, move, steps }]);
           } else {
-            flash("Select a car and direction first");
+            flash(t("needCarDir"));
           }
         } else {
           execute();
@@ -389,7 +393,7 @@ function Game() {
     const dx = e.clientX - d.x;
     const dy = e.clientY - d.y;
     if (Math.abs(dx) < 8 && Math.abs(dy) < 8) { setSel(c.id); return; }
-    if (!started) { flash("Press Start Solving first"); return; }
+    if (!started) { flash(t("needStart")); return; }
 
     setSel(c.id);
     const raw = c.dir === "h" ? dx : dy;
@@ -405,7 +409,7 @@ function Game() {
           setFailed(true);
           return;
         } else {
-          flash(`נחסמת על ידי מכונית בלתי נראית! (ניסיון ${newBumps} מתוך 3)`);
+          flash(t("invisibleBump", { n: newBumps }));
         }
       }
     }
@@ -422,11 +426,11 @@ function Game() {
     }
 
     const r = applyMove(cars, c.id, moveDir, calculatedSteps);
-    if (r.error) return flash(r.error);
+    if (r.error) return flash(te(r.error));
     setCars(r.cars);
     setMoves((n) => n + 1);
     setWarn(null);
-    if (isSolved(r.cars)) markWon(); else setMsg("Moved!");
+    if (isSolved(r.cars)) markWon(); else setMsg(t("msgMoved"));
   };
 
   return (
@@ -436,7 +440,7 @@ function Game() {
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between rounded-lg border border-amber-500/30 bg-amber-500/15 px-3 py-1.5 text-xs text-amber-600 dark:text-amber-400 sm:text-sm">
           <div className="flex items-center gap-2">
             <WifiOff className="h-4 w-4 shrink-0" />
-            <span>אין חיבור לאינטרנט — המשחק פועל במצב אופליין עם שלבים אקראיים.</span>
+            <span>{t("offline")}</span>
           </div>
           <Button
             size="sm"
@@ -444,44 +448,45 @@ function Game() {
             onClick={() => {
               const randPuz = getRandomPuzzle();
               setCars(randPuz.cars);
-              setMsg("הוגרל שלב אקראי חדש!");
+              setMsg(t("randomDrawn"));
             }}
             className="h-7 gap-1 text-xs"
           >
-            <Shuffle className="h-3 w-3" /> שלב אקראי
+            <Shuffle className="h-3 w-3" /> {t("randomLevel")}
           </Button>
         </div>
       )}
 
       <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2 overflow-x-auto">
-        <Button asChild variant="ghost" className="chip shrink-0 px-2 sm:px-3.5" disabled={simulating}><Link to="/" aria-label="Back to Home" title="Back to Home"><Home className="h-4 w-4" /><span className="hidden sm:inline">Back to Home</span></Link></Button>
-        <h1 className="min-w-0 truncate font-display text-sm font-bold md:text-xl">{cfg.title} <span className="text-muted-foreground">· {cfg.he} (שלב {idx + 1})</span></h1>
+        <Button asChild variant="ghost" className="chip shrink-0 px-2 sm:px-3.5" disabled={simulating}><Link to="/" aria-label={t("backHome")} title={t("backHome")}><Home className="h-4 w-4" /><span className="hidden sm:inline">{t("backHome")}</span></Link></Button>
+        <h1 className="min-w-0 truncate font-display text-sm font-bold md:text-xl">{t(`level.${level}`)} <span className="text-muted-foreground">· {t("level", { n: idx + 1 })}</span></h1>
         
         <div className="flex shrink-0 items-center gap-2">
           {/* מאזן מטבעות */}
-          <div className="chip font-display flex items-center gap-1.5 px-2.5 py-1 text-amber-400 border border-amber-500/30 bg-amber-500/10 rounded-full" title="המטבעות שלך">
+          <div className="chip font-display flex items-center gap-1.5 px-2.5 py-1 text-amber-400 border border-amber-500/30 bg-amber-500/10 rounded-full" title={t("coins")}>
             <Coins className="h-4 w-4 text-amber-400 fill-amber-400" />
             <span className="font-bold">{coins}</span>
           </div>
 
           {started && hidden.size > 0 && !murderer && (
             <button onClick={() => setReveal((v) => !v)} data-active={reveal} className="chip" disabled={simulating}>
-              {reveal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {reveal ? "Hide cars" : "Reveal cars"}
+              {reveal ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />} {reveal ? t("hideCars") : t("revealCars")}
             </button>
           )}
-           <Button variant="ghost" onClick={() => setLevelsOpen(true)} aria-label="Levels · בחר שלב" title="Levels · בחר שלב" className="chip px-2 sm:px-3.5" disabled={simulating}><Layers className="h-4 w-4" /><span className="hidden sm:inline">Levels · בחר שלב</span></Button>
-           <Button variant="ghost" onClick={() => loadPuzzle(idx)} aria-label="Reset" title="Reset" className="chip px-2 sm:px-3.5" disabled={simulating}><RotateCcw className="h-4 w-4" /><span className="hidden sm:inline">Reset</span></Button>
+           <Button variant="ghost" onClick={() => setLevelsOpen(true)} aria-label={t("chooseLevel")} title={t("chooseLevel")} className="chip px-2 sm:px-3.5" disabled={simulating}><Layers className="h-4 w-4" /><span className="hidden sm:inline">{t("levels")}</span></Button>
+           <Button variant="ghost" onClick={() => loadPuzzle(idx)} aria-label={t("reset")} title={t("reset")} className="chip px-2 sm:px-3.5" disabled={simulating}><RotateCcw className="h-4 w-4" /><span className="hidden sm:inline">{t("reset")}</span></Button>
+           <SettingsButton />
         </div>
       </header>
 
       <div className="game-grid">
         <aside className="panel flex flex-col gap-2" style={{ gridArea: "ctrl" }}>
           {!started ? (
-            <Button onClick={start} className="execute start-control whitespace-normal"><Play className="h-4 w-4" /><span>Start Solving · התחל פתירה</span></Button>
+            <Button onClick={start} className="execute start-control whitespace-normal"><Play className="h-4 w-4" /><span>{t("startSolving")}</span></Button>
           ) : (
           <div className="solving-controls flex flex-col gap-2">
             <div>
-              <h2 className="panel-title">Direction</h2>
+              <h2 className="panel-title">{t("direction")}</h2>
               <div className="grid grid-cols-3 grid-rows-3 gap-2">
                 {DIRS.map(({ m, Icon, cls }) => (
                    <Button variant="ghost" key={m} aria-label={m} title={m} onClick={() => setMove(m)} data-active={move === m} className={`ctrl ${cls}`} disabled={simulating}>
@@ -494,7 +499,7 @@ function Game() {
                   onClick={handleUseHint}
                   variant="outline"
                   disabled={simulating || won || failed}
-                  title="Hint · רמז (15 🪙)"
+                  title={t("hint")}
                   className="ctrl col-start-2 row-start-2 border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 font-bold p-0 flex flex-col items-center justify-center gap-0.5"
                 >
                   <Lightbulb className="h-4 w-4 fill-amber-500 shrink-0" />
@@ -504,7 +509,7 @@ function Game() {
             </div>
 
             <div>
-              <h2 className="panel-title">Steps</h2>
+              <h2 className="panel-title">{t("steps")}</h2>
               <div className="grid grid-cols-4 gap-2">
                 {[1, 2, 3, 4].map((n) => (
                    <Button variant="ghost" key={n} onClick={() => setSteps(n)} data-active={steps === n} className="ctrl px-0 font-display" disabled={simulating}>{n}</Button>
@@ -515,7 +520,7 @@ function Game() {
             {/* כפתור בצע - מופעל ומוצג תמיד לכל רמות המשחק */}
             <Button onClick={execute} disabled={won || simulating} className="execute mt-1">
               {murderer ? <Plus className="h-4 w-4 shrink-0" /> : <Play className="h-4 w-4 shrink-0" />}
-              <span>{murderer ? "Add move · הוסף" : "Execute · בצע"}</span>
+              <span>{murderer ? t("addMove") : t("execute")}</span>
             </Button>
           </div>
           )}
@@ -540,7 +545,7 @@ function Game() {
                   data-hidden={hidden.has(c.id) && !reveal}
                   data-ghost={hidden.has(c.id) && reveal}
                   data-escaping={won && c.id === "X"}
-                  aria-label={hidden.has(c.id) && !reveal ? "Hidden car" : c.name}
+                  aria-label={hidden.has(c.id) && !reveal ? t("hiddenCar") : c.name}
                   className="car touch-none select-none"
                   style={{
                     background: c.color,
@@ -557,7 +562,7 @@ function Game() {
               {won && (
                 <div className="win flex-col gap-2 text-center">
                   <Trophy className="h-12 w-12 text-yellow-500 animate-bounce" />
-                  <span className="text-3xl font-bold">Victory! · ניצחון</span>
+                  <span className="text-3xl font-bold">{t("victory")}</span>
                   
                   <div className="flex justify-center gap-1 my-1">
                     {[1, 2, 3].map((s) => (
@@ -569,30 +574,30 @@ function Game() {
                   </div>
 
                   <span className="text-base text-muted-foreground">
-                    {isLast ? "סיימת את כל השלבים במשחק בהצלחה רבה! כל הכבוד! 🎉" : `${moves} moves · ${clock} · best possible ${puzzle.par}`}
+                    {isLast ? t("allDone") : t("winSummary", { moves, clock, par: puzzle.par })}
                   </span>
                   <div className="mt-3 flex gap-2">
                     {!isLast ? (
-                       <Button variant="ghost" onClick={() => jumpTo(idx + 1)} className="chip">Next Level · שלב הבא</Button>
+                       <Button variant="ghost" onClick={() => jumpTo(idx + 1)} className="chip">{t("nextLevel")}</Button>
                     ) : (
-                       <Button variant="ghost" onClick={() => loadPuzzle(idx)} className="chip">Play again · שחק שוב</Button>
+                       <Button variant="ghost" onClick={() => loadPuzzle(idx)} className="chip">{t("playAgain")}</Button>
                     )}
-                    <Link to="/" className="chip"><Home className="h-4 w-4" /> Home</Link>
+                    <Link to="/" className="chip"><Home className="h-4 w-4" /> {t("home")}</Link>
                   </div>
                 </div>
               )}
               {failed && (
                 <div className="win flex-col gap-2 text-center" style={{ backgroundColor: 'oklch(0.16 0.01 260 / 0.95)' }}>
                   <X className="h-12 w-12 text-destructive" />
-                  <span className="text-3xl text-destructive">Oops! · אופס!</span>
+                  <span className="text-3xl text-destructive">{t("oops")}</span>
                   <span className="text-base text-muted-foreground">
                     {invisibleBumps >= 3 
-                      ? "התנגשת 3 פעמים במכוניות בלתי נראות!" 
-                      : "התוכנית שגויה או שלא שחררה את הרכב האדום."}
+                      ? t("bumped3")
+                      : t("planWrong")}
                   </span>
                   <div className="mt-3 flex gap-2">
                     <Button variant="ghost" onClick={() => loadPuzzle(idx)} className="chip">
-                      <RotateCcw className="h-4 w-4" /> Try again · נסה שוב
+                      <RotateCcw className="h-4 w-4" /> {t("tryAgain")}
                     </Button>
                   </div>
                 </div>
@@ -601,9 +606,9 @@ function Game() {
           ) : (
             <div className="panel relative flex w-full flex-col gap-2 self-start" style={{ width: "var(--board)", maxHeight: "var(--board)" }}>
               {warn && <div key={warn.key} className="warn" role="alert">{warn.text}</div>}
-              <h2 className="panel-title mb-0">Planned Moves · מהלכים מתוכננים</h2>
+              <h2 className="panel-title mb-0">{t("plannedMoves")}</h2>
               {plan.length === 0 ? (
-                <p className="py-10 text-center text-sm text-muted-foreground">Pick a car, direction and steps, then press Add move.</p>
+                <p className="py-10 text-center text-sm text-muted-foreground">{t("planEmpty")}</p>
               ) : (
                 <ol className="flex min-h-0 flex-1 flex-col gap-2 overflow-auto">
                   {plan.map((p, i) => {
@@ -614,31 +619,31 @@ function Game() {
                         <span className="h-3 w-5 rounded-sm" style={{ background: c.color }} />
                         <span className="flex-1">{c.id} · {c.name}</span>
                         <span className="font-display">{ARROW[p.move]} {p.steps}</span>
-                        <button aria-label="Remove move" onClick={() => setPlan((q) => q.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-foreground" disabled={simulating}><Trash2 className="h-4 w-4" /></button>
+                        <button aria-label={t("removeMove")} onClick={() => setPlan((q) => q.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-foreground" disabled={simulating}><Trash2 className="h-4 w-4" /></button>
                       </li>
                     );
                   })}
                 </ol>
               )}
               <div className="flex gap-2">
-                <button onClick={() => setPlan([])} disabled={!plan.length || simulating} className="chip">Clear</button>
-                <button onClick={submitPlan} disabled={simulating} className="execute flex flex-1 items-center justify-center gap-2"><Send className="h-4 w-4" /> Submit Solution · הגש פתרון</button>
+                <button onClick={() => setPlan([])} disabled={!plan.length || simulating} className="chip">{t("clear")}</button>
+                <button onClick={submitPlan} disabled={simulating} className="execute flex flex-1 items-center justify-center gap-2"><Send className="h-4 w-4" /> {t("submitSolution")}</button>
               </div>
             </div>
           )}
           <div className="flex w-full shrink-0 items-center justify-between gap-3 rounded-xl border bg-card px-3 py-1.5 text-sm text-muted-foreground" style={{ width: "var(--board)" }}>
-            <span>Moves: <span className="font-display text-foreground">{murderer && !won ? plan.length : moves}</span></span>
+            <span>{t("movesLabel")}: <span className="font-display text-foreground">{murderer && !won ? plan.length : moves}</span></span>
             <span className="min-w-0 flex-1 truncate text-center">{msg}</span>
             <span className="flex items-center gap-1"><Timer className="h-4 w-4" /><span className="font-display text-foreground">{clock}</span></span>
           </div>
         </section>
 
         <aside className="panel" style={{ gridArea: "cars" }}>
-          <h2 className="panel-title">Cars</h2>
+          <h2 className="panel-title">{t("cars")}</h2>
           <div className="grid grid-cols-4 gap-2">{standard.map(carBtn)}</div>
           {trucks.length > 0 && (
             <>
-              <h2 className="panel-title mt-2">Trucks</h2>
+              <h2 className="panel-title mt-2">{t("trucks")}</h2>
               <div className="grid grid-cols-2 gap-2">{trucks.map(carBtn)}</div>
             </>
           )}
@@ -650,8 +655,8 @@ function Game() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4" onClick={() => setLevelsOpen(false)}>
           <div className="panel flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden p-0" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-card px-4 py-3">
-              <h2 className="font-display text-xl font-bold">Choose Level · בחר שלב</h2>
-              <button aria-label="Close" onClick={() => setLevelsOpen(false)} className="chip"><X className="h-4 w-4" /></button>
+              <h2 className="font-display text-xl font-bold">{t("chooseLevel")}</h2>
+              <button aria-label={t("close")} onClick={() => setLevelsOpen(false)} className="chip"><X className="h-4 w-4" /></button>
             </div>
 
             <div className="flex-1 overflow-auto p-4 flex flex-col gap-4">
@@ -667,7 +672,7 @@ function Game() {
                   <div key={tier.id} className="rounded-lg border bg-card p-3">
                     <button
                       onClick={() => toggleTier(tier.id)}
-                      className="flex w-full items-center justify-between text-left transition-colors hover:opacity-80"
+                      className="flex w-full items-center justify-between text-start transition-colors hover:opacity-80"
                     >
                       <div className="flex items-center gap-2 font-bold text-sm sm:text-base">
                         {!unlocked ? (
@@ -675,7 +680,7 @@ function Game() {
                         ) : (
                           <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
                         )}
-                        <span>{tier.heTitle}</span>
+                        <span>{t(tierIdx === TIERS.length - 1 ? "tierTitleLast" : "tierTitle", { n: tierIdx + 1, min: tier.minPar, max: tier.maxPar })}</span>
                         {isCollapsed ? (
                           <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
                         ) : (
@@ -684,8 +689,8 @@ function Game() {
                       </div>
                       <span className="text-xs text-muted-foreground">
                         {unlocked
-                          ? `נפתרו: ${solvedCount}/${tierItems.length}`
-                          : `פתור עוד ${Math.max(0, tier.requiredSolvesToNext - getSolvesCountInTier(TIERS[tierIdx - 1]!, puzzles, progress))} שלבים ברמה הקודמת`}
+                          ? t("tierSolved", { a: solvedCount, b: tierItems.length })
+                          : t("tierLocked", { n: Math.max(0, tier.requiredSolvesToNext - getSolvesCountInTier(TIERS[tierIdx - 1]!, puzzles, progress)) })}
                       </span>
                     </button>
 

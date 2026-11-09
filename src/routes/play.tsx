@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { LEVELS, type Level } from "@/lib/puzzles";
 import { Button } from "@/components/ui/button";
+import { useI18n } from "@/lib/i18n";
+import { SettingsButton } from "@/components/settings-dialog";
 
 export const Route = createFileRoute("/play")({
   head: () => ({
@@ -25,34 +27,30 @@ export const Route = createFileRoute("/play")({
 });
 
 function Play() {
+  const { t } = useI18n();
   return (
     <main className="lot-bg flex min-h-dvh flex-col items-center justify-center gap-8 px-5 py-10">
-      <header className="flex w-full max-w-sm items-center">
+      <header className="flex w-full max-w-sm items-center justify-between">
         <Button asChild variant="ghost" className="chip px-3">
-          <Link to="/" aria-label="Back to main menu" title="Back to main menu">
-            <ArrowLeft className="h-4 w-4" />
-            <span>Menu · תפריט</span>
+          <Link to="/" aria-label={t("backMenu")} title={t("backMenu")}>
+            <ArrowLeft className="h-4 w-4 rtl:rotate-180" />
+            <span>{t("menu")}</span>
           </Link>
         </Button>
+        <SettingsButton />
       </header>
 
       <div className="text-center">
         <p className="font-display text-xs uppercase tracking-[0.4em] text-primary sm:text-sm">
-          Regular Games
+          {t("regularGames")}
         </p>
-        <h1 className="mt-3 font-display text-4xl font-bold sm:text-5xl">Choose a mode</h1>
-        <p dir="rtl" className="mt-2 text-muted-foreground">
-          בחר רמת קושי
-        </p>
+        <h1 className="mt-3 font-display text-4xl font-bold sm:text-5xl">{t("chooseMode")}</h1>
       </div>
 
       <div className="flex w-full max-w-sm flex-col gap-4">
         {(Object.keys(LEVELS) as Level[]).map((l) => (
           <Link key={l} to="/game/$level" params={{ level: l }} className="level-btn">
-            <span>{LEVELS[l].title}</span>
-            <span dir="rtl" className="text-muted-foreground">
-              {LEVELS[l].he}
-            </span>
+            <span>{t(`level.${l}`)}</span>
           </Link>
         ))}
       </div>
