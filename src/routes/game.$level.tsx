@@ -5,6 +5,9 @@ import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, IS_O
 import { Button } from "@/components/ui/button";
 import { SettingsButton } from "@/components/settings-dialog";
 import { useI18n } from "@/lib/i18n";
+import { HintSelection } from "@/components/hint-selection";
+import { useHints } from "@/hooks/use-hints";
+import { HINT_COSTS, hintAvailable, validateHintPlan, type HintType } from "@/lib/hints";
 
 export const Route = createFileRoute("/game/$level")({
   beforeLoad: ({ params }) => {
@@ -66,6 +69,8 @@ function Game() {
   const [invisibleBumps, setInvisibleBumps] = useState(0);
   const [wonStars, setWonStars] = useState(3);
   const [coins, setCoinsState] = useState(0);
+  const hints = useHints(setCoinsState);
+  const boardRevealed = reveal || hints.peek;
   const [collapsedTiers, setCollapsedTiers] = useState<Record<string, boolean>>({});
 
   const won = wonAt !== null;
@@ -89,6 +94,7 @@ function Game() {
   const loadPuzzle = (i: number, currentPuzzles = puzzles) => {
     const p = currentPuzzles[i] ?? currentPuzzles[0];
     if (!p) return;
+    hints.reset();
     setIdx(currentPuzzles.indexOf(p));
     setCars(p.cars);
     setSel(null); setMove(null); setSteps(1); setMoves(0);
@@ -164,27 +170,27 @@ function Game() {
     setTimeout(() => setWarn((w) => (w?.key === key ? null : w)), 1800);
   };
 
-  const handleUseHint = () => {
-    const HINT_COST = 15;
-    const currentCoins = getCoins();
-
-    if (currentCoins < HINT_COST) {
-      return flash(t("hintCost", { cost: HINT_COST, have: currentCoins }));
+  const useHint = (type: HintType, id?: string): string | void => {
+    if (!started || won || failed || simulating || !hintAvailable(type, level, hidden, plan)) return t("noHint");
+    if (getCoins() < HINT_COSTS[type]) return t("hintCost", { cost: HINT_COSTS[type], have: getCoins() });
+    if (type === "next") {
+      const nextMove = getNextBestMove(cars);
+      if (!nextMove) return t("noHint");
+      if (!hints.charge(type)) return t("noHint");
+      setSel(nextMove.id); setMove(nextMove.move); setSteps(nextMove.steps);
+      flash(t("hintMsg", { id: nextMove.id, arrow: ARROW[nextMove.move], steps: nextMove.steps }));
+    } else if (type === "peek") {
+      if (!hints.charge(type)) return t("noHint");
+      hints.startPeek();
+    } else if (type === "reveal") {
+      if (!id || !hidden.has(id)) return t("noHint");
+      if (!hints.charge(type)) return t("noHint");
+      setHidden((previous) => { const next = new Set(previous); next.delete(id); return next; });
+    } else {
+      const result = validateHintPlan(cars, plan);
+      if (!hints.charge(type)) return t("noHint");
+      return result.error ? t("hintPlanInvalid", { n: (result.failedAt ?? 0) + 1, error: te(result.error) }) : t("hintPlanValid");
     }
-
-    const nextMove = getNextBestMove(cars);
-    if (!nextMove) {
-      return flash(t("noHint"));
-    }
-
-    const newBalance = addCoins(-HINT_COST);
-    setCoinsState(newBalance);
-
-    setSel(nextMove.id);
-    setMove(nextMove.move);
-    setSteps(nextMove.steps);
-
-    flash(t("hintMsg", { id: nextMove.id, arrow: ARROW[nextMove.move], steps: nextMove.steps }));
   };
 
   const checkInvisibleBump = (c: Car, moveDir: Move, attemptedSteps: number) => {
@@ -210,7 +216,7 @@ function Game() {
          const cell = c.dir === "h" ? `${r},${col + k}` : `${r + k},${col}`;
          if (occ.has(cell)) {
             const blockerId = occ.get(cell)!;
-            if (hidden.has(blockerId) && !reveal) {
+            if (hidden.has(blockerId) && !boardRevealed) {
                return true; 
             }
             return false;
@@ -283,7 +289,7 @@ function Game() {
   const standard = cars.filter((c) => c.len === 2);
   const trucks = cars.filter((c) => c.len === 3);
   
-  const showBoard = simulating || !(murderer && started && !won && !failed);
+  const showBoard = hints.peek || (murderer && hidden.size < cars.length) || simulating || !(murderer && started && !won && !failed);
 
   const carBtn = (c: Car) => (
     <button key={c.id} onClick={() => setSel(c.id)} data-active={sel === c.id} title={c.name} className="palette-cell" disabled={simulating}>
@@ -294,7 +300,8 @@ function Game() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey || e.ctrlKey || e.metaKey || simulating) return;
+      if (e.altKey || e.ctrlKey || e.metaKey || simulating || hints.open || hints.peek) return;
+      if (e.target instanceof HTMLElement && e.target.closest("input, textarea, select, [role=dialog]")) return;
 
       let char = e.key.toUpperCase();
       if (e.code.startsWith("Key")) char = e.code.replace("Key", "");
@@ -339,7 +346,7 @@ function Game() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [cars, sel, move, steps, started, murderer, plan, simulating, invisibleBumps]);
+  }, [cars, sel, move, steps, started, murderer, plan, simulating, invisibleBumps, hints.open, hints.peek, hidden, boardRevealed]);
 
   const dragStart = useRef<{ id: string; x: number; y: number; pitch: number; min: number; max: number } | null>(null);
   const [drag, setDrag] = useState<{ id: string; offset: number } | null>(null);
@@ -479,6 +486,7 @@ function Game() {
         </div>
       </header>
 
+      <HintSelection open={hints.open} onOpenChange={hints.setOpen} level={level} cars={cars} hidden={hidden} plan={plan} coins={coins} onUse={useHint} />
       <div className="game-grid">
         <aside className="panel flex flex-col gap-2" style={{ gridArea: "ctrl" }}>
           {!started ? (
@@ -496,14 +504,14 @@ function Game() {
 
                 {/* כפתור רמז במרכז החיצים (שורה 2, עמודה 2) */}
                 <Button
-                  onClick={handleUseHint}
+                  onClick={() => { setCoinsState(getCoins()); hints.setOpen(true); }}
                   variant="outline"
-                  disabled={simulating || won || failed}
-                  title={t("hint")}
+                  disabled={simulating || won || failed || hints.peek}
+                  title={t("hintMenu")} aria-label={t("hintMenu")}
                   className="ctrl col-start-2 row-start-2 border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 font-bold p-0 flex flex-col items-center justify-center gap-0.5"
                 >
                   <Lightbulb className="h-4 w-4 fill-amber-500 shrink-0" />
-                  <span className="text-[10px] font-sans">15🪙</span>
+                  
                 </Button>
               </div>
             </div>
@@ -542,10 +550,10 @@ function Game() {
                   onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
                   data-shake={sel === c.id && !!warn}
                   data-selected={sel === c.id}
-                  data-hidden={hidden.has(c.id) && !reveal}
-                  data-ghost={hidden.has(c.id) && reveal}
+                  data-hidden={hidden.has(c.id) && !boardRevealed}
+                  data-ghost={hidden.has(c.id) && boardRevealed}
                   data-escaping={won && c.id === "X"}
-                  aria-label={hidden.has(c.id) && !reveal ? t("hiddenCar") : c.name}
+                  aria-label={hidden.has(c.id) && !boardRevealed ? t("hiddenCar") : c.name}
                   className="car touch-none select-none"
                   style={{
                     background: c.color,

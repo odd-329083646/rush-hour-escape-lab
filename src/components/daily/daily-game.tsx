@@ -4,6 +4,9 @@ import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CalendarDays, Coins, Home, L
 import { Button } from "@/components/ui/button";
 import { SettingsButton } from "@/components/settings-dialog";
 import { useI18n } from "@/lib/i18n";
+import { HintSelection } from "@/components/hint-selection";
+import { useHints } from "@/hooks/use-hints";
+import { HINT_COSTS, hintAvailable, type HintType } from "@/lib/hints";
 import { DailyCalendar } from "./daily-calendar";
 import { addCoins, applyMove, cells, getCoins, getDailyPuzzleAsync, getNextBestMove, isSolved, pickHidden, type Car, type Move } from "@/lib/puzzles";
 import { fmtTime, isSolvedOn, submitScore } from "@/lib/daily-scores";
@@ -33,6 +36,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
   const [warn, setWarn] = useState<string | null>(null);
   const [coins, setCoins] = useState(getCoins());
   const [result, setResult] = useState<{ time: number; best: number | null; isRecord: boolean; coinsEarned: number; isFirstSolve: boolean } | null>(null);
+  const hints = useHints(setCoins);
   const [calOpen, setCalOpen] = useState(openCalendar);
   const dragStart = useRef<{ id: string; pointerId: number; x: number; y: number; pitch: number; min: number; max: number } | null>(null);
   const [drag, setDrag] = useState<{ id: string; offset: number } | null>(null);
@@ -40,6 +44,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
   const failed = bumps >= 3 && !result;
 
   const reset = (cs: Car[]) => {
+    hints.reset();
     setCars(cs); setSel(null); setHidden(new Set()); setStartedAt(null);
     setMoves(0); setBumps(0); setResult(null); setWarn(null);
     setMove(null); setSteps(1); setDrag(null); dragStart.current = null; submitting.current = false;
@@ -67,28 +72,23 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
 
   const flash = useCallback((t: string) => { setWarn(t); setTimeout(() => setWarn((w) => (w === t ? null : w)), 1600); }, []);
 
-  const handleUseHint = () => {
-    if (!started || result || failed) return;
-    const HINT_COST = 15;
-    const currentCoins = getCoins();
-
-    if (currentCoins < HINT_COST) {
-      return flash(t("hintCost", { cost: HINT_COST, have: currentCoins }));
+  const useHint = (type: HintType, id?: string): string | void => {
+    if (!started || result || failed || !hintAvailable(type, "medium", hidden, [])) return t("noHint");
+    if (getCoins() < HINT_COSTS[type]) return t("hintCost", { cost: HINT_COSTS[type], have: getCoins() });
+    if (type === "next") {
+      const nextMove = getNextBestMove(cars);
+      if (!nextMove) return t("noHint");
+      if (!hints.charge(type)) return t("noHint");
+      setSel(nextMove.id); setMove(nextMove.move); setSteps(nextMove.steps);
+      flash(t("hintMsg", { id: nextMove.id, arrow: ARROW[nextMove.move], steps: nextMove.steps }));
+    } else if (type === "peek") {
+      if (!hints.charge(type)) return t("noHint");
+      hints.startPeek();
+    } else if (type === "reveal") {
+      if (!id || !hidden.has(id)) return t("noHint");
+      if (!hints.charge(type)) return t("noHint");
+      setHidden((previous) => { const next = new Set(previous); next.delete(id); return next; });
     }
-
-    const nextMove = getNextBestMove(cars);
-    if (!nextMove) {
-      return flash(t("noHint"));
-    }
-
-    addCoins(-HINT_COST);
-    setCoins(getCoins());
-
-    setSel(nextMove.id);
-    setMove(nextMove.move);
-    setSteps(nextMove.steps);
-
-    flash(t("hintMsg", { id: nextMove.id, arrow: ARROW[nextMove.move], steps: nextMove.steps }));
   };
 
   const blockerOf = useCallback((c: Car, m: Move, count: number): string | undefined => {
@@ -110,7 +110,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
     const r = applyMove(cars, c.id, m, count);
     if (r.error) {
       const b = r.error.startsWith("Blocked") ? blockerOf(c, m, count) : undefined;
-      if (b && hidden.has(b)) { setBumps((n) => n + 1); return flash(t("bumpedInvisible")); }
+      if (b && hidden.has(b) && !hints.peek) { setBumps((n) => n + 1); return flash(t("bumpedInvisible")); }
       return flash(te(r.error));
     }
     setCars(r.cars); setMoves((n) => n + 1); setWarn(null);
@@ -141,7 +141,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
 
       setResult({ time, ...res, coinsEarned, isFirstSolve });
     }
-  }, [sel, steps, startedAt, result, failed, cars, blockerOf, hidden, flash, date, t, te]);
+  }, [sel, steps, startedAt, result, failed, cars, blockerOf, hidden, flash, date, t, te, hints.peek]);
 
   const execute = () => {
     if (!started) return flash(t("needStart"));
@@ -153,7 +153,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target;
-      if (e.altKey || e.ctrlKey || e.metaKey || e.repeat || calOpen || result || failed || !started || submitting.current) return;
+      if (e.altKey || e.ctrlKey || e.metaKey || e.repeat || hints.open || calOpen || result || failed || !started || submitting.current) return;
       if (target instanceof HTMLElement && (target.isContentEditable || target.closest("input, textarea, select, [role='dialog']"))) return;
       const char = e.code.startsWith("Key") ? e.code.slice(3) : e.key.toUpperCase();
       if (cars.some((c) => c.id === char)) { e.preventDefault(); setSel(char); return; }
@@ -168,10 +168,10 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [cars, calOpen, result, failed, started, move, go, flash]);
+  }, [cars, calOpen, result, failed, started, move, go, flash, hints.open]);
 
   const handlePointerDown = (c: Car, e: PointerEvent<HTMLButtonElement>) => {
-    if (!started || result || failed || calOpen || submitting.current || !e.isPrimary || e.button !== 0 || dragStart.current) return;
+    if (!started || result || failed || hints.open || calOpen || submitting.current || !e.isPrimary || e.button !== 0 || dragStart.current) return;
     const board = e.currentTarget.parentElement;
     const cell = board?.querySelector(".cell");
     if (!board || !cell) return;
@@ -209,7 +209,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
     const direction: Move = c.dir === "h" ? (raw > 0 ? "right" : "left") : (raw > 0 ? "down" : "up");
     if (Math.abs(raw - offset) > 20) {
       const blocker = blockerOf(c, direction, Math.abs(count) + 1);
-      if (blocker && hidden.has(blocker)) { setBumps((n) => n + 1); flash(t("bumpedInvisible")); }
+      if (blocker && hidden.has(blocker) && !hints.peek) { setBumps((n) => n + 1); flash(t("bumpedInvisible")); }
     }
     if (!count) return;
     setMove(direction); setSteps(Math.abs(count));
@@ -245,6 +245,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
         </div>
       </header>
 
+      <HintSelection open={hints.open} onOpenChange={hints.setOpen} level="medium" cars={cars} hidden={hidden} coins={coins} onUse={useHint} />
       <div className="game-grid">
         <aside className="panel flex flex-col gap-2" style={{ gridArea: "ctrl" }}>
           {!started ? (
@@ -262,14 +263,14 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
 
                   {/* כפתור רמז במרכז החיצים (שורה 2, עמודה 2) */}
                   <Button
-                    onClick={handleUseHint}
+                    onClick={() => { setCoins(getCoins()); hints.setOpen(true); }}
                     variant="outline"
-                    disabled={!started || !!result || failed}
-                    title={t("hint")}
+                    disabled={!started || !!result || failed || hints.peek}
+                    title={t("hintMenu")} aria-label={t("hintMenu")}
                     className="ctrl col-start-2 row-start-2 border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 font-bold p-0 flex flex-col items-center justify-center gap-0.5"
                   >
                     <Lightbulb className="h-4 w-4 fill-amber-500 shrink-0" />
-                    <span className="text-[10px] font-sans">15🪙</span>
+                    
                   </Button>
                 </div>
               </div>
@@ -307,9 +308,9 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
                 onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
                 onLostPointerCapture={() => { dragStart.current = null; setDrag(null); }}
                 data-selected={sel === c.id}
-                data-hidden={hidden.has(c.id)}
+                data-hidden={hidden.has(c.id) && !hints.peek}
                 data-escaping={!!result && c.id === "X"}
-                aria-label={hidden.has(c.id) ? t("hiddenCar") : c.name}
+                aria-label={hidden.has(c.id) && !hints.peek ? t("hiddenCar") : c.name}
                 className="car h-auto min-w-0 touch-none select-none p-0 hover:bg-transparent"
                 style={{
                   background: c.color,
