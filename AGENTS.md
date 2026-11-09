@@ -14,3 +14,4 @@
 - The player profile (username, country) lives in src/lib/profile.ts on the device; stats are derived from saved level progress instead of being stored separately.
 - Share hint pricing/availability through lib/hints and timed peek/charging through useHints; keep dry plan validation separate from gameplay state to prevent penalties or move commits.
 - Render timed peeks from the initial puzzle snapshot, never the mutable gameplay board; block move commits during peek so starting-position previews cannot alter progress.
+- Tutorial lessons reuse game-grid, board, controls and palette styles; pointer, keyboard and button actions share applyMove validation, while plan actions queue without committing until submission.

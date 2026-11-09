@@ -155,6 +155,10 @@ const en = {
   tutLessonDone: "Nice! Lesson complete.",
   hintMenu: "Hints",
   hintRevealedBoard: "Revealed car",
+  tutorialLanguage: "Select your language",
+  languageEnglish: "English",
+  languageHebrew: "עברית",
+  selectCar: "Select {id}",
 } as const;
 
 export type TKey = keyof typeof en;
@@ -311,6 +315,10 @@ const he: Record<TKey, string> = {
   tutLessonDone: "יפה! השיעור הושלם.",
   hintMenu: "רמזים",
   hintRevealedBoard: "מכונית שנחשפה",
+  tutorialLanguage: "בחרו שפה",
+  languageEnglish: "English",
+  languageHebrew: "עברית",
+  selectCar: "בחרו {id}",
 };
 
 const DICT: Record<Lang, Record<TKey, string>> = { en, he };
