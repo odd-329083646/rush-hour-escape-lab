@@ -24,7 +24,7 @@
 - [x] Award 90 coins to the winner once, record win/loss stats, and verify two-player and bot flows.
 
 # Three-tier architecture
-- [ ] Centralize device persistence, puzzle loading, database access, and Realtime in services.
-- [ ] Extract game and reward engines and mode-specific hooks; keep screens presentation-only.
-- [ ] Apply tournament moves locally and serialize background synchronization without blocking gestures.
-- [ ] Verify storage/reward/movement regressions, delayed-network gameplay, and existing modes.
+- [x] Centralize device persistence, puzzle loading, database access, and Realtime in services.
+- [x] Extract game and reward engines and mode-specific hooks; keep screens presentation-only.
+- [x] Apply tournament moves locally and serialize background synchronization without blocking gestures.
+- [x] Verify storage/reward/movement regressions, delayed-network gameplay, and existing modes.
