@@ -60,8 +60,8 @@ export const tournamentAction = createServerFn({ method: "POST" })
     }
     const result = await supabaseAdmin.rpc("tournament_action", {
       p_guest: verified.data.id, p_hash: tokenHash, p_action: data.action,
-      p_code: code, p_puzzles: JSON.parse(JSON.stringify(fallbackRacePuzzles())),
-      p_state: state ? JSON.parse(JSON.stringify(state)) : undefined, p_expected: expected, p_delta: data.delta,
+      ...(code ? { p_code: code } : {}), p_puzzles: JSON.parse(JSON.stringify(fallbackRacePuzzles())),
+      ...(state ? { p_state: JSON.parse(JSON.stringify(state)) } : {}), ...(expected !== undefined ? { p_expected: expected } : {}), p_delta: data.delta,
     });
     if (result.error) throw new Error("Tournament unavailable");
     const snapshot = result.data as unknown as RaceSnapshot;
