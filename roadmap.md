@@ -22,3 +22,9 @@
 - [x] Add 50-coin entry, random matchmaking with a 15-second bot fallback, and private rooms with 30-second refunds.
 - [x] Add synchronized countdown, three shared puzzles, live opponent progress, and first-finisher results.
 - [x] Award 90 coins to the winner once, record win/loss stats, and verify two-player and bot flows.
+
+# Three-tier architecture
+- [ ] Centralize device persistence, puzzle loading, database access, and Realtime in services.
+- [ ] Extract game and reward engines and mode-specific hooks; keep screens presentation-only.
+- [ ] Apply tournament moves locally and serialize background synchronization without blocking gestures.
+- [ ] Verify storage/reward/movement regressions, delayed-network gameplay, and existing modes.
