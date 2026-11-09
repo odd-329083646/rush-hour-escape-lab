@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DailyGame } from "./daily-game";
+import { pickHidden, getCoins } from "@/lib/puzzles";
 
 vi.mock("@tanstack/react-router", () => ({ Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a> }));
 vi.mock("./daily-calendar", () => ({ DailyCalendar: () => null }));
@@ -11,10 +12,10 @@ vi.mock("@/lib/puzzles", async (importOriginal) => ({
     { id: "A", name: "Green Car", color: "var(--car-green)", row: 0, col: 0, len: 2, dir: "h" },
     { id: "Q", name: "Blue Truck", color: "var(--car-blue)", row: 3, col: 5, len: 3, dir: "v" },
   ] }),
-  pickHidden: () => new Set(),
+  pickHidden: vi.fn(() => new Set<string>()),
 }));
 
-afterEach(cleanup);
+afterEach(() => { cleanup(); localStorage.clear(); vi.mocked(pickHidden).mockReturnValue(new Set()); });
 
 async function startGame() {
   render(<DailyGame date="2026-11-07" />);
@@ -24,6 +25,22 @@ async function startGame() {
 }
 
 describe("Daily gameplay controls", () => {
+  it("reveals one chosen car permanently for 40 coins without moving it", async () => {
+    localStorage.setItem("rush_hour_coins", "100");
+    vi.mocked(pickHidden).mockReturnValue(new Set(["A", "Q"]));
+    await startGame();
+    fireEvent.click(screen.getByRole("button", { name: "Hints" }));
+    fireEvent.click(screen.getByRole("button", { name: /Reveal Single Car/ }));
+    fireEvent.click(screen.getByRole("dialog").querySelector('button:not([aria-label])') ?? screen.getByRole("button", { name: "A", exact: true }));
+    expect(getCoins()).toBe(60);
+    const car = screen.getByRole("button", { name: "Green Car" });
+    expect(car).toHaveAttribute("data-hidden", "false");
+    fireEvent.keyDown(window, { key: "a", code: "KeyA" });
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    fireEvent.keyDown(window, { key: "Enter" });
+    expect(car).toHaveAttribute("data-hidden", "false");
+    expect(car.style.gridColumn).toBe("2 / span 2");
+  });
   it("requires starting before keyboard moves", async () => {
     render(<DailyGame date="2026-11-07" />);
     await screen.findByRole("button", { name: "Red Racer" });
