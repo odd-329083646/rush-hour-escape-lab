@@ -59,7 +59,7 @@ function Tutorial() {
           <Button asChild className="execute"><Link to="/play">{t("regularGames")}</Link></Button>
         </div>
       ) : (
-        <LessonView key={step} lesson={LESSONS[step]} onNext={next} last={step === 3} />
+        <LessonView key={step} lesson={LESSONS[step]!} onNext={next} last={step === 3} />
       )}
     </main>
   );
