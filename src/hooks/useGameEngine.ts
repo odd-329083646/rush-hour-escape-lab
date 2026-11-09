@@ -46,5 +46,5 @@ export function useGameEngine(initialCars: Car[] = []) {
     const timer = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(timer);
   }, [startedAt, wonAt]);
-  return { cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, solved: isSolved(cars) };
+  return { cars, currentCars: current, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, solved: isSolved(cars) };
 }
