@@ -5,9 +5,9 @@ import { translate, translateError } from "./i18n";
 beforeEach(() => localStorage.clear());
 
 describe("profile", () => {
-  it("creates a Player_XXXX username on first load and keeps it", () => {
+  it("creates a Guest_XXXX username on first load and keeps it", () => {
     const p = getProfile();
-    expect(p.username).toMatch(/^Player_[A-Z0-9]{4}$/);
+    expect(p.username).toMatch(/^Guest_[A-Z0-9]{4}$/);
     expect(getProfile().username).toBe(p.username);
   });
 
