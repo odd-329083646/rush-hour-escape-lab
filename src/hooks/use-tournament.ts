@@ -24,7 +24,12 @@ export function useTournament() {
   const alive = useRef(true);
   const initialization = useRef<Promise<GuestCredential> | null>(null);
   const action = useCallback(async (kind: Action, options?: { code?: string; move?: { id: string; direction: Move; steps: number } }) => {
-    if (!credential.current || locked.current) return;
+    if (!credential.current) return;
+    if (locked.current) {
+      if (kind === "status") return;
+      while (locked.current && alive.current) await new Promise((resolve) => window.setTimeout(resolve, 25));
+      if (!alive.current) return;
+    }
     locked.current = true;
     if (kind !== "status") setBusy(true);
     const balance = getCoins();
