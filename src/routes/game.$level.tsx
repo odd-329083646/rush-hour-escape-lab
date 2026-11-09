@@ -37,7 +37,7 @@ type Planned = { id: string; move: Move; steps: number };
 
 function Game() {
   const { level } = Route.useParams() as { level: Level };
-  const { t, te } = useI18n();
+  const { t, te, lang } = useI18n();
   const murderer = level === "murderer";
   const idxKey = `rush_hour_puzzle_index_${level}`;
   const maxKey = `rush_hour_max_solved_${level}`;
@@ -69,6 +69,8 @@ function Game() {
   const [collapsedTiers, setCollapsedTiers] = useState<Record<string, boolean>>({});
 
   const won = wonAt !== null;
+  // Re-render the idle hint in the newly chosen language.
+  useEffect(() => { if (!started) setMsg(t("msgStudy")); }, [lang]);
   const elapsed = startedAt ? Math.floor(((wonAt ?? now) - startedAt) / 1000) : 0;
   const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
 
