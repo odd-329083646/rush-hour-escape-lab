@@ -48,6 +48,7 @@ describe("Daily gameplay controls", () => {
     await startGame();
     fireEvent.click(screen.getByRole("button", { name: "Select A · Green Car" }));
     fireEvent.click(screen.getByRole("button", { name: "right" }));
+    fireEvent.click(screen.getByRole("button", { name: "Execute" }));
     expect(screen.getByRole("button", { name: "Green Car" }).style.gridColumn).toBe("2 / span 2");
   });
 });
