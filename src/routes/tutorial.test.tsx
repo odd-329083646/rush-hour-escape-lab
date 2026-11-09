@@ -4,13 +4,14 @@ import { Tutorial } from "./tutorial";
 import { getCoins } from "@/lib/puzzles";
 import { getLang, setLang } from "@/lib/i18n";
 import { StrictMode } from "react";
+import { storageService } from "@/services/storageService";
 
 vi.mock("@tanstack/react-router", () => ({
   createFileRoute: () => (options: unknown) => options,
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
 }));
 
-afterEach(() => { cleanup(); localStorage.clear(); setLang("en"); });
+afterEach(() => { cleanup(); storageService.resetCache(); localStorage.clear(); setLang("en"); storageService.flush(); });
 
 function chooseEnglish() {
   render(<Tutorial />);
@@ -27,14 +28,14 @@ function move(id: string, direction: string, steps: number) {
 it("keeps first-visit language setup open when effects are replayed", () => {
   render(<StrictMode><Tutorial /></StrictMode>);
   expect(screen.getByRole("button", { name: "English" })).toBeInTheDocument();
-  expect(localStorage.getItem("has_seen_tutorial")).toBe("1");
+  expect(storageService.getItem("has_seen_tutorial")).toBe("1");
 });
 
 it("persists Hebrew globally before the first lesson", () => {
   render(<Tutorial />);
   fireEvent.click(screen.getByRole("button", { name: "עברית" }));
   expect(getLang()).toBe("he");
-  expect(localStorage.getItem("rush_hour_lang")).toBe("he");
+  expect(storageService.getItem("rush_hour_lang")).toBe("he");
   expect(document.documentElement.dir).toBe("ltr");
 });
 

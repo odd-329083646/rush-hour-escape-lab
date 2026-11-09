@@ -13,7 +13,7 @@ export async function registerGuest(data: { username: string; country: string; c
     if (result.error || !result.data) throw new Error("Tournament unavailable");
     return { id: result.data.id, token };
 }
-export async function performTournamentAction(data: { credential: GuestCredential; action: "status" | "random" | "create" | "join" | "cancel" | "move" | "forfeit" | "leave"; code?: string; delta: number; username: string; country: string; move?: { id: string; direction: Move; steps: number } }) {
+export async function performTournamentAction(data: { credential: GuestCredential; action: "status" | "random" | "create" | "join" | "cancel" | "move" | "forfeit" | "leave"; code?: string | undefined; delta: number; username: string; country: string; move?: { id: string; direction: Move; steps: number } | undefined }) {
     const tokenHash = await hashToken(data.credential.token);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // The capability is verified against its device guest before any match access or mutation.

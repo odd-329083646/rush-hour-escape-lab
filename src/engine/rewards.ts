@@ -61,6 +61,7 @@ export function getCoins(): number {
  * מוסיף (או מוריד) מטבעות למאזן המשתמש
  */
 export function addCoins(amount: number): number {
+  if (!Number.isSafeInteger(amount)) return getCoins();
   const newBalance = Math.max(0, getCoins() + amount);
   storageService.setItem("rush_hour_coins", String(newBalance));
   return newBalance;
