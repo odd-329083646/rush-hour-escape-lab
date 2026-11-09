@@ -2,13 +2,11 @@ import { useTutorial } from "@/hooks/useTutorial";
 import type { Lesson } from "@/engine/tutorialLessons";
 import { useTutorialLesson } from "@/hooks/useTutorialLesson";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Home, Languages, Play, Plus, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { applyMove, isSolved, runPlan, type Car, type Move } from "@/lib/puzzles";
-import { setLang, translate, useI18n, type Lang, type TKey } from "@/lib/i18n";
-import { completeTutorial, hasSeenTutorial, markTutorialSeen } from "@/lib/tutorial";
+import { type Car, type Move } from "@/lib/puzzles";
+import { translate } from "@/lib/i18n";
 
 export const Route = createFileRoute("/tutorial")({
   head: () => ({
@@ -69,7 +67,7 @@ export function Tutorial() {
 }
 
 function LessonView({ lesson, onNext }: { lesson: Lesson; onNext: () => void }) {
-  const { t, te, lang, cars, setCars, commitMove, sel, setSel, steps, setSteps, move, setMove, started, setStarted, plan, setPlan, msg, setMsg, dragStart, drag, setDrag, done, hidden, act, submit, handlePointerDown, handlePointerMove, handlePointerUp, directionPosition } = useTutorialLesson({ lesson, onNext });
+  const { t, lang, cars, sel, setSel, steps, setSteps, move, setMove, started, setStarted, plan, setPlan, msg, setMsg, dragStart, drag, setDrag, done, hidden, act, submit, handlePointerDown, handlePointerMove, handlePointerUp, directionPosition } = useTutorialLesson({ lesson, onNext });
   const paletteCar = (car: Car) => (
     <Button key={car.id} variant="ghost" className="palette-cell h-auto" aria-label={t("selectCar", { id: car.id })} data-active={sel === car.id} disabled={done} onClick={() => setSel(car.id)}>
       <span className="h-3 rounded-sm" style={{ background: car.color, width: car.len === 3 ? "2.5rem" : "1.5rem" }} />

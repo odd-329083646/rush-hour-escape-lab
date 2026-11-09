@@ -1,13 +1,10 @@
 import { useStandardGame } from "@/hooks/useStandardGame";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, ChevronDown, ChevronUp, Coins, Eye, Home, Layers, Lightbulb, Lock, Play, Plus, RotateCcw, Send, Star, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
-import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, IS_OFFLINE_MODE, getRandomPuzzle, saveLevelProgress, getSavedProgress, getCoins, addCoins, getNextBestMove, TIERS, isTierUnlocked, getSolvesCountInTier, getPuzzlesForTier, type Car, type Level, type Move } from "@/lib/puzzles";
+import { LEVELS, IS_OFFLINE_MODE, getCoins, TIERS, type Car, type Level, type Move } from "@/lib/puzzles";
 import { Button } from "@/components/ui/button";
 import { SettingsButton } from "@/components/settings-dialog";
-import { useI18n } from "@/lib/i18n";
 import { HintSelection } from "@/components/hint-selection";
-import { useHints } from "@/hooks/use-hints";
-import { HINT_COSTS, hintAvailable, peekBoardCars, validateHintPlan, type HintType } from "@/lib/hints";
 
 export const Route = createFileRoute("/game/$level")({
   beforeLoad: ({ params }) => {
@@ -40,7 +37,7 @@ type Planned = { id: string; move: Move; steps: number };
 
 function Game() {
   const { level } = Route.useParams() as { level: Level };
-  const { drawRandom, t, te, lang, murderer, idxKey, maxKey, puzzles, setPuzzles, idx, setIdx, maxSolved, setMaxSolved, puzzle, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, initialCars, setInitialCars, sel, setSel, move, setMove, steps, setSteps, msg, setMsg, warn, setWarn, started, setStarted, hidden, setHidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, setFailed, simulating, setSimulating, invisibleBumps, setInvisibleBumps, wonStars, setWonStars, coins, setCoinsState, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, setCollapsedTiers, won, elapsed, clock, progress, toggleTier, formatTime, loadPuzzle, markWon, jumpTo, start, flash, useHint, checkInvisibleBump, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, freeRange, handlePointerDown, handlePointerMove, handlePointerUp } = useStandardGame(level);
+  const { tiers, drawRandom, t, murderer, puzzles, idx, puzzle, cars, moves, sel, setSel, move, setMove, steps, setSteps, msg, warn, started, hidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, simulating, invisibleBumps, wonStars, coins, setCoinsState, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, won, clock, progress, toggleTier, formatTime, loadPuzzle, jumpTo, start, useHint, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, handlePointerDown, handlePointerMove, handlePointerUp } = useStandardGame(level);
   const carBtn = (c: Car) => (
     <Button variant="ghost" key={c.id} onClick={() => setSel(c.id)} data-active={sel === c.id} title={c.name} className="palette-cell" disabled={simulating}>
       <span className="h-3 rounded-sm" style={{ background: c.color, width: c.len === 3 ? "2.5rem" : "1.5rem" }} />
@@ -275,10 +272,7 @@ function Game() {
             </div>
 
             <div className="flex-1 overflow-auto p-4 flex flex-col gap-4">
-              {TIERS.map((tier, tierIdx) => {
-                const unlocked = isTierUnlocked(tierIdx, puzzles, progress);
-                const solvedCount = getSolvesCountInTier(tier, puzzles, progress);
-                const tierItems = getPuzzlesForTier(tier, puzzles);
+              {tiers.map(({ tier, tierIdx, unlocked, solvedCount, tierItems, remaining }) => {
 
                 if (tierItems.length === 0) return null;
                 const isCollapsed = !!collapsedTiers[tier.id];
@@ -305,7 +299,7 @@ function Game() {
                       <span className="text-xs text-muted-foreground">
                         {unlocked
                           ? t("tierSolved", { a: solvedCount, b: tierItems.length })
-                          : t("tierLocked", { n: Math.max(0, tier.requiredSolvesToNext - getSolvesCountInTier(TIERS[tierIdx - 1]!, puzzles, progress)) })}
+                          : t("tierLocked", { n: remaining })}
                       </span>
                     </Button>
 

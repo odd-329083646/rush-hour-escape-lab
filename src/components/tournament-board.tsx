@@ -1,11 +1,8 @@
 import { useTournamentBoard } from "@/hooks/useTournamentBoard";
-import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { applyMove, type Car, type Move } from "@/lib/puzzles";
-import { useI18n } from "@/lib/i18n";
+import { type Car, type Move } from "@/lib/puzzles";
 import type { RaceState } from "@/lib/tournament";
-import { movementRange } from "@/hooks/useGameEngine";
 
 const directions: { move: Move; Icon: typeof ArrowUp; position: string }[] = [
   { move: "up", Icon: ArrowUp, position: "col-start-2 row-start-1" },

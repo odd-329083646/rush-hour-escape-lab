@@ -16,7 +16,7 @@ export function useDailyGame({ date, openCalendar = false }: { date: string; ope
   const { t, te, lang } = useI18n();
   const [start, setStart] = useState<Car[]>([]);
   const [par, setPar] = useState(0);
-  const { cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove } = useGameEngine();
+  const { cars, currentCars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove } = useGameEngine();
   const [loading, setLoading] = useState(true);
   const [sel, setSel] = useState<string | null>(null);
   const [steps, setSteps] = useState(1);
@@ -66,8 +66,9 @@ export function useDailyGame({ date, openCalendar = false }: { date: string; ope
     if (!started || result || failed || !hintAvailable(type, "medium", hidden, [])) return t("noHint");
     if (getCoins() < HINT_COSTS[type]) return t("hintCost", { cost: HINT_COSTS[type], have: getCoins() });
     if (type === "next") {
+      const before = cars;
       const nextMove = typeof Worker === "undefined" ? getNextBestMove(cars) : await findNextMove(cars).catch(() => null);
-      if (!nextMove) return t("noHint");
+      if (!nextMove || before !== currentCars.current) return t("noHint");
       if (!hints.charge(type)) return t("noHint");
       setSel(nextMove.id); setMove(nextMove.move); setSteps(nextMove.steps);
       flash(t("hintMsg", { id: nextMove.id, arrow: ARROW[nextMove.move], steps: nextMove.steps }));

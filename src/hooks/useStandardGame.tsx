@@ -25,7 +25,7 @@ export function useStandardGame(level: Level) {
   const [idx, setIdx] = useState(0);
   const [maxSolved, setMaxSolved] = useState(-1);
   const puzzle = puzzles[idx] ?? puzzles[0] ?? { par: 0, cars: [] as Car[] };
-  const { cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove } = useGameEngine(puzzle?.cars ?? []);
+  const { cars, currentCars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove } = useGameEngine(puzzle?.cars ?? []);
   const [initialCars, setInitialCars] = useState<Car[]>(puzzle?.cars ?? []);
   const [sel, setSel] = useState<string | null>(null);
   const [move, setMove] = useState<Move | null>(null);
@@ -155,7 +155,7 @@ export function useStandardGame(level: Level) {
     if (type === "next") {
       const before = cars;
       const nextMove = typeof Worker === "undefined" ? getNextBestMove(cars) : await findNextMove(cars).catch(() => null);
-      if (before !== cars || !startedRef.current) return t("noHint");
+      if (before !== currentCars.current || !startedRef.current) return t("noHint");
       if (!nextMove) return t("noHint");
       if (!hints.charge(type)) return t("noHint");
       setSel(nextMove.id); setMove(nextMove.move); setSteps(nextMove.steps);
@@ -372,9 +372,15 @@ export function useStandardGame(level: Level) {
     if (isSolved(r.cars)) markWon(moves + 1); else setMsg(t("msgMoved"));
   };
 
+  const tiers = TIERS.map((tier, tierIdx) => ({
+    tier, tierIdx, unlocked: isTierUnlocked(tierIdx, puzzles, progress),
+    solvedCount: getSolvesCountInTier(tier, puzzles, progress),
+    tierItems: getPuzzlesForTier(tier, puzzles),
+    remaining: Math.max(0, tier.requiredSolvesToNext - (TIERS[tierIdx - 1] ? getSolvesCountInTier(TIERS[tierIdx - 1] ?? tier, puzzles, progress) : 0)),
+  }));
   const drawRandom = () => {
     void generatePuzzle().then((next) => { setCars(next.cars); setInitialCars(next.cars); setMsg(t("randomDrawn")); }).catch(() => flash(t("noHint")));
   };
 
-  return { drawRandom, t, te, lang, murderer, idxKey, maxKey, puzzles, setPuzzles, idx, setIdx, maxSolved, setMaxSolved, puzzle, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, initialCars, setInitialCars, sel, setSel, move, setMove, steps, setSteps, msg, setMsg, warn, setWarn, started, setStarted, hidden, setHidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, setFailed, simulating, setSimulating, invisibleBumps, setInvisibleBumps, wonStars, setWonStars, coins, setCoinsState, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, setCollapsedTiers, won, elapsed, clock, progress, toggleTier, formatTime, loadPuzzle, markWon, jumpTo, start, flash, useHint, checkInvisibleBump, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, freeRange, handlePointerDown, handlePointerMove, handlePointerUp };
+  return { tiers, drawRandom, t, te, lang, murderer, idxKey, maxKey, puzzles, setPuzzles, idx, setIdx, maxSolved, setMaxSolved, puzzle, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, initialCars, setInitialCars, sel, setSel, move, setMove, steps, setSteps, msg, setMsg, warn, setWarn, started, setStarted, hidden, setHidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, setFailed, simulating, setSimulating, invisibleBumps, setInvisibleBumps, wonStars, setWonStars, coins, setCoinsState, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, setCollapsedTiers, won, elapsed, clock, progress, toggleTier, formatTime, loadPuzzle, markWon, jumpTo, start, flash, useHint, checkInvisibleBump, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, freeRange, handlePointerDown, handlePointerMove, handlePointerUp };
 }

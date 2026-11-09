@@ -1,17 +1,13 @@
 import { useCompetitions } from "@/hooks/useCompetitions";
-import { useEffect, useState } from "react";
-import { useI18n } from "@/lib/i18n";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Coins, Copy, DoorOpen, Home, LoaderCircle, Shuffle, Trophy, Users, Wifi } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { SettingsButton } from "@/components/settings-dialog";
 import { TournamentBoard } from "@/components/tournament-board";
-import { useTournament } from "@/hooks/use-tournament";
-import { getProfile, flag, type Profile } from "@/lib/profile";
-import { getCoins, type Move } from "@/lib/puzzles";
+import { flag } from "@/lib/profile";
 import { fmtTime } from "@/lib/daily-scores";
-import { ENTRY_FEE, formatRoomCode, normalizeRoomCode } from "@/lib/tournament";
+import { formatRoomCode, normalizeRoomCode } from "@/lib/tournament";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/competitions")({
@@ -36,7 +32,7 @@ export const Route = createFileRoute("/competitions")({
 });
 
 function Competitions() {
-  const { t, snapshot, ready, busy, connected, clockOffset, action, profile, joinOpen, setJoinOpen, forfeitOpen, setForfeitOpen, code, setCode, now, coins, match, mine, opponent, opponentName, opponentCountry, start, serverNow, countdown, elapsed, waitRemaining, winner, resultElapsed, begin, commit, dismiss } = useCompetitions();
+  const { t, ready, busy, connected, action, profile, joinOpen, setJoinOpen, forfeitOpen, setForfeitOpen, code, setCode, coins, match, mine, opponent, opponentName, opponentCountry, start, serverNow, countdown, elapsed, waitRemaining, winner, resultElapsed, begin, commit, dismiss } = useCompetitions();
   return <main className="tournament lot-bg flex h-dvh flex-col gap-3 overflow-hidden px-3 py-3" dir="ltr">
     <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2">
       {match?.status === "playing" ? <Button variant="ghost" size="icon" className="chip" aria-label={t("raceForfeit")} title={t("raceForfeit")} onClick={() => setForfeitOpen(true)}><Home className="h-4 w-4" /></Button> : match?.status === "waiting" ? <Button variant="ghost" size="icon" className="chip" aria-label={t("raceCancel")} onClick={() => { void action("cancel"); }}><Home className="h-4 w-4" /></Button> : <Button asChild variant="ghost" size="icon" className="chip"><Link to="/" aria-label={t("backMenu")}><Home className="h-4 w-4" /></Link></Button>}
