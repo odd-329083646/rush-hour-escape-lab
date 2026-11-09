@@ -53,9 +53,9 @@ const ENTRIES: Entry[] = [
   },
   {
     to: "/competitions",
-    title: "competitions",
-    desc: "compDesc",
-    tag: "comingSoon",
+    title: "raceTitle",
+    desc: "raceDescription",
+    tag: "raceEntry",
     Icon: Trophy,
   },
 ];

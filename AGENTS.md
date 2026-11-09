@@ -16,3 +16,5 @@
 - Render timed peeks from the initial puzzle snapshot, never the mutable gameplay board; block move commits during peek so starting-position previews cannot alter progress.
 - Tutorial lessons reuse game-grid, board, controls and palette styles; pointer, keyboard and button actions share applyMove validation, while plan actions queue without committing until submission.
 - Tutorial uses hydration-safe language/intro/play/completion phases; successful moves transition immediately, keeping dialogs separate from live lesson state.
+- Guest tournaments use server-issued device capabilities hashed in private tables; server functions verify them before admin access, and an atomic SQL action arbitrates pairing, fees, refunds, and winners without account registration.
+- Tournament Realtime channels carry data-free refresh notifications on random match topics; capability-verified state reads and polling recovery remain authoritative, and device coin deltas preserve existing offline earnings.

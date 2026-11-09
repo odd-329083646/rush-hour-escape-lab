@@ -65,7 +65,7 @@ export const tournamentAction = createServerFn({ method: "POST" })
     });
     if (result.error) throw new Error("Tournament unavailable");
     const snapshot = result.data as unknown as RaceSnapshot;
-    if (snapshot.match) {
+    if (snapshot.match && data.action !== "status") {
       // Public capability topics carry only a refresh signal, never names, boards, balances or credentials.
       const channel = supabaseAdmin.channel(`race-${snapshot.match.id}`);
       try { await channel.send({ type: "broadcast", event: "refresh", payload: {} }); }
