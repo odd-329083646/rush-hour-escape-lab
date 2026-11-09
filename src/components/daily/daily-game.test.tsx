@@ -25,6 +25,26 @@ async function startGame() {
 }
 
 describe("Daily gameplay controls", () => {
+  it("peeks at original positions for three seconds then restores moved cars and visibility", async () => {
+    localStorage.setItem("rush_hour_coins", "100");
+    vi.mocked(pickHidden).mockReturnValue(new Set(["Q"]));
+    await startGame();
+    fireEvent.keyDown(window, { key: "a", code: "KeyA" });
+    fireEvent.keyDown(window, { key: "ArrowRight" });
+    fireEvent.keyDown(window, { key: "Enter" });
+    const car = screen.getByRole("button", { name: "Green Car" });
+    expect(car.style.gridColumn).toBe("2 / span 2");
+    fireEvent.click(screen.getByRole("button", { name: "Hints" }));
+    fireEvent.click(screen.getByRole("button", { name: /Peek at Board/ }));
+    expect(getCoins()).toBe(75);
+    expect(car.style.gridColumn).toBe("1 / span 2");
+    expect(screen.getByRole("button", { name: "Blue Truck" })).toHaveAttribute("data-hidden", "false");
+    fireEvent.keyDown(window, { key: "Enter" });
+    fireEvent.click(screen.getByRole("button", { name: "Execute" }));
+    await waitFor(() => expect(car.style.gridColumn).toBe("2 / span 2"), { timeout: 4000 });
+    expect(screen.getByRole("button", { name: "Invisible car" })).toHaveAttribute("data-hidden", "true");
+    expect(getCoins()).toBe(75);
+  });
   it("reveals one chosen car permanently for 40 coins without moving it", async () => {
     localStorage.setItem("rush_hour_coins", "100");
     vi.mocked(pickHidden).mockReturnValue(new Set(["A", "Q"]));
