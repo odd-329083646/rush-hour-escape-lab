@@ -269,7 +269,7 @@ export function setLang(l: Lang) {
 }
 export function applyDocumentLang(l: Lang = getLang()) {
   document.documentElement.lang = l;
-  document.documentElement.dir = l === "he" ? "rtl" : "ltr";
+  document.documentElement.dir = "ltr";
 }
 function subscribe(f: () => void) { listeners.add(f); return () => listeners.delete(f); }
 
@@ -277,7 +277,7 @@ export function useI18n() {
   const lang = useSyncExternalStore(subscribe, getLang, () => "en" as Lang);
   return {
     lang,
-    dir: lang === "he" ? ("rtl" as const) : ("ltr" as const),
+    dir: "ltr" as const,
     t: (key: TKey, vars?: Record<string, string | number>) => translate(lang, key, vars),
     te: (msg: string) => translateError(lang, msg),
   };
