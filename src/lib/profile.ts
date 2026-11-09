@@ -37,7 +37,7 @@ export function flag(code: string): string {
 
 export function randomUsername(rand: () => number = Math.random): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  return "Player_" + Array.from({ length: 4 }, () => chars[Math.floor(rand() * chars.length)]).join("");
+  return "Guest_" + Array.from({ length: 4 }, () => chars[Math.floor(rand() * chars.length)]).join("");
 }
 
 /** Loads the profile, creating and saving a random username on first load. */

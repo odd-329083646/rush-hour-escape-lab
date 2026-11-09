@@ -1,21 +1,31 @@
+import { useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n";
-import { createFileRoute } from "@tanstack/react-router";
-import { Trophy } from "lucide-react";
-import { ComingSoon } from "@/components/coming-soon";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Coins, Copy, DoorOpen, Home, LoaderCircle, Shuffle, Trophy, Users, Wifi } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { SettingsButton } from "@/components/settings-dialog";
+import { TournamentBoard } from "@/components/tournament-board";
+import { useTournament } from "@/hooks/use-tournament";
+import { getProfile, flag, type Profile } from "@/lib/profile";
+import { getCoins, type Move } from "@/lib/puzzles";
+import { fmtTime } from "@/lib/daily-scores";
+import { ENTRY_FEE, formatRoomCode, normalizeRoomCode } from "@/lib/tournament";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/competitions")({
   head: () => ({
     meta: [
-      { title: "Competitions - Rush Hour Vanishing Cars (Coming Soon)" },
+      { title: "Live 1v1 Tournament - Rush Hour Vanishing Cars" },
       {
         name: "description",
         content:
-          "Timed head-to-head parking solves with a standings board. Not open yet.",
+          "Race a guest opponent through three shared Rush Hour puzzles. Find a random rival or join a friend's private room.",
       },
       { property: "og:title", content: "Competitions - Rush Hour Vanishing Cars" },
       {
         property: "og:description",
-        content: "Timed head-to-head parking solves with a standings board. Coming soon.",
+        content: "Live guest competitions, private room codes, and three-puzzle head-to-head races.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -26,12 +36,75 @@ export const Route = createFileRoute("/competitions")({
 
 function Competitions() {
   const { t } = useI18n();
-  return (
-    <ComingSoon
-      Icon={Trophy}
-      title={t("competitions")}
-      blurb={t("compBlurb")}
-      bullets={[t("compB1"), t("compB2"), t("compB3")]}
-    />
-  );
+  const { snapshot, ready, busy, connected, clockOffset, action } = useTournament();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [joinOpen, setJoinOpen] = useState(false);
+  const [forfeitOpen, setForfeitOpen] = useState(false);
+  const [code, setCode] = useState("");
+  const [now, setNow] = useState(0);
+  const [coins, setCoins] = useState(0);
+  useEffect(() => {
+    setProfile(getProfile()); setCoins(getCoins()); setNow(Date.now());
+    const timer = window.setInterval(() => { setNow(Date.now()); setCoins(getCoins()); }, 200);
+    return () => window.clearInterval(timer);
+  }, []);
+  const match = snapshot?.match;
+  const mine = match ? match.a === snapshot?.guest.id ? match.a_state : match.b_state : null;
+  const opponent = match ? match.a === snapshot?.guest.id ? match.b_state : match.a_state : null;
+  const opponentName = match ? match.a === snapshot?.guest.id ? match.b_name : match.a_name : null;
+  const opponentCountry = match ? match.a === snapshot?.guest.id ? match.b_country : match.a_country : null;
+  const start = Date.parse(match?.started_at ?? "");
+  const serverNow = now + clockOffset;
+  const countdown = match?.status === "playing" ? Math.ceil((start - serverNow) / 1000) : 0;
+  const elapsed = Math.max(0, Math.floor((serverNow - start) / 1000)) || 0;
+  const waitRemaining = match ? Math.max(0, Math.ceil(((match.private ? 30000 : 15000) - serverNow + Date.parse(match.created_at)) / 1000)) : 0;
+  const winner = match?.winner === snapshot?.guest.id;
+  const resultElapsed = match?.started_at ? Math.max(0, Math.floor((Date.parse(match.updated_at) - Date.parse(match.started_at)) / 1000)) : 0;
+  const begin = (kind: "random" | "create" | "join", room?: string) => {
+    if (coins < ENTRY_FEE) { toast.error(t("raceNeedCoins")); return; }
+    void action(kind, room ? { code: room } : undefined);
+  };
+  const commit = (id: string, direction: Move, steps: number) => { void action("move", { move: { id, direction, steps } }); };
+  const dismiss = async () => { await action("leave"); };
+  return <main className="tournament lot-bg flex h-dvh flex-col gap-3 overflow-hidden px-3 py-3" dir="ltr">
+    <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2">
+      {match?.status === "playing" ? <Button variant="ghost" size="icon" className="chip" aria-label={t("raceForfeit")} title={t("raceForfeit")} onClick={() => setForfeitOpen(true)}><Home className="h-4 w-4" /></Button> : match?.status === "waiting" ? <Button variant="ghost" size="icon" className="chip" aria-label={t("raceCancel")} onClick={() => { void action("cancel"); }}><Home className="h-4 w-4" /></Button> : <Button asChild variant="ghost" size="icon" className="chip"><Link to="/" aria-label={t("backMenu")}><Home className="h-4 w-4" /></Link></Button>}
+      <h1 className="font-display text-base font-bold sm:text-xl">{t("raceTitle")}</h1>
+      <div className="flex items-center gap-2"><span className="flex items-center gap-1 text-sm text-primary"><Coins className="h-4 w-4" />{coins}</span><SettingsButton /></div>
+    </header>
+    {match?.status === "playing" && mine ? <>
+      <div className="mx-auto grid w-full max-w-6xl grid-cols-2 gap-3 border-y border-border py-2 text-sm">
+        <div className="min-w-0"><p className="truncate font-semibold">{profile?.country ? flag(profile.country) : ""} {profile?.username}</p><p className="text-xs text-muted-foreground">{t("raceProgress", { n: Math.min(mine.index + 1, 3), moves: mine.moves })} · {fmtTime(elapsed)}</p></div>
+        <div className="min-w-0 text-right"><p className="truncate font-semibold">{opponentCountry ? flag(opponentCountry) : ""} {opponentName} {match.bot && <span className="text-xs text-muted-foreground">· {t("raceBot")}</span>}</p><p className="text-xs text-muted-foreground">{opponent?.index === 3 ? t("raceFinished") : t("raceProgress", { n: Math.min((opponent?.index ?? 0) + 1, 3), moves: opponent?.moves ?? 0 })}</p></div>
+      </div>
+      <TournamentBoard key={mine.index} state={mine} blocked={busy || countdown > 0 || forfeitOpen || mine.index >= 3} onMove={commit} />
+      <p className="mx-auto flex items-center gap-1 text-[10px] text-muted-foreground"><Wifi className="h-3 w-3" />{connected ? t("raceLive") : t("raceReconnecting")}</p>
+      {countdown >= 0 && serverNow < start + 700 && <div className="fixed inset-0 z-40 grid place-items-center bg-background/80 backdrop-blur-sm"><span className="font-display text-6xl font-bold text-primary">{countdown > 0 ? countdown : t("raceGo")}</span></div>}
+    </> : !match ? <section className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center gap-6">
+      <Trophy className="h-14 w-14 text-primary" />
+      <p className="text-center font-display text-xl">{t("raceDescription")}</p>
+      <div className="flex gap-5 text-sm"><span className="flex items-center gap-2 text-muted-foreground"><Coins className="h-4 w-4" />{t("raceEntry")}</span><span className="flex items-center gap-2 text-primary"><Trophy className="h-4 w-4" />{t("racePrize")}</span></div>
+      <div className="grid w-full gap-3"><Button className="execute h-auto py-4" disabled={!ready || busy} onClick={() => begin("random")}><Shuffle className="h-5 w-5" />{t("raceRandom")}</Button><div className="grid grid-cols-2 gap-3"><Button variant="outline" className="h-auto whitespace-normal py-4" disabled={!ready || busy} onClick={() => begin("create")}><Users className="h-4 w-4 shrink-0" />{t("raceCreate")}</Button><Button variant="outline" className="h-auto whitespace-normal py-4" disabled={!ready || busy} onClick={() => setJoinOpen(true)}><DoorOpen className="h-4 w-4 shrink-0" />{t("raceJoin")}</Button></div></div>
+      {!ready && <p className="flex items-center gap-2 text-sm text-muted-foreground"><LoaderCircle className="h-4 w-4 animate-spin" />{t("raceConnecting")}</p>}
+    </section> : null}
+    <Dialog open={match?.status === "waiting" || match?.status === "finished" || match?.status === "cancelled"}>
+      <DialogContent className="w-[calc(100%-2rem)] rounded-lg bg-card text-center [&>button:last-child]:hidden" onEscapeKeyDown={(event) => event.preventDefault()} onPointerDownOutside={(event) => event.preventDefault()}>
+        {match?.status === "waiting" ? <>
+          <LoaderCircle className="mx-auto h-10 w-10 animate-spin text-primary" />
+          <DialogTitle className="font-display text-xl">{t(match.private ? "raceWaiting" : "raceSearching")}</DialogTitle>
+          <DialogDescription>{t("raceWaitRemaining", { n: waitRemaining })}</DialogDescription>
+          {match.room_code && <div className="flex items-center justify-center gap-2"><strong className="font-display text-4xl text-primary">{formatRoomCode(match.room_code)}</strong><Button variant="ghost" size="icon" aria-label={t("raceCopy")} title={t("raceCopy")} onClick={async () => { try { await navigator.clipboard.writeText(formatRoomCode(match.room_code ?? "")); toast.success(t("raceCopied")); } catch { toast.error(t("raceConnectionError")); } }}><Copy className="h-4 w-4" /></Button></div>}
+          <Button variant="outline" disabled={busy} onClick={() => { void action("cancel"); }}>{t("raceCancel")}</Button>
+        </> : match?.status === "finished" ? <>
+          <Trophy className="mx-auto h-12 w-12 text-primary" /><DialogTitle className="font-display text-2xl">{t(winner ? "raceWon" : "raceLost")}</DialogTitle><DialogDescription>{t(winner ? "raceReward" : "raceNoReward")}</DialogDescription>
+          <div className="grid grid-cols-2 divide-x divide-border border-y border-border py-4 text-sm">
+            <div className="flex min-w-0 flex-col gap-2 px-2"><strong className="truncate">{t("raceYou")}</strong><span>{t("statTime", { t: fmtTime(mine?.index === 3 ? mine.elapsed : resultElapsed) })}</span><span>{t("statMoves", { n: mine?.totalMoves ?? 0 })}</span><span className="text-xs text-muted-foreground">{mine?.index === 3 ? t("raceFinished") : t("raceIncomplete")}</span></div>
+            <div className="flex min-w-0 flex-col gap-2 px-2"><strong className="truncate">{opponentName}</strong><span>{t("statTime", { t: fmtTime(opponent?.index === 3 ? opponent.elapsed : resultElapsed) })}</span><span>{t("statMoves", { n: opponent?.totalMoves ?? 0 })}</span><span className="text-xs text-muted-foreground">{opponent?.index === 3 ? t("raceFinished") : t("raceIncomplete")}</span></div>
+          </div><div className="flex justify-center gap-3"><Button className="execute" disabled={busy} onClick={() => { void dismiss(); }}>{t("playAgain")}</Button><Button asChild variant="outline"><Link to="/">{t("backHome")}</Link></Button></div>
+        </> : <><DialogTitle>{t("raceRoomExpired")}</DialogTitle><DialogDescription>{t("raceUnavailable")}</DialogDescription><Button className="execute" disabled={busy} onClick={() => { void dismiss(); }}>{t("tryAgain")}</Button></>}
+      </DialogContent>
+    </Dialog>
+    <Dialog open={joinOpen} onOpenChange={setJoinOpen}><DialogContent className="w-[calc(100%-2rem)] rounded-lg bg-card [&>button:last-child]:hidden"><DialogTitle>{t("raceJoin")}</DialogTitle><DialogDescription>{t("raceEntry")}</DialogDescription><form className="flex flex-col gap-4" onSubmit={(event) => { event.preventDefault(); const room = normalizeRoomCode(code); if (!room) { toast.error(t("raceInvalidCode")); return; } setJoinOpen(false); begin("join", room); }}><label className="flex flex-col gap-2 text-sm">{t("raceRoomCode")}<input aria-label={t("raceRoomCode")} autoFocus inputMode="numeric" maxLength={7} placeholder="000-000" value={code} onChange={(event) => setCode(event.target.value)} className="rounded-md border border-input bg-background px-3 py-3 text-center font-display text-2xl text-foreground" /></label><Button className="execute" type="submit" disabled={busy}>{t("raceJoin")}</Button><Button variant="outline" type="button" onClick={() => setJoinOpen(false)}>{t("close")}</Button></form></DialogContent></Dialog>
+    <Dialog open={forfeitOpen} onOpenChange={setForfeitOpen}><DialogContent className="w-[calc(100%-2rem)] rounded-lg bg-card [&>button:last-child]:hidden"><DialogTitle>{t("raceForfeit")}</DialogTitle><DialogDescription>{t("raceForfeitBody")}</DialogDescription><div className="flex gap-3"><Button variant="destructive" disabled={busy} onClick={async () => { await action("forfeit"); setForfeitOpen(false); }}>{t("raceForfeit")}</Button><Button variant="outline" onClick={() => setForfeitOpen(false)}>{t("close")}</Button></div></DialogContent></Dialog>
+  </main>;
 }

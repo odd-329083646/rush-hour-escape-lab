@@ -38,12 +38,147 @@ export type Database = {
         }
         Relationships: []
       }
+      tournament_guests: {
+        Row: {
+          active_match: string | null
+          coins: number
+          country: string
+          created_at: string
+          id: string
+          losses: number
+          token_hash: string
+          username: string
+          wins: number
+        }
+        Insert: {
+          active_match?: string | null
+          coins?: number
+          country?: string
+          created_at?: string
+          id?: string
+          losses?: number
+          token_hash: string
+          username: string
+          wins?: number
+        }
+        Update: {
+          active_match?: string | null
+          coins?: number
+          country?: string
+          created_at?: string
+          id?: string
+          losses?: number
+          token_hash?: string
+          username?: string
+          wins?: number
+        }
+        Relationships: []
+      }
+      tournament_matches: {
+        Row: {
+          a: string
+          a_country: string
+          a_name: string
+          a_state: Json
+          b: string | null
+          b_country: string | null
+          b_name: string | null
+          b_state: Json | null
+          bot: boolean
+          bot_seconds: number
+          bot_won: boolean
+          created_at: string
+          id: string
+          private: boolean
+          puzzles: Json
+          room_code: string | null
+          settled: boolean
+          started_at: string | null
+          status: string
+          updated_at: string
+          winner: string | null
+        }
+        Insert: {
+          a: string
+          a_country?: string
+          a_name: string
+          a_state: Json
+          b?: string | null
+          b_country?: string | null
+          b_name?: string | null
+          b_state?: Json | null
+          bot?: boolean
+          bot_seconds?: number
+          bot_won?: boolean
+          created_at?: string
+          id?: string
+          private?: boolean
+          puzzles: Json
+          room_code?: string | null
+          settled?: boolean
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          winner?: string | null
+        }
+        Update: {
+          a?: string
+          a_country?: string
+          a_name?: string
+          a_state?: Json
+          b?: string | null
+          b_country?: string | null
+          b_name?: string | null
+          b_state?: Json | null
+          bot?: boolean
+          bot_seconds?: number
+          bot_won?: boolean
+          created_at?: string
+          id?: string
+          private?: boolean
+          puzzles?: Json
+          room_code?: string | null
+          settled?: boolean
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          winner?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_matches_a_fkey"
+            columns: ["a"]
+            isOneToOne: false
+            referencedRelation: "tournament_guests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tournament_matches_b_fkey"
+            columns: ["b"]
+            isOneToOne: false
+            referencedRelation: "tournament_guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      tournament_action: {
+        Args: {
+          p_action: string
+          p_code?: string
+          p_delta?: number
+          p_expected?: number
+          p_guest: string
+          p_hash: string
+          p_puzzles?: Json
+          p_state?: Json
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

@@ -6,6 +6,7 @@ import { setLang, useI18n, type Lang } from "@/lib/i18n";
 import { COUNTRIES, flag, getProfile, levelBests, saveProfile } from "@/lib/profile";
 import { LEVELS, type Level } from "@/lib/puzzles";
 import { fmtTime } from "@/lib/daily-scores";
+import { tournamentStats } from "@/lib/tournament-device";
 
 export function SettingsButton({ className = "" }: { className?: string }) {
   const { t } = useI18n();
@@ -71,6 +72,7 @@ function SettingsDialog({ onClose }: { onClose: () => void }) {
 
         <section>
           <h3 className="panel-title">{t("stats")}</h3>
+          <div className="mb-3 flex justify-between gap-3 text-sm"><span>{t("raceWins")}: {tournamentStats().wins}</span><span>{t("raceLosses")}: {tournamentStats().losses}</span></div>
           <div className="overflow-hidden rounded-lg border">
             <div className="grid grid-cols-3 bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
               <span /> <span className="text-center">{t("bestTime")}</span><span className="text-center">{t("minMoves")}</span>

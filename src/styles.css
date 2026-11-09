@@ -310,3 +310,7 @@
 [dir="rtl"] .panel-title { letter-spacing: 0; }
 .tutorial .panel-title { letter-spacing: 0; }
 .tutorial .lesson-plan { max-height: 4rem; overflow: auto; }
+.tournament .game-grid { --board: min(94vw, calc(100dvh - 25rem)); }
+@media (orientation: landscape) {
+  .tournament .game-grid { --board: min(calc(100dvh - 10rem), calc(100vw - 31rem)); }
+}
