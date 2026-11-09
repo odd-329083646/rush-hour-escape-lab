@@ -16,3 +16,9 @@
 - [x] /tutorial with 4 lessons, linked from Home and Settings, 50-coin first-completion reward.
 - [x] Add initial language choice, standard gameplay layout and pointer/keyboard controls; verify all lessons and reward.
 - [x] Limit language setup to first visits, show lesson intro modals, and auto-advance on escape; verify navigation and reward.
+
+# Live 1v1 tournaments
+- [ ] Confirm account/profile setup and treatment of existing device-only coins.
+- [ ] Add 50-coin entry, random matchmaking with a 15-second bot fallback, and friend invites with 30-second refunds.
+- [ ] Add synchronized countdown, three shared puzzles, live opponent progress, and first-finisher results.
+- [ ] Award 90 coins to the winner once, record win/loss stats, and verify two-player and bot flows.
