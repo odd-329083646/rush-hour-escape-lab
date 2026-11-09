@@ -66,7 +66,7 @@ function Competitions() {
   };
   const commit = (id: string, direction: Move, steps: number) => { void action("move", { move: { id, direction, steps } }); };
   const dismiss = async () => { await action("leave"); };
-  return <main className="lot-bg flex h-dvh flex-col gap-3 overflow-hidden px-3 py-3" dir="ltr">
+  return <main className="tournament lot-bg flex h-dvh flex-col gap-3 overflow-hidden px-3 py-3" dir="ltr">
     <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2">
       {match?.status === "playing" ? <Button variant="ghost" size="icon" className="chip" aria-label={t("raceForfeit")} title={t("raceForfeit")} onClick={() => setForfeitOpen(true)}><Home className="h-4 w-4" /></Button> : match?.status === "waiting" ? <Button variant="ghost" size="icon" className="chip" aria-label={t("raceCancel")} onClick={() => { void action("cancel"); }}><Home className="h-4 w-4" /></Button> : <Button asChild variant="ghost" size="icon" className="chip"><Link to="/" aria-label={t("backMenu")}><Home className="h-4 w-4" /></Link></Button>}
       <h1 className="font-display text-base font-bold sm:text-xl">{t("raceTitle")}</h1>
