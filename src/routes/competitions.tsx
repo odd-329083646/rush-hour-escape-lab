@@ -1,16 +1,13 @@
-import { useEffect, useState } from "react";
-import { useI18n } from "@/lib/i18n";
+import { useCompetitions } from "@/hooks/useCompetitions";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Coins, Copy, DoorOpen, Home, LoaderCircle, Shuffle, Trophy, Users, Wifi } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { SettingsButton } from "@/components/settings-dialog";
 import { TournamentBoard } from "@/components/tournament-board";
-import { useTournament } from "@/hooks/use-tournament";
-import { getProfile, flag, type Profile } from "@/lib/profile";
-import { getCoins, type Move } from "@/lib/puzzles";
+import { flag } from "@/lib/profile";
 import { fmtTime } from "@/lib/daily-scores";
-import { ENTRY_FEE, formatRoomCode, normalizeRoomCode } from "@/lib/tournament";
+import { formatRoomCode, normalizeRoomCode } from "@/lib/tournament";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/competitions")({
@@ -35,37 +32,7 @@ export const Route = createFileRoute("/competitions")({
 });
 
 function Competitions() {
-  const { t } = useI18n();
-  const { snapshot, ready, busy, connected, clockOffset, action } = useTournament();
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [joinOpen, setJoinOpen] = useState(false);
-  const [forfeitOpen, setForfeitOpen] = useState(false);
-  const [code, setCode] = useState("");
-  const [now, setNow] = useState(0);
-  const [coins, setCoins] = useState(0);
-  useEffect(() => {
-    setProfile(getProfile()); setCoins(getCoins()); setNow(Date.now());
-    const timer = window.setInterval(() => { setNow(Date.now()); setCoins(getCoins()); }, 200);
-    return () => window.clearInterval(timer);
-  }, []);
-  const match = snapshot?.match;
-  const mine = match ? match.a === snapshot?.guest.id ? match.a_state : match.b_state : null;
-  const opponent = match ? match.a === snapshot?.guest.id ? match.b_state : match.a_state : null;
-  const opponentName = match ? match.a === snapshot?.guest.id ? match.b_name : match.a_name : null;
-  const opponentCountry = match ? match.a === snapshot?.guest.id ? match.b_country : match.a_country : null;
-  const start = Date.parse(match?.started_at ?? "");
-  const serverNow = now + clockOffset;
-  const countdown = match?.status === "playing" ? Math.ceil((start - serverNow) / 1000) : 0;
-  const elapsed = Math.max(0, Math.floor((serverNow - start) / 1000)) || 0;
-  const waitRemaining = match ? Math.max(0, Math.ceil(((match.private ? 30000 : 15000) - serverNow + Date.parse(match.created_at)) / 1000)) : 0;
-  const winner = match?.winner === snapshot?.guest.id;
-  const resultElapsed = match?.started_at ? Math.max(0, Math.floor((Date.parse(match.updated_at) - Date.parse(match.started_at)) / 1000)) : 0;
-  const begin = (kind: "random" | "create" | "join", room?: string) => {
-    if (coins < ENTRY_FEE) { toast.error(t("raceNeedCoins")); return; }
-    void action(kind, room ? { code: room } : undefined);
-  };
-  const commit = (id: string, direction: Move, steps: number) => { void action("move", { move: { id, direction, steps } }); };
-  const dismiss = async () => { await action("leave"); };
+  const { t, ready, busy, connected, action, profile, joinOpen, setJoinOpen, forfeitOpen, setForfeitOpen, code, setCode, coins, match, mine, opponent, opponentName, opponentCountry, start, serverNow, countdown, elapsed, waitRemaining, winner, resultElapsed, begin, commit, dismiss } = useCompetitions();
   return <main className="tournament lot-bg flex h-dvh flex-col gap-3 overflow-hidden px-3 py-3" dir="ltr">
     <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2">
       {match?.status === "playing" ? <Button variant="ghost" size="icon" className="chip" aria-label={t("raceForfeit")} title={t("raceForfeit")} onClick={() => setForfeitOpen(true)}><Home className="h-4 w-4" /></Button> : match?.status === "waiting" ? <Button variant="ghost" size="icon" className="chip" aria-label={t("raceCancel")} onClick={() => { void action("cancel"); }}><Home className="h-4 w-4" /></Button> : <Button asChild variant="ghost" size="icon" className="chip"><Link to="/" aria-label={t("backMenu")}><Home className="h-4 w-4" /></Link></Button>}
@@ -77,7 +44,7 @@ function Competitions() {
         <div className="min-w-0"><p className="truncate font-semibold">{profile?.country ? flag(profile.country) : ""} {profile?.username}</p><p className="text-xs text-muted-foreground">{t("raceProgress", { n: Math.min(mine.index + 1, 3), moves: mine.moves })} · {fmtTime(elapsed)}</p></div>
         <div className="min-w-0 text-right"><p className="truncate font-semibold">{opponentCountry ? flag(opponentCountry) : ""} {opponentName} {match.bot && <span className="text-xs text-muted-foreground">· {t("raceBot")}</span>}</p><p className="text-xs text-muted-foreground">{opponent?.index === 3 ? t("raceFinished") : t("raceProgress", { n: Math.min((opponent?.index ?? 0) + 1, 3), moves: opponent?.moves ?? 0 })}</p></div>
       </div>
-      <TournamentBoard key={mine.index} state={mine} blocked={busy || countdown > 0 || forfeitOpen || mine.index >= 3} onMove={commit} />
+      <TournamentBoard key={mine.index} state={mine} blocked={countdown > 0 || forfeitOpen || mine.index >= 3} onMove={commit} />
       <p className="mx-auto flex items-center gap-1 text-[10px] text-muted-foreground"><Wifi className="h-3 w-3" />{connected ? t("raceLive") : t("raceReconnecting")}</p>
       {countdown >= 0 && serverNow < start + 700 && <div className="fixed inset-0 z-40 grid place-items-center bg-background/80 backdrop-blur-sm"><span className="font-display text-6xl font-bold text-primary">{countdown > 0 ? countdown : t("raceGo")}</span></div>}
     </> : !match ? <section className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center gap-6">

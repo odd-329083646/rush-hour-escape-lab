@@ -1,3 +1,4 @@
+import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { ArrowRight, Coins, Eye, ScanEye, ListChecks, X } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -15,7 +16,7 @@ const OPTIONS: { type: HintType; title: TKey; Icon: typeof Eye }[] = [
 
 export function HintSelection({ open, onOpenChange, level, cars, hidden, plan = [], coins, onUse }: {
   open: boolean; onOpenChange: (open: boolean) => void; level: Level; cars: Car[]; hidden: Set<string>;
-  plan?: PlannedMove[]; coins: number; onUse: (type: HintType, id?: string) => string | void;
+  plan?: PlannedMove[]; coins: number; onUse: (type: HintType, id?: string) => string | void | Promise<string | void>;
 }) {
   const { t } = useI18n();
   const [selecting, setSelecting] = useState(false);
@@ -23,6 +24,7 @@ export function HintSelection({ open, onOpenChange, level, cars, hidden, plan = 
   useEffect(() => { if (!open) { setSelecting(false); setMessage(null); } }, [open]);
   const use = (type: HintType, id?: string) => {
     const response = onUse(type, id);
+    if (response instanceof Promise) { onOpenChange(false); void response.then((message) => { if (message) toast(message); }).catch(() => toast(t("noHint"))); return; }
     if (response) setMessage(response);
     else onOpenChange(false);
   };
