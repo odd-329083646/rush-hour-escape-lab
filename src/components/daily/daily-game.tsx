@@ -1,6 +1,4 @@
 import { useDailyGame } from "@/hooks/useDailyGame";
-import { storageService } from "@/services/storageService";
-import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CalendarDays, Coins, Home, Lightbulb, Play, RotateCcw, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,7 +20,15 @@ const DIRS: { m: Move; Icon: typeof ArrowUp; cls: string }[] = [
 const ARROW: Record<Move, string> = { up: "↑", down: "↓", left: "←", right: "→" };
 
 export function DailyGame({ date, openCalendar = false }: { date: string; openCalendar?: boolean }) {
-  const { t, te, lang, start, setStart, par, setPar, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, loading, setLoading, sel, setSel, steps, setSteps, move, setMove, hidden, setHidden, bumps, setBumps, warn, setWarn, coins, setCoins, result, setResult, hints, boardCars, calOpen, setCalOpen, dragStart, drag, setDrag, submitting, failed, reset, elapsed, started, flash, useHint, blockerOf, go, execute, handlePointerDown, handlePointerMove, handlePointerUp, carBtn, label } = useDailyGame({ date, openCalendar });
+  const { t, te, lang, start, setStart, par, setPar, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, loading, setLoading, sel, setSel, steps, setSteps, move, setMove, hidden, setHidden, bumps, setBumps, warn, setWarn, coins, setCoins, result, setResult, hints, boardCars, calOpen, setCalOpen, dragStart, drag, setDrag, submitting, failed, reset, elapsed, started, flash, useHint, blockerOf, go, execute, handlePointerDown, handlePointerMove, handlePointerUp, label } = useDailyGame({ date, openCalendar });
+  const carBtn = (c: Car) => (
+    <Button variant="ghost" key={c.id} onClick={() => setSel(c.id)} data-active={sel === c.id}
+      title={c.name} aria-label={`Select ${c.id} · ${c.name}`} disabled={!started || !!result} className="palette-cell h-auto">
+      <span className={`h-3 rounded-sm ${c.len === 3 ? "w-10" : "w-6"}`} style={{ background: c.color }} />
+      <span className="text-xs">{c.id} {c.dir === "h" ? "↔" : "↕"}</span>
+    </Button>
+  );
+
   return (
     <main className="lot-bg flex h-dvh flex-col gap-2 overflow-hidden px-2 py-2 sm:px-4">
       <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2">

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { addCoins, getCoins } from "@/lib/puzzles";
+import { getCoins } from "@/engine/rewards";
+import { spendCoins } from "./useRewardSystem";
 import { HINT_COSTS, PEEK_DURATION, type HintType } from "@/lib/hints";
 
 export function useHints(onBalance: (balance: number) => void) {
@@ -14,8 +15,8 @@ export function useHints(onBalance: (balance: number) => void) {
   };
   useEffect(() => () => { if (timer.current !== null) clearTimeout(timer.current); }, []);
   const charge = (type: HintType) => {
-    if (getCoins() < HINT_COSTS[type]) return false;
-    onBalance(addCoins(-HINT_COSTS[type]));
+    if (!spendCoins(HINT_COSTS[type])) return false;
+    onBalance(getCoins());
     return true;
   };
   const startPeek = () => {

@@ -1,3 +1,4 @@
+import { initializeStorage } from "@/services/storageService";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -114,28 +115,16 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const [isLoaded, setIsLoaded] = useState(false);
+
   const { t } = useI18n();
 
   useEffect(() => {
+    initializeStorage();
     applyDocumentLang();
     getProfile(); // creates a random username on first load
     // מריץ טעינה מוקדמת של קובץ הפאזלים
-    loadPuzzlesAsync().finally(() => {
-      setIsLoaded(true);
-    });
+    void loadPuzzlesAsync();
   }, []);
-
-  // מציג מסך טעינה קצר במקום להבהב את פאזל הדיפולט
-  if (!isLoaded) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-lg font-medium text-muted-foreground animate-pulse">
-          {t("loading")}
-        </p>
-      </div>
-    );
-  }
 
   return (
     <QueryClientProvider client={queryClient}>

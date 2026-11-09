@@ -95,7 +95,13 @@ export function Tutorial() {
 }
 
 function LessonView({ lesson, onNext }: { lesson: Lesson; onNext: () => void }) {
-  const { t, te, lang, cars, setCars, commitMove, sel, setSel, steps, setSteps, move, setMove, started, setStarted, plan, setPlan, msg, setMsg, dragStart, drag, setDrag, done, hidden, act, submit, handlePointerDown, handlePointerMove, handlePointerUp, paletteCar, directionPosition } = useTutorialLesson({ lesson, onNext });
+  const { t, te, lang, cars, setCars, commitMove, sel, setSel, steps, setSteps, move, setMove, started, setStarted, plan, setPlan, msg, setMsg, dragStart, drag, setDrag, done, hidden, act, submit, handlePointerDown, handlePointerMove, handlePointerUp, directionPosition } = useTutorialLesson({ lesson, onNext });
+  const paletteCar = (car: Car) => (
+    <Button key={car.id} variant="ghost" className="palette-cell h-auto" aria-label={t("selectCar", { id: car.id })} data-active={sel === car.id} disabled={done} onClick={() => setSel(car.id)}>
+      <span className="h-3 rounded-sm" style={{ background: car.color, width: car.len === 3 ? "2.5rem" : "1.5rem" }} />
+      <span className="text-xs">{car.id} {car.dir === "h" ? "↔" : "↕"}</span>
+    </Button>
+  );
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col gap-3" dir="ltr">
       <div className="game-grid">

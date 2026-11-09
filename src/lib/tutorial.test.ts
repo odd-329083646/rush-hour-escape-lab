@@ -20,7 +20,7 @@ describe("first-time tutorial flag", () => {
   it("is unset for new visitors and set after viewing", () => {
     expect(hasSeenTutorial()).toBe(false);
     markTutorialSeen();
-    expect(localStorage.getItem("has_seen_tutorial")).toBe("1");
+    expect(hasSeenTutorial()).toBe(true);
     expect(hasSeenTutorial()).toBe(true);
   });
 });

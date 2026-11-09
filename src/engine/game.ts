@@ -161,7 +161,7 @@ export function getRandomPuzzle(rand: () => number = Math.random): { par: number
     return generateRandomPuzzleOnTheFly(7);
   }
   const index = Math.floor(rand() * DEFAULT_PUZZLES.length);
-  return DEFAULT_PUZZLES[index] ?? INITIAL_FALLBACK[0];
+  return DEFAULT_PUZZLES[index] ?? { par: 1, cars: inflateCars([{ id: "X", row: 2, col: 0, dir: "h" }]) };
 }
 
 export function cells(c: Car): [number, number][] {
@@ -174,6 +174,7 @@ export function isSolved(cars: Car[]): boolean {
 }
 
 export function applyMove(cars: Car[], id: string, move: Move, steps: number): { cars: Car[]; error?: string } {
+  if (!Number.isInteger(steps) || steps < 1 || steps > 4) return { cars, error: "Invalid move" };
   const car = cars.find((c) => c.id === id);
   if (!car) return { cars, error: "Select a car first" };
   const horiz = move === "left" || move === "right";

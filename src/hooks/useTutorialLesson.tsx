@@ -1,17 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Home, Languages, Play, Plus, Trophy } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { applyMove, isSolved, runPlan, type Car, type Move } from "@/lib/puzzles";
 import { setLang, translate, useI18n, type Lang, type TKey } from "@/lib/i18n";
 import { completeTutorial, hasSeenTutorial, markTutorialSeen } from "@/lib/tutorial";
 
 import { useGameEngine, movementRange } from "@/hooks/useGameEngine";
 export type Lesson = { title: TKey; body: TKey; cars: Car[]; hidden?: string[]; plan?: boolean };
-const DIRS: { m: Move; Icon: typeof ArrowUp }[] = [
-  { m: "up", Icon: ArrowUp }, { m: "down", Icon: ArrowDown }, { m: "left", Icon: ArrowLeft }, { m: "right", Icon: ArrowRight },
-];
+
 
 export function useTutorialLesson({ lesson, onNext }: { lesson: Lesson; onNext: () => void }) {
   const { t, te, lang } = useI18n();
@@ -96,13 +90,7 @@ export function useTutorialLesson({ lesson, onNext }: { lesson: Lesson; onNext: 
     const direction: Move = car.dir === "h" ? (cells > 0 ? "right" : "left") : (cells > 0 ? "down" : "up");
     setMove(direction); act(car.id, direction, Math.abs(cells));
   };
-  const paletteCar = (car: Car) => (
-    <Button key={car.id} variant="ghost" className="palette-cell h-auto" aria-label={t("selectCar", { id: car.id })} data-active={sel === car.id} disabled={done} onClick={() => setSel(car.id)}>
-      <span className="h-3 rounded-sm" style={{ background: car.color, width: car.len === 3 ? "2.5rem" : "1.5rem" }} />
-      <span className="text-xs">{car.id} {car.dir === "h" ? "↔" : "↕"}</span>
-    </Button>
-  );
   const directionPosition: Record<Move, string> = { up: "col-start-2 row-start-1", down: "col-start-2 row-start-3", left: "col-start-1 row-start-2", right: "col-start-3 row-start-2" };
 
-  return { t, te, lang, cars, setCars, commitMove, sel, setSel, steps, setSteps, move, setMove, started, setStarted, plan, setPlan, msg, setMsg, dragStart, drag, setDrag, done, hidden, act, submit, handlePointerDown, handlePointerMove, handlePointerUp, paletteCar, directionPosition };
+  return { t, te, lang, cars, setCars, commitMove, sel, setSel, steps, setSteps, move, setMove, started, setStarted, plan, setPlan, msg, setMsg, dragStart, drag, setDrag, done, hidden, act, submit, handlePointerDown, handlePointerMove, handlePointerUp, directionPosition };
 }

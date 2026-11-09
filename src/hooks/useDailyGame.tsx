@@ -1,24 +1,13 @@
 import { storageService } from "@/services/storageService";
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
-import { Link } from "@tanstack/react-router";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CalendarDays, Coins, Home, Lightbulb, Play, RotateCcw, Trophy } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { SettingsButton } from "@/components/settings-dialog";
 import { useI18n } from "@/lib/i18n";
-import { HintSelection } from "@/components/hint-selection";
 import { useHints } from "@/hooks/use-hints";
 import { HINT_COSTS, hintAvailable, peekBoardCars, type HintType } from "@/lib/hints";
-import { DailyCalendar } from "@/components/daily/daily-calendar";
 import { addCoins, applyMove, cells, getCoins, getDailyPuzzleAsync, getNextBestMove, isSolved, pickHidden, type Car, type Move } from "@/lib/puzzles";
 import { fmtTime, isSolvedOn, submitScore } from "@/lib/daily-scores";
 
 import { useGameEngine, movementRange, blockerOf as findBlocker } from "@/hooks/useGameEngine";
-const DIRS: { m: Move; Icon: typeof ArrowUp; cls: string }[] = [
-  { m: "up", Icon: ArrowUp, cls: "col-start-2 row-start-1" },
-  { m: "left", Icon: ArrowLeft, cls: "col-start-1 row-start-2" },
-  { m: "right", Icon: ArrowRight, cls: "col-start-3 row-start-2" },
-  { m: "down", Icon: ArrowDown, cls: "col-start-2 row-start-3" },
-];
+
 const ARROW: Record<Move, string> = { up: "↑", down: "↓", left: "←", right: "→" };
 
 export function useDailyGame({ date, openCalendar = false }: { date: string; openCalendar?: boolean }) {
@@ -196,15 +185,7 @@ export function useDailyGame({ date, openCalendar = false }: { date: string; ope
     void go(direction, c.id, Math.abs(count));
   };
 
-  const carBtn = (c: Car) => (
-    <Button variant="ghost" key={c.id} onClick={() => setSel(c.id)} data-active={sel === c.id}
-      title={c.name} aria-label={`Select ${c.id} · ${c.name}`} disabled={!started || !!result} className="palette-cell h-auto">
-      <span className={`h-3 rounded-sm ${c.len === 3 ? "w-10" : "w-6"}`} style={{ background: c.color }} />
-      <span className="text-xs">{c.id} {c.dir === "h" ? "↔" : "↕"}</span>
-    </Button>
-  );
-
   const label = new Date(`${date}T12:00:00`).toLocaleDateString(lang === "he" ? "he-IL" : "en-GB", { day: "numeric", month: "long", year: "numeric" });
 
-  return { t, te, lang, start, setStart, par, setPar, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, loading, setLoading, sel, setSel, steps, setSteps, move, setMove, hidden, setHidden, bumps, setBumps, warn, setWarn, coins, setCoins, result, setResult, hints, boardCars, calOpen, setCalOpen, dragStart, drag, setDrag, submitting, failed, reset, elapsed, started, flash, useHint, blockerOf, go, execute, handlePointerDown, handlePointerMove, handlePointerUp, carBtn, label };
+  return { t, te, lang, start, setStart, par, setPar, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, loading, setLoading, sel, setSel, steps, setSteps, move, setMove, hidden, setHidden, bumps, setBumps, warn, setWarn, coins, setCoins, result, setResult, hints, boardCars, calOpen, setCalOpen, dragStart, drag, setDrag, submitting, failed, reset, elapsed, started, flash, useHint, blockerOf, go, execute, handlePointerDown, handlePointerMove, handlePointerUp, label };
 }

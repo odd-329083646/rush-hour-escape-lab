@@ -1,5 +1,5 @@
 import { storageService } from "@/services/storageService";
-import { supabase } from "@/integrations/supabase/client";
+import { readDailyBest, writeDailyScore } from "@/services/supabaseService";
 
 export type DailyScore = { date: string; solve_time: number; player_name: string };
 
@@ -7,15 +7,7 @@ const MINE_KEY = "daily_my_solves";
 
 /** הזמן הכי מהיר שנרשם בשרת לחידה של תאריך מסוים */
 export async function getBestTime(date: string): Promise<number | null> {
-  const { data, error } = await supabase
-    .from("daily_scores")
-    .select("solve_time")
-    .eq("date", date)
-    .order("solve_time", { ascending: true })
-    .limit(1);
-
-  if (error) throw error;
-  return data?.[0]?.solve_time ?? null;
+  return readDailyBest(date);
 }
 
 /** בדיקה אם הזמן הנוכחי שובר את השיא העולמי */
@@ -36,7 +28,7 @@ export async function submitScore(score: DailyScore): Promise<{ best: number | n
   const beaten = isRecord(score.solve_time, best);
   
   // שמירה ב-Supabase וב-LocalStorage המקומי
-  await supabase.from("daily_scores").insert(score);
+  try { await writeDailyScore(score); } catch { saveMine(score); return { best, isRecord: false }; }
   saveMine(score);
 
   return { best, isRecord: beaten };
@@ -44,7 +36,8 @@ export async function submitScore(score: DailyScore): Promise<{ best: number | n
 
 function saveMine(score: DailyScore) {
   const mine = getMySolves();
-  if (mine[score.date] == null || score.solve_time < mine[score.date]!) {
+  const previous = mine[score.date];
+  if (previous == null || score.solve_time < previous) {
     mine[score.date] = score.solve_time;
   }
   storageService.setItem(MINE_KEY, JSON.stringify(mine));

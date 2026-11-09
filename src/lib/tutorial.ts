@@ -1,5 +1,5 @@
 import { storageService } from "@/services/storageService";
-import { addCoins } from "@/lib/puzzles";
+import { awardOnce } from "@/hooks/useRewardSystem";
 
 export const TUTORIAL_REWARD = 50;
 const KEY = "rush_hour_tutorial_done";
@@ -10,10 +10,7 @@ export function isTutorialDone(): boolean {
 
 /** Marks the tutorial complete; awards coins only the first time. Returns whether coins were awarded. */
 export function completeTutorial(): boolean {
-  if (isTutorialDone()) return false;
-  storageService.setItem(KEY, "1");
-  addCoins(TUTORIAL_REWARD);
-  return true;
+  return awardOnce(KEY, TUTORIAL_REWARD);
 }
 
 const SEEN_KEY = "has_seen_tutorial";

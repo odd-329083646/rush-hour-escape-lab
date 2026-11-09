@@ -1,7 +1,5 @@
 import { useStandardGame } from "@/hooks/useStandardGame";
-import { storageService } from "@/services/storageService";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useEffect, useState, useRef } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, ChevronDown, ChevronUp, Coins, Eye, Home, Layers, Lightbulb, Lock, Play, Plus, RotateCcw, Send, Star, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
 import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, IS_OFFLINE_MODE, getRandomPuzzle, saveLevelProgress, getSavedProgress, getCoins, addCoins, getNextBestMove, TIERS, isTierUnlocked, getSolvesCountInTier, getPuzzlesForTier, type Car, type Level, type Move } from "@/lib/puzzles";
 import { Button } from "@/components/ui/button";
@@ -42,7 +40,14 @@ type Planned = { id: string; move: Move; steps: number };
 
 function Game() {
   const { level } = Route.useParams() as { level: Level };
-  const { t, te, lang, murderer, idxKey, maxKey, puzzles, setPuzzles, idx, setIdx, maxSolved, setMaxSolved, puzzle, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, initialCars, setInitialCars, sel, setSel, move, setMove, steps, setSteps, msg, setMsg, warn, setWarn, started, setStarted, hidden, setHidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, setFailed, simulating, setSimulating, invisibleBumps, setInvisibleBumps, wonStars, setWonStars, coins, setCoinsState, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, setCollapsedTiers, won, elapsed, clock, progress, toggleTier, formatTime, loadPuzzle, markWon, jumpTo, start, flash, useHint, checkInvisibleBump, execute, submitPlan, isLast, standard, trucks, showBoard, carBtn, dragStart, drag, setDrag, freeRange, handlePointerDown, handlePointerMove, handlePointerUp } = useStandardGame(level);
+  const { t, te, lang, murderer, idxKey, maxKey, puzzles, setPuzzles, idx, setIdx, maxSolved, setMaxSolved, puzzle, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, initialCars, setInitialCars, sel, setSel, move, setMove, steps, setSteps, msg, setMsg, warn, setWarn, started, setStarted, hidden, setHidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, setFailed, simulating, setSimulating, invisibleBumps, setInvisibleBumps, wonStars, setWonStars, coins, setCoinsState, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, setCollapsedTiers, won, elapsed, clock, progress, toggleTier, formatTime, loadPuzzle, markWon, jumpTo, start, flash, useHint, checkInvisibleBump, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, freeRange, handlePointerDown, handlePointerMove, handlePointerUp } = useStandardGame(level);
+  const carBtn = (c: Car) => (
+    <button key={c.id} onClick={() => setSel(c.id)} data-active={sel === c.id} title={c.name} className="palette-cell" disabled={simulating}>
+      <span className="h-3 rounded-sm" style={{ background: c.color, width: c.len === 3 ? "2.5rem" : "1.5rem" }} />
+      <span className="text-xs">{c.id} {c.dir === "h" ? "↔" : "↕"}</span>
+    </button>
+  );
+
   return (
     <main className="lot-bg flex h-dvh flex-col gap-2 overflow-hidden px-2 py-2 sm:px-4">
       {/* באנר התראה למצב אופליין */}

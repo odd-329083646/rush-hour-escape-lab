@@ -1,4 +1,4 @@
-import { inflateCars, isValidPuzzle, generateRandomPuzzleOnTheFly, todayKey, setPuzzleCatalogue, type Car } from "@/engine/game";
+import { inflateCars, isValidPuzzle, todayKey, setPuzzleCatalogue, type Car } from "@/engine/game";
 
 export async function loadPuzzlesAsync(): Promise<{ par: number; cars: Car[] }[]> {
   try {
@@ -23,7 +23,7 @@ export async function loadPuzzlesAsync(): Promise<{ par: number; cars: Car[] }[]
     console.warn("Could not load puzzles.json from network. Switching to offline generator mode:", err);
     
 
-    // במידה ואין אינטרנט, ייצור 5 שלבים אקראיים בזמן אמת במקום להיכשל
+    // Serve a validated snapshot immediately; background generation never blocks the board.
     const { DEFAULT_PUZZLES } = await import("@/engine/game");
     const offlinePuzzles = DEFAULT_PUZZLES;
     setPuzzleCatalogue(offlinePuzzles, true);

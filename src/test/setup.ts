@@ -1,3 +1,7 @@
+import { beforeEach, afterEach } from "vitest";
+import { storageService } from "@/services/storageService";
+beforeEach(() => storageService.resetCache());
+afterEach(() => storageService.flush());
 import "@testing-library/jest-dom/vitest";
 
 Object.defineProperty(window, "scrollTo", {

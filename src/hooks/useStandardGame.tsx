@@ -1,23 +1,13 @@
 import { storageService } from "@/services/storageService";
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, ChevronDown, ChevronUp, Coins, Eye, Home, Layers, Lightbulb, Lock, Play, Plus, RotateCcw, Send, Star, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
 import { applyMove, isSolved, LEVELS, pickHidden, runPlan, DEFAULT_PUZZLES, IS_OFFLINE_MODE, getRandomPuzzle, saveLevelProgress, getSavedProgress, getCoins, addCoins, getNextBestMove, TIERS, isTierUnlocked, getSolvesCountInTier, getPuzzlesForTier, type Car, type Level, type Move } from "@/lib/puzzles";
-import { Button } from "@/components/ui/button";
-import { SettingsButton } from "@/components/settings-dialog";
 import { useI18n } from "@/lib/i18n";
-import { HintSelection } from "@/components/hint-selection";
 import { useHints } from "@/hooks/use-hints";
 import { HINT_COSTS, hintAvailable, peekBoardCars, validateHintPlan, type HintType } from "@/lib/hints";
 
 import { useGameEngine, movementRange, blockerOf } from "@/hooks/useGameEngine";
 import { loadPuzzlesAsync } from "@/services/puzzleRepository";
-const DIRS: { m: Move; Icon: typeof ArrowUp; cls: string }[] = [
-  { m: "up", Icon: ArrowUp, cls: "col-start-2 row-start-1" },
-  { m: "left", Icon: ArrowLeft, cls: "col-start-1 row-start-2" },
-  { m: "right", Icon: ArrowRight, cls: "col-start-3 row-start-2" },
-  { m: "down", Icon: ArrowDown, cls: "col-start-2 row-start-3" },
-];
+
 const ARROW: Record<Move, string> = { up: "↑", down: "↓", left: "←", right: "→" };
 type Planned = { id: string; move: Move; steps: number };
 
@@ -249,13 +239,6 @@ export function useStandardGame(level: Level) {
   
   const showBoard = hints.peek || murdererBoard || simulating || !(murderer && started && !won && !failed);
 
-  const carBtn = (c: Car) => (
-    <button key={c.id} onClick={() => setSel(c.id)} data-active={sel === c.id} title={c.name} className="palette-cell" disabled={simulating}>
-      <span className="h-3 rounded-sm" style={{ background: c.color, width: c.len === 3 ? "2.5rem" : "1.5rem" }} />
-      <span className="text-xs">{c.id} {c.dir === "h" ? "↔" : "↕"}</span>
-    </button>
-  );
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.altKey || e.ctrlKey || e.metaKey || simulating || hints.open || hints.peek) return;
@@ -380,5 +363,5 @@ export function useStandardGame(level: Level) {
     if (isSolved(r.cars)) markWon(); else setMsg(t("msgMoved"));
   };
 
-  return { t, te, lang, murderer, idxKey, maxKey, puzzles, setPuzzles, idx, setIdx, maxSolved, setMaxSolved, puzzle, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, initialCars, setInitialCars, sel, setSel, move, setMove, steps, setSteps, msg, setMsg, warn, setWarn, started, setStarted, hidden, setHidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, setFailed, simulating, setSimulating, invisibleBumps, setInvisibleBumps, wonStars, setWonStars, coins, setCoinsState, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, setCollapsedTiers, won, elapsed, clock, progress, toggleTier, formatTime, loadPuzzle, markWon, jumpTo, start, flash, useHint, checkInvisibleBump, execute, submitPlan, isLast, standard, trucks, showBoard, carBtn, dragStart, drag, setDrag, freeRange, handlePointerDown, handlePointerMove, handlePointerUp };
+  return { t, te, lang, murderer, idxKey, maxKey, puzzles, setPuzzles, idx, setIdx, maxSolved, setMaxSolved, puzzle, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, initialCars, setInitialCars, sel, setSel, move, setMove, steps, setSteps, msg, setMsg, warn, setWarn, started, setStarted, hidden, setHidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, setFailed, simulating, setSimulating, invisibleBumps, setInvisibleBumps, wonStars, setWonStars, coins, setCoinsState, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, setCollapsedTiers, won, elapsed, clock, progress, toggleTier, formatTime, loadPuzzle, markWon, jumpTo, start, flash, useHint, checkInvisibleBump, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, freeRange, handlePointerDown, handlePointerMove, handlePointerUp };
 }
