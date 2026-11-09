@@ -146,7 +146,7 @@ function Game() {
               {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" style={{ gridRow: Math.floor(i / 6) + 1, gridColumn: (i % 6) + 1 }} />)}
               <div className="exit" />
               {boardCars.map((c) => (
-                <button
+                <Button variant="ghost"
                   key={c.id}
                   draggable={false}
                   onPointerDown={(e) => handlePointerDown(c, e)}
@@ -234,15 +234,15 @@ function Game() {
                         <span className="h-3 w-5 rounded-sm" style={{ background: c.color }} />
                         <span className="flex-1">{c.id} · {c.name}</span>
                         <span className="font-display">{ARROW[p.move]} {p.steps}</span>
-                        <button aria-label={t("removeMove")} onClick={() => setPlan((q) => q.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-foreground" disabled={simulating}><Trash2 className="h-4 w-4" /></Button>
+                        <Button variant="ghost" aria-label={t("removeMove")} onClick={() => setPlan((q) => q.filter((_, j) => j !== i))} className="text-muted-foreground hover:text-foreground" disabled={simulating}><Trash2 className="h-4 w-4" /></Button>
                       </li>
                     );
                   })}
                 </ol>
               )}
               <div className="flex gap-2">
-                <button onClick={() => setPlan([])} disabled={!plan.length || simulating} className="chip">{t("clear")}</Button>
-                <button onClick={submitPlan} disabled={simulating} className="execute flex flex-1 items-center justify-center gap-2"><Send className="h-4 w-4" /> {t("submitSolution")}</Button>
+                <Button variant="ghost" onClick={() => setPlan([])} disabled={!plan.length || simulating} className="chip">{t("clear")}</Button>
+                <Button variant="ghost" onClick={submitPlan} disabled={simulating} className="execute flex flex-1 items-center justify-center gap-2"><Send className="h-4 w-4" /> {t("submitSolution")}</Button>
               </div>
             </div>
           )}
@@ -271,7 +271,7 @@ function Game() {
           <div className="panel flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden p-0" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-card px-4 py-3">
               <h2 className="font-display text-xl font-bold">{t("chooseLevel")}</h2>
-              <button aria-label={t("close")} onClick={() => setLevelsOpen(false)} className="chip"><X className="h-4 w-4" /></Button>
+              <Button variant="ghost" aria-label={t("close")} onClick={() => setLevelsOpen(false)} className="chip"><X className="h-4 w-4" /></Button>
             </div>
 
             <div className="flex-1 overflow-auto p-4 flex flex-col gap-4">
@@ -285,7 +285,7 @@ function Game() {
 
                 return (
                   <div key={tier.id} className="rounded-lg border bg-card p-3">
-                    <button
+                    <Button variant="ghost"
                       onClick={() => toggleTier(tier.id)}
                       className="flex w-full items-center justify-between text-start transition-colors hover:opacity-80"
                     >
@@ -317,7 +317,7 @@ function Game() {
                           const bestSecs = progress[originalIdx]?.bestTime;
 
                           return (
-                            <button
+                            <Button variant="ghost"
                               key={`${tier.id}_${tierLevelNum}`}
                               disabled={!unlocked}
                               onClick={() => jumpTo(originalIdx)}

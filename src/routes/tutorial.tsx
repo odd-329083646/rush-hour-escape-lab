@@ -1,3 +1,5 @@
+import { useTutorial } from "@/hooks/useTutorial";
+import type { Lesson } from "@/engine/tutorialLessons";
 import { useTutorialLesson } from "@/hooks/useTutorialLesson";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
@@ -22,40 +24,12 @@ export const Route = createFileRoute("/tutorial")({
   component: Tutorial,
 });
 
-const X: Car = { id: "X", name: "Red Car", color: "var(--car-red)", row: 2, col: 0, len: 2, dir: "h" };
-const O: Car = { id: "O", name: "Yellow Truck", color: "var(--car-yellow)", row: 0, col: 3, len: 3, dir: "v" };
-const A: Car = { id: "A", name: "Blue Car", color: "var(--car-blue)", row: 2, col: 3, len: 2, dir: "v" };
-const B: Car = { id: "B", name: "Lime Car", color: "var(--car-lime)", row: 5, col: 0, len: 2, dir: "h" };
-
-type Lesson = { title: TKey; body: TKey; cars: Car[]; hidden?: string[]; plan?: boolean };
-const LESSONS: Lesson[] = [
-  { title: "tut1Title", body: "tut1Body", cars: [X] },
-  { title: "tut2Title", body: "tut2Body", cars: [X, O, B] },
-  { title: "tut3Title", body: "tut3Body", cars: [X, A, B], hidden: ["A"] },
-  { title: "tut4Title", body: "tut4Body", cars: [X, O], plan: true },
-];
 const DIRS: { m: Move; Icon: typeof ArrowUp }[] = [
   { m: "up", Icon: ArrowUp }, { m: "down", Icon: ArrowDown }, { m: "left", Icon: ArrowLeft }, { m: "right", Icon: ArrowRight },
 ];
 
 export function Tutorial() {
-  const { t, lang } = useI18n();
-  const [step, setStep] = useState(0);
-  const [phase, setPhase] = useState<"language" | "intro" | "play" | "complete" | null>(null);
-  const chooseLanguage = (language: Lang) => { setLang(language); setPhase("intro"); };
-  const [finished, setFinished] = useState<null | boolean>(null);
-  const initialized = useRef(false);
-  useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
-    setPhase(hasSeenTutorial() ? "intro" : "language");
-    markTutorialSeen();
-  }, []);
-  const next = () => {
-    if (step < LESSONS.length - 1) { setStep(step + 1); setPhase("intro"); }
-    else { setFinished(completeTutorial()); setPhase("complete"); }
-  };
-  const lesson = LESSONS[step];
+  const { t, lang, step, phase, chooseLanguage, finished, lesson, next, setPhase, setStep } = useTutorial();
   return (
     <main className="tutorial lot-bg flex h-dvh flex-col items-center gap-3 overflow-hidden px-3 py-3">
       <header className="flex w-full max-w-3xl items-center justify-between gap-2">
