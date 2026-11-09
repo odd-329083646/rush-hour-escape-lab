@@ -186,8 +186,8 @@ function LessonView({ lesson, onNext, last }: { lesson: Lesson; onNext: () => vo
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col gap-3" dir="ltr">
       <section className="lesson-intro mx-auto w-full max-w-3xl text-center">
-        <h2 className="font-display text-lg font-bold">{t(lesson.title)}</h2>
-        <ul className="mt-1 flex flex-col gap-1 text-sm text-muted-foreground">{t(lesson.body).split("\n").map((line) => <li key={line}>{line}</li>)}</ul>
+        <h2 className="font-display text-lg font-bold" dir={lang === "he" ? "rtl" : "ltr"}>{t(lesson.title)}</h2>
+        <ul className="mt-1 flex flex-col gap-1 text-sm text-muted-foreground" dir={lang === "he" ? "rtl" : "ltr"}>{t(lesson.body).split("\n").map((line) => <li key={line}>{line}</li>)}</ul>
       </section>
       <div className="game-grid">
         <aside className="panel flex flex-col gap-2" style={{ gridArea: "ctrl" }}>

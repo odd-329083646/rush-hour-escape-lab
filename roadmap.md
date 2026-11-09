@@ -14,4 +14,4 @@
 - [x] Verify hint prices, mode availability, and starting-board restoration.
 # Tutorial
 - [x] /tutorial with 4 lessons, linked from Home and Settings, 50-coin first-completion reward.
-- [ ] Add initial language choice, standard gameplay layout and pointer/keyboard controls; verify all lessons and reward.
+- [x] Add initial language choice, standard gameplay layout and pointer/keyboard controls; verify all lessons and reward.
