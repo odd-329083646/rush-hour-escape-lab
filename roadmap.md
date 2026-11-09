@@ -11,4 +11,4 @@
 # Starting-board peek
 - [x] Remove the header's Show Cars toggle.
 - [x] Preview original positions for three seconds in regular and daily games without changing progress.
-- [ ] Verify hint prices, mode availability, and starting-board restoration.
+- [x] Verify hint prices, mode availability, and starting-board restoration.
