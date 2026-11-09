@@ -588,9 +588,12 @@ function Game() {
                     ))}
                   </div>
 
-                  <span className="text-base text-muted-foreground">
-                    {isLast ? t("allDone") : t("winSummary", { moves, clock, par: puzzle.par })}
-                  </span>
+                  {isLast && <span className="text-base text-muted-foreground">{t("allDone")}</span>}
+                  <div className="flex flex-col items-center text-base text-muted-foreground">
+                    <span>{t("statMoves", { n: moves })}</span>
+                    <span>{t("statTime", { t: clock })}</span>
+                    <span>{t("statPar", { n: puzzle.par })}</span>
+                  </div>
                   <div className="mt-3 flex gap-2">
                     {!isLast ? (
                        <Button variant="ghost" onClick={() => jumpTo(idx + 1)} className="chip">{t("nextLevel")}</Button>
