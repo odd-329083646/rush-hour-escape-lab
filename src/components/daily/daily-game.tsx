@@ -122,7 +122,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
       // 2. הגשת התוצאה לשרת
       const res = await submitScore({ date, solve_time: time, player_name: name });
 
-      // 3. תגמול מטבעות
+      // 3. חישוב תגמול מטבעות
       let coinsEarned = 0;
       if (isFirstSolve) {
         coinsEarned += 30; // 30 מטבעות בפתירה ראשונה
@@ -140,6 +140,13 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
     }
   }, [sel, steps, startedAt, result, failed, cars, blockerOf, hidden, flash, date]);
 
+  const execute = () => {
+    if (!started) return flash("Press Start Solving first");
+    if (!sel) return flash("Select a car first");
+    if (!move) return flash("Choose a direction first");
+    void go(move);
+  };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target;
@@ -153,7 +160,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
       if (direction) { e.preventDefault(); setMove(direction); return; }
       if (e.key === "Enter") {
         e.preventDefault();
-        if (move) void go(move); else flash("Select a direction first");
+        execute();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -246,7 +253,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
                 <h2 className="panel-title">Direction</h2>
                 <div className="grid grid-cols-3 grid-rows-3 gap-2">
                   {DIRS.map(({ m, Icon, cls }) => (
-                    <Button variant="ghost" key={m} aria-label={m} data-active={move === m} onClick={() => { setMove(m); void go(m); }} className={`ctrl ${cls}`}><Icon className="h-5 w-5" /></Button>
+                    <Button variant="ghost" key={m} aria-label={m} data-active={move === m} onClick={() => setMove(m)} className={`ctrl ${cls}`}><Icon className="h-5 w-5" /></Button>
                   ))}
 
                   {/* כפתור רמז במרכז החיצים (שורה 2, עמודה 2) */}
@@ -270,6 +277,12 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
                   ))}
                 </div>
               </div>
+
+              {/* כפתור בצע */}
+              <Button onClick={execute} disabled={!started || !!result || failed} className="execute mt-1">
+                <Play className="h-4 w-4 shrink-0" />
+                <span>Execute · בצע</span>
+              </Button>
             </div>
           )}
         </aside>
