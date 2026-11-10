@@ -66,9 +66,9 @@ export function useTournament() {
       const kept = optimistic.current?.match?.id === won ? optimistic.current.match[side] : visible.match[side];
       visible = { ...visible, match: { ...visible.match, [side]: kept, status: "finished", winner: data.guest.id } };
     }
-    if (won && (!visible.match || visible.match.id !== won || visible.match.status !== "playing")) {
-      if (!visible.match || visible.match.id !== won || visible.match.status !== "finished" || visible.match.winner) localWin.current = visible.match?.id === won && visible.match.status === "playing" ? won : null;
-    }
+    // Once the server settles the match (or it is gone), its result is authoritative again.
+    if (won && data.match?.id !== won) localWin.current = null;
+    else if (won && data.match?.status !== "playing") localWin.current = null;
     optimistic.current = visible;
     if (alive.current) setSnapshot(visible);
   }, []);
