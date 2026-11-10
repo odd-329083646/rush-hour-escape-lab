@@ -287,4 +287,158 @@ const he: Record<TKey, string> = {
   yourVsBest: "הזמן שלך {time} · השיא העולמי {best}",
   coinsEarned: "+{n} מטבעות!",
   recordBonus: "👑 (בונוס שיא עולמי)",
-  replayNoCoins: "פתירה חוזרת — 0
+  replayNoCoins: "פתירה חוזרת — 0 🪙",
+  gameOver: "המשחק נגמר",
+  bumped3Daily: "התנגשת 3 פעמים במכוניות בלתי נראות.",
+  week: "א׳,ב׳,ג׳,ד׳,ה׳,ו׳,ש׳",
+  prevMonth: "החודש הקודם",
+  nextMonth: "החודש הבא",
+  parkingPuzzle: "פאזל חניה",
+  edition: "מהדורת המכוניות הנעלמות",
+  mainMenu: "תפריט ראשי",
+  regularGames: "משחקים רגילים",
+  regularDesc: "חניונים שנבדקו ביד בארבע רמות קושי, מקל ועד רוצח.",
+  regularTag: "4 מצבים",
+  dailyDesc: "חניון חדש בכל יום — אותו פאזל לכל מי שמשחק.",
+  dailyTag: "שחק היום",
+  competitions: "תחרויות",
+  compDesc: "התחרו בנהגים אחרים על זמן פתירה וטפסו בטבלה.",
+  comingSoon: "בקרוב",
+  solvedBadge: "נפתר",
+  tagline: "הזיזו את המכוניות ושחררו את המכונית האדומה.",
+  chooseMode: "בחר רמת קושי",
+  "level.easy": "קל",
+  "level.medium": "בינוני",
+  "level.hard": "קשה",
+  "level.murderer": "רוצח",
+  playRegular: "שחק במשחקים רגילים",
+  compBlurb: "סבבים מתוזמנים שבהם כולם מקבלים אותו חניון ואותו שעון. הכי מעט מהלכים והזמן המהיר ביותר זוכים במקום בטבלה.",
+  compB1: "סבבים מתוזמנים שאפשר להצטרף אליהם מהתפריט",
+  compB2: "דירוג לפי מספר מהלכים ואז לפי זמן",
+  compB3: "תגים על כל סבב שסיימתם",
+  profile: "פרופיל שחקן",
+  username: "שם משתמש",
+  country: "מדינה",
+  language: "שפה",
+  stats: "שיאים אישיים",
+  bestTime: "זמן הכי טוב",
+  minMoves: "מינימום מהלכים",
+  noSolves: "—",
+  save: "שמור",
+  saved: "נשמר",
+  hintSelection: "בחר רמז",
+  hintNext: "המהלך הבא",
+  hintPeek: "הצצה בלוח · 3 שניות",
+  hintReveal: "חשיפת מכונית אחת",
+  hintValidate: "בדיקת תוכנית",
+  hintSelectCar: "בחר מכונית מוסתרת · 40 מטבעות",
+  hintPlanValid: "אין התנגשויות במהלכים המתוכננים.",
+  hintPlanInvalid: "מהלך {n}: {error}",
+  tutorial: "מדריך",
+  tutorialDesc: "למדו את החוקים ב-4 שיעורים קצרים. סיום ראשון מעניק 50 מטבעות.",
+  tutLesson: "שיעור {n} מתוך 4",
+  tut1Title: "מטרת המשחק: חילוץ הרכב",
+  tut1Body: "הובילו את המכונית האדומה X בבטחה אל היציאה מימין.",
+  tut2Title: "חוקי תנועה ודרכי שליטה",
+  tut2Body: "כלי רכב (מכוניות ומשאיות) נעים אך ורק לפי הכיוון שלהם.\nרכב אופקי זז ימינה ושמאלה | רכב אנכי זז למעלה ולמטה.\nניתן להזיז רכבים בגרירה, במקשי המקלדת, או עם חיצי השליטה במסך.",
+  tut3Title: "מכוניות נעלמות",
+  tut3Body: "ברמות מתקדמות חלק מכלי הרכב מוסתרים מהעין.\nהרכבים הנסתרים עדיין חוסמים את הדרך – היזהרו מהתנגשויות!",
+  tut3Start: "התחל פאזל",
+  tut4Title: "מצב תכנון מראש (רמת רוצח)",
+  tut4Body: "תכננו את סדר המהלכים ברשימה.\nהריצו את הפתרון המלא בלחיצה אחת על \"בצע\".",
+  tutPlan: "מהלכים מתוכננים",
+  tutPlanEmpty: "אין מהלכים עדיין",
+  tutSubmit: "בצע",
+  tutClear: "נקה",
+  tutPlanFail: "התוכנית לא שחררה את X. נקו ונסו שוב.",
+  tutNext: "לשיעור הבא",
+  tutUnderstand: "הבנתי",
+  tutPrevious: "שיעור קודם",
+  tutDone: "המדריך הושלם!",
+  tutReward: "+50 מטבעות 🪙",
+  tutNoReward: "כבר קיבלתם את הפרס.",
+  tutLessonDone: "יפה! השיעור הושלם.",
+  hintMenu: "רמזים",
+  hintRevealedBoard: "מכונית שנחשפה",
+  tutorialLanguage: "בחרו שפה",
+  languageEnglish: "English",
+  languageHebrew: "עברית",
+  selectCar: "בחרו {id}",
+  raceTitle: "תחרות 1 מול 1",
+  raceDescription: "שלושה חניונים. מנצח אחד.",
+  raceEntry: "כניסה · 50 מטבעות",
+  racePrize: "למנצח · 90 מטבעות",
+  raceRandom: "יריב אקראי",
+  raceCreate: "יצירת חדר פרטי",
+  raceJoin: "הצטרפות לחדר",
+  raceRoomCode: "קוד חדר",
+  raceSearching: "מחפש יריב...",
+  raceWaiting: "ממתינים לחבר...",
+  raceWaitRemaining: "נותרו {n} שניות",
+  raceBot: "שחקן מחשב",
+  raceGo: "צאו לדרך!",
+  raceOpponent: "יריב",
+  raceYou: "אתם",
+  raceProgress: "פאזל {n} מתוך 3 · {moves} מהלכים",
+  raceFinished: "כל 3 הפאזלים הושלמו",
+  raceNeedCoins: "נדרשים 50 מטבעות כדי להשתתף בתחרות.",
+  raceUnavailable: "החבר אינו זמין. החדר סגור או שפג תוקפו.",
+  raceRefund: "החדר נסגר · 50 מטבעות הוחזרו",
+  raceCancel: "ביטול החיפוש",
+  raceCopy: "העתקת קוד חדר",
+  raceCopied: "קוד החדר הועתק",
+  raceLost: "הפסדתם בתחרות",
+  raceWon: "ניצחתם!",
+  raceReward: "+90 מטבעות",
+  raceNoReward: "לא הוענקו מטבעות",
+  raceWins: "ניצחונות 1 מול 1",
+  raceLosses: "הפסדים 1 מול 1",
+  raceConnectionError: "החיבור לתחרות הופסק. נסו שוב.",
+  raceConnecting: "מתחברים...",
+  raceLive: "בשידור חי",
+  raceReconnecting: "מתחברים מחדש...",
+  raceForfeit: "עזיבת התחרות",
+  raceForfeitBody: "עזיבה מסיימת את התחרות ומעניקה את הניצחון ליריב.",
+  raceInvalidCode: "הזינו קוד חדר בן שש ספרות.",
+  raceRoomExpired: "החבר אינו זמין · 50 מטבעות הוחזרו",
+  raceIncomplete: "טרם הסתיים",
+};
+
+const DICT: Record<Lang, Record<TKey, string>> = { en, he };
+
+export function translate(lang: Lang, key: TKey, vars?: Record<string, string | number>): string {
+  let s = DICT[lang][key] ?? en[key] ?? key;
+  if (vars) for (const [k, v] of Object.entries(vars)) s = s.split(`{${k}}`).join(String(v));
+  return s;
+}
+
+export function translateError(lang: Lang, msg: string): string {
+  const k = `err.${msg}` as TKey;
+  return k in en ? translate(lang, k) : msg;
+}
+
+const listeners = new Set<() => void>();
+function read(): Lang {
+  try { return storageService.getItem(KEY) === "he" ? "he" : "en"; } catch { return "en"; }
+}
+export function getLang(): Lang { return typeof window === "undefined" ? "en" : read(); }
+export function setLang(l: Lang) {
+  storageService.setItem(KEY, l);
+  applyDocumentLang(l);
+  listeners.forEach((f) => f());
+}
+export function applyDocumentLang(l: Lang = getLang()) {
+  document.documentElement.lang = l;
+  document.documentElement.dir = "ltr";
+}
+function subscribe(f: () => void) { listeners.add(f); return () => listeners.delete(f); }
+
+export function useI18n() {
+  const lang = useSyncExternalStore(subscribe, getLang, () => "en" as Lang);
+  return {
+    lang,
+    dir: "ltr" as const,
+    t: (key: TKey, vars?: Record<string, string | number>) => translate(lang, key, vars),
+    te: (msg: string) => translateError(lang, msg),
+  };
+}
