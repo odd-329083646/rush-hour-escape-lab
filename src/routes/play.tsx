@@ -4,6 +4,7 @@ import { LEVELS, type Level } from "@/lib/puzzles";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import { SettingsButton } from "@/components/settings-dialog";
+import { CoinsBadge } from "@/components/coins-badge";
 
 export const Route = createFileRoute("/play")({
   head: () => ({
@@ -37,7 +38,10 @@ function Play() {
             <span>{t("menu")}</span>
           </Link>
         </Button>
-        <SettingsButton />
+        <div className="flex items-center gap-2">
+          <CoinsBadge />
+          <SettingsButton />
+        </div>
       </header>
 
       <div className="text-center">
