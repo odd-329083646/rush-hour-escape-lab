@@ -74,7 +74,7 @@ export function useTournament() {
   }, []);
 
   const action = useCallback(
-    async (kind: Action, options?: { code?: string; move?: { id: string; direction: Move; steps: number } }) => {
+    async (kind: Action, options?: { code?: string; moves?: { id: string; direction: Move; steps: number }[] }) => {
       if (!credential.current) return;
       if (kind === "status" && queued.current.length > 0) return;
       if (locked.current) {
@@ -102,7 +102,7 @@ export function useTournament() {
           applyTournamentSnapshot(data, balance);
           if (alive.current) {
             setClockOffset(Date.parse(data.serverNow) - Date.now());
-            if (kind === "move") queued.current.shift();
+            if (kind === "move") queued.current.splice(0, options?.moves?.length ?? 0);
             if (recovering.current || data.match?.status !== "playing") {
               queued.current = [];
               recovering.current = false;
@@ -145,7 +145,22 @@ export function useTournament() {
 
   const actionRef = useRef(action);
   actionRef.current = action;
-  const moveChain = useRef(Promise.resolve());
+  const sending = useRef(false);
+  // One request in flight at a time; every move queued meanwhile is sent together in the next batch,
+  // so the winning move never waits behind a chain of per-move round trips.
+  const flushMoves = useCallback(async () => {
+    if (sending.current) return;
+    sending.current = true;
+    try {
+      while (alive.current && queued.current.length > 0) {
+        const batch = queued.current.slice(0, 40);
+        await actionRef.current("move", { moves: batch });
+        if (queued.current[0] === batch[0]) break; // failed batch was not consumed; stop retry spam
+      }
+    } finally {
+      sending.current = false;
+    }
+  }, []);
 
   const commitMove = useCallback(
     (id: string, direction: Move, steps: number) => {
@@ -188,13 +203,9 @@ export function useTournament() {
       optimistic.current = visible;
       setSnapshot(visible);
 
-      // שידור מהיר לשרת: מהלך מנצח נשלח מיידית בעדיפות עליונה!
-      // Moves stay ordered so the server's expected move count always matches; the win is already shown.
-      moveChain.current = moveChain.current.then(async () => {
-        if (queued.current.includes(move)) await actionRef.current("move", { move });
-      });
+      void flushMoves();
     },
-    [clockOffset, te]
+    [clockOffset, te, flushMoves]
   );
 
   useEffect(() => {
