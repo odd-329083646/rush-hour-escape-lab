@@ -119,6 +119,19 @@ function RootComponent() {
   const { t } = useI18n();
 
   useEffect(() => {
+    // Recover from stale chunks after a rebuild/deploy: reload once.
+    const onPreloadError = (event: Event) => {
+      if (sessionStorage.getItem("chunk_reload")) return;
+      event.preventDefault();
+      sessionStorage.setItem("chunk_reload", "1");
+      window.location.reload();
+    };
+    window.addEventListener("vite:preloadError", onPreloadError);
+    const clear = window.setTimeout(() => sessionStorage.removeItem("chunk_reload"), 10000);
+    return () => { window.removeEventListener("vite:preloadError", onPreloadError); window.clearTimeout(clear); };
+  }, []);
+
+  useEffect(() => {
     initializeStorage();
     applyDocumentLang();
     getProfile(); // creates a random username on first load
