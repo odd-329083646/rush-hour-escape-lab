@@ -1,4 +1,4 @@
-import { advanceRace, fallbackRacePuzzles, type RaceMatch, type RaceSnapshot, type GuestCredential } from "@/lib/tournament";
+import { advanceRace, pickRacePuzzleIndices, resolveRacePuzzles, type RaceMatch, type RaceSnapshot, type GuestCredential } from "@/lib/tournament";
 import type { Move } from "@/engine/game";
 async function hashToken(token: string) {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
@@ -31,9 +31,10 @@ export async function performTournamentAction(data: { credential: GuestCredentia
       if (!current) throw new Error("Invalid match");
       const elapsed = Math.max(0, Math.floor((Date.now() - Date.parse(match.started_at ?? "")) / 1000));
       let advanced = current;
+      const puzzles = resolveRacePuzzles(match);
       for (const move of moves) {
         if (advanced.index >= 3) break;
-        const next = advanceRace(match.puzzles, advanced, move.id, move.direction, move.steps, elapsed);
+        const next = advanceRace(puzzles, advanced, move.id, move.direction, move.steps, elapsed);
         if (next.error) return { error: next.error };
         advanced = next.state;
       }
@@ -49,9 +50,19 @@ export async function performTournamentAction(data: { credential: GuestCredentia
         if (!existing.data) break;
       }
     }
+    const indices = data.action === "create" || data.action === "random" ? pickRacePuzzleIndices(() => {
+      const numbers = new Uint32Array(1);
+      crypto.getRandomValues(numbers);
+      return (numbers[0] ?? 0) / 4294967296;
+    }) : undefined;
+    if (indices) {
+      const first = resolveRacePuzzles({ puzzle_indices: indices })[0];
+      if (!first) throw new Error("Missing race puzzle");
+      state = { index: 0, moves: 0, totalMoves: 0, elapsed: 0, cars: first.cars };
+    }
     const result = await supabaseAdmin.rpc("tournament_action", {
       p_guest: verified.data.id, p_hash: tokenHash, p_action: data.action,
-      ...(code ? { p_code: code } : {}), p_puzzles: JSON.parse(JSON.stringify(fallbackRacePuzzles())),
+      ...(code ? { p_code: code } : {}), ...(indices ? { p_puzzles: indices } : {}),
       ...(state ? { p_state: JSON.parse(JSON.stringify(state)) } : {}), ...(expected !== undefined ? { p_expected: expected } : {}), p_delta: data.delta,
     });
     if (result.error) throw new Error("Tournament unavailable");
@@ -67,6 +78,11 @@ export async function performTournamentAction(data: { credential: GuestCredentia
       // REST broadcast: no socket handshake, so both clients get the refresh signal immediately.
       try { await channel.httpSend("refresh", {}); }
       finally { await supabaseAdmin.removeChannel(channel); }
+    }
+    // New races expose indices only; legacy in-flight races retain their original boards.
+    if (snapshot.match?.puzzle_indices) {
+      const { puzzles: _legacy, ...match } = snapshot.match;
+      snapshot = { ...snapshot, match };
     }
     return snapshot;
 }

@@ -7,7 +7,7 @@ import { applyTournamentSnapshot, getGuestCredential, saveGuestCredential, walle
 import { getProfile } from "@/lib/profile";
 import { getCoins, type Move } from "@/lib/puzzles";
 import { useI18n } from "@/lib/i18n";
-import { advanceRace, type GuestCredential, type RaceSnapshot } from "@/lib/tournament";
+import { advanceRace, resolveRacePuzzles, type GuestCredential, type RaceSnapshot } from "@/lib/tournament";
 
 type Action = "status" | "random" | "create" | "join" | "cancel" | "move" | "forfeit" | "leave";
 
@@ -42,7 +42,7 @@ export function useTournament() {
       let state = match[side];
       for (const move of queued.current) {
         if (!state) break;
-        const next = advanceRace(match.puzzles, state, move.id, move.direction, move.steps, state.elapsed);
+        const next = advanceRace(resolveRacePuzzles(match), state, move.id, move.direction, move.steps, state.elapsed);
         if (next.error) break;
         state = next.state;
       }
@@ -172,7 +172,7 @@ export function useTournament() {
       if (!current || Date.now() + clockOffset < Date.parse(match.started_at ?? "")) return;
 
       const next = advanceRace(
-        match.puzzles,
+        resolveRacePuzzles(match),
         current,
         id,
         direction,

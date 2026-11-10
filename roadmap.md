@@ -28,3 +28,8 @@
 - [x] Extract game and reward engines and mode-specific hooks; keep screens presentation-only.
 - [x] Apply tournament moves locally and serialize background synchronization without blocking gestures.
 - [x] Verify storage/reward/movement regressions, delayed-network gameplay, and existing modes.
+
+# Tournament puzzle indices
+- [x] Send three server-selected indices from a stable shared catalogue instead of puzzle objects.
+- [x] Update match storage, local resolution, and server move validation.
+- [x] Run regression tests and verify two guests receive identical boards.

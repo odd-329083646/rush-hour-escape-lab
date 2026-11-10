@@ -1,4 +1,5 @@
-import { applyMove, isSolved, type Car, type Move } from "@/lib/puzzles";
+import { applyMove, isSolved, type Car, type Move } from "@/engine/game";
+import { PUZZLES } from "@/engine/tournamentCatalogue";
 
 export const ENTRY_FEE = 50;
 export const WIN_REWARD = 90;
@@ -11,12 +12,35 @@ export type GuestCredential = { id: string; token: string };
 export type RaceGuest = { id: string; coins: number; wins: number; losses: number };
 export type RaceMatch = {
   id: string; a: string; b: string | null; private: boolean; room_code: string | null;
-  status: "waiting" | "playing" | "finished" | "cancelled"; puzzles: RacePuzzle[];
+  status: "waiting" | "playing" | "finished" | "cancelled"; puzzle_indices: number[] | null;
+  /** Read-only compatibility for matches created before index-based races. */
+  puzzles?: RacePuzzle[];
   a_state: RaceState; b_state: RaceState | null; a_name: string; a_country: string;
   b_name: string | null; b_country: string | null; started_at: string | null;
   winner: string | null; created_at: string; updated_at: string;
 };
 export type RaceSnapshot = { guest: RaceGuest; match: RaceMatch | null; serverNow: string; error?: string };
+
+export function resolveRacePuzzles(match: Pick<RaceMatch, "puzzle_indices" | "puzzles">): RacePuzzle[] {
+  if (match.puzzle_indices === null) return match.puzzles ?? [];
+  if (match.puzzle_indices.length !== 3) throw new Error("Three puzzle indices required");
+  return match.puzzle_indices.map((index) => {
+    const puzzle = PUZZLES[index];
+    if (!Number.isInteger(index) || index < 0 || !puzzle) throw new Error("Invalid puzzle index");
+    return puzzle;
+  });
+}
+
+export function pickRacePuzzleIndices(random: () => number = Math.random): number[] {
+  const available = PUZZLES.map((_, index) => index);
+  if (available.length < 3) throw new Error("Three puzzles required");
+  return Array.from({ length: 3 }, () => {
+    const position = Math.floor(random() * available.length);
+    const [index] = available.splice(position, 1);
+    if (index === undefined) throw new Error("Invalid random puzzle selection");
+    return index;
+  });
+}
 
 const red: Car = { id: "X", name: "X", color: "var(--car-red)", row: 2, col: 0, len: 2, dir: "h" };
 const truck: Car = { id: "O", name: "O", color: "var(--car-yellow)", row: 0, col: 3, len: 3, dir: "v" };
