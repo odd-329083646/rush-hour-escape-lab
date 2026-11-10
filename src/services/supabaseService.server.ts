@@ -13,7 +13,7 @@ export async function registerGuest(data: { username: string; country: string; c
     if (result.error || !result.data) throw new Error("Tournament unavailable");
     return { id: result.data.id, token };
 }
-export async function performTournamentAction(data: { credential: GuestCredential; action: "status" | "random" | "create" | "join" | "cancel" | "move" | "forfeit" | "leave"; code?: string | undefined; delta: number; username: string; country: string; move?: { id: string; direction: Move; steps: number } | undefined }) {
+export async function performTournamentAction(data: { credential: GuestCredential; action: "status" | "random" | "create" | "join" | "cancel" | "move" | "forfeit" | "leave"; code?: string | undefined; delta: number; username: string; country: string; move?: { id: string; direction: Move; steps: number } | undefined; moves?: { id: string; direction: Move; steps: number }[] | undefined }) {
     const tokenHash = await hashToken(data.credential.token);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // The capability is verified against its device guest before any match access or mutation.
@@ -22,16 +22,22 @@ export async function performTournamentAction(data: { credential: GuestCredentia
     if (data.action !== "move" && data.action !== "status") await supabaseAdmin.from("tournament_guests").update({ username: data.username, country: data.country }).eq("id", verified.data.id);
     let state = null;
     let expected: number | undefined;
-    if (data.action === "move" && data.move && verified.data.active_match) {
+    const moves = data.moves ?? (data.move ? [data.move] : []);
+    if (data.action === "move" && moves.length > 0 && verified.data.active_match) {
       const result = await supabaseAdmin.from("tournament_matches").select("*").eq("id", verified.data.active_match).single();
       const match = result.data as unknown as RaceMatch | null;
       if (!match || (match.a !== verified.data.id && match.b !== verified.data.id)) throw new Error("Invalid match");
       const current = match.a === verified.data.id ? match.a_state : match.b_state;
       if (!current) throw new Error("Invalid match");
       const elapsed = Math.max(0, Math.floor((Date.now() - Date.parse(match.started_at ?? "")) / 1000));
-      const next = advanceRace(match.puzzles, current, data.move.id, data.move.direction, data.move.steps, elapsed);
-      if (next.error) return { error: next.error };
-      state = next.state;
+      let advanced = current;
+      for (const move of moves) {
+        if (advanced.index >= 3) break;
+        const next = advanceRace(match.puzzles, advanced, move.id, move.direction, move.steps, elapsed);
+        if (next.error) return { error: next.error };
+        advanced = next.state;
+      }
+      state = advanced;
       expected = current.totalMoves;
     }
     let code = data.code;
