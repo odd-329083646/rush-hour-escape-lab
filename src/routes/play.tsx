@@ -55,10 +55,14 @@ function Play() {
       <div className="flex w-full max-w-sm flex-col gap-4">
         {(Object.keys(LEVELS) as Level[]).map((l) => {
           const progress = getSavedProgress(l);
-          const totalPuzzles = LEVELS[l]?.puzzles?.length ?? 0;
-          const solvedCount = Object.values(progress).filter(
-            (p) => (p.stars ?? 0) > 0
-          ).length;
+          const solvedIndices = Object.keys(progress)
+            .map(Number)
+            .filter((idx) => (progress[idx]?.stars ?? 0) > 0);
+
+          // מציאת השלב הגבוה ביותר שנפתר + 1 (במגבלת סך השלבים)
+          const maxSolvedIdx = solvedIndices.length > 0 ? Math.max(...solvedIndices) : -1;
+          const totalPuzzles = LEVELS[l]?.puzzles?.length ?? 1;
+          const currentLevelNum = Math.min(maxSolvedIdx + 2, totalPuzzles);
 
           return (
             <Link
@@ -69,7 +73,7 @@ function Play() {
             >
               <span>{t(`level.${l}`)}</span>
               <span className="chip px-2.5 py-0.5 text-xs font-mono font-semibold opacity-90">
-                {solvedCount}/{totalPuzzles}
+                {t("level", { n: currentLevelNum })}
               </span>
             </Link>
           );
