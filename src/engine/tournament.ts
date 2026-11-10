@@ -5,6 +5,7 @@ export const WIN_REWARD = 90;
 export const RANDOM_WAIT_MS = 15_000;
 export const ROOM_WAIT_MS = 30_000;
 export const COUNTDOWN_MS = 3_000;
+
 export type RacePuzzle = { par: number; cars: Car[] };
 export type RaceState = { index: number; moves: number; totalMoves: number; elapsed: number; cars: Car[] };
 export type GuestCredential = { id: string; token: string };
@@ -22,7 +23,6 @@ const red: Car = { id: "X", name: "X", color: "var(--car-red)", row: 2, col: 0, 
 const truck: Car = { id: "O", name: "O", color: "var(--car-yellow)", row: 0, col: 3, len: 3, dir: "v" };
 const blue: Car = { id: "A", name: "A", color: "var(--car-blue)", row: 2, col: 3, len: 2, dir: "v" };
 
-// Server-owned fallback pack; sessions store a snapshot rather than a mutable catalogue index.
 export function fallbackRacePuzzles(): RacePuzzle[] {
   return [
     { par: 2, cars: [{ ...red }, { ...truck }] },
@@ -35,12 +35,35 @@ export function normalizeRoomCode(code: string): string | null {
   const normalized = code.replace(/[\s-]/g, "");
   return /^\d{6}$/.test(normalized) ? normalized : null;
 }
-export function formatRoomCode(code: string): string { return `${code.slice(0, 3)}-${code.slice(3)}`; }
+export function formatRoomCode(code: string): string { 
+  return `${code.slice(0, 3)}-${code.slice(3)}`; 
+}
 
-export function advanceRace(puzzles: RacePuzzle[], state: RaceState, id: string, move: Move, steps: number, elapsed: number): { state: RaceState; error?: string } {
-  if (!Number.isInteger(steps) || steps < 1 || steps > 4 || state.index >= 3) return { state, error: "Invalid move" };
+export function advanceRace(
+  puzzles: RacePuzzle[], 
+  state: RaceState, 
+  id: string, 
+  move: Move, 
+  steps: number, 
+  elapsed: number
+): { state: RaceState; error?: string } {
+  if (!Number.isInteger(steps) || steps < 1 || steps > 4 || state.index >= 3) {
+    return { state, error: "Invalid move" };
+  }
+  
   const result = applyMove(state.cars, id, move, steps);
   if (result.error) return { state, error: result.error };
-  const index = state.index + (isSolved(result.cars) ? 1 : 0);
-  return { state: { index, totalMoves: state.totalMoves + 1, moves: index === state.index ? state.moves + 1 : 0, elapsed, cars: index === state.index ? result.cars : puzzles[index]?.cars ?? result.cars } };
+  
+  const puzzleSolved = isSolved(result.cars);
+  const nextIndex = state.index + (puzzleSolved ? 1 : 0);
+  
+  return {
+    state: {
+      index: nextIndex,
+      totalMoves: state.totalMoves + 1,
+      moves: puzzleSolved ? 0 : state.moves + 1,
+      elapsed,
+      cars: puzzleSolved ? (puzzles[nextIndex]?.cars ?? result.cars) : result.cars
+    }
+  };
 }
