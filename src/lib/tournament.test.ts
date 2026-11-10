@@ -1,12 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { advanceRace, COUNTDOWN_MS, ENTRY_FEE, fallbackRacePuzzles, normalizeRoomCode, RANDOM_WAIT_MS, ROOM_WAIT_MS, WIN_REWARD, type RaceState, type RaceSnapshot } from "./tournament";
+import { advanceRace, COUNTDOWN_MS, ENTRY_FEE, fallbackRacePuzzles, normalizeRoomCode, ROOM_WAIT_MS, WIN_REWARD, type RaceState, type RaceSnapshot } from "./tournament";
 import { minSolution, getCoins } from "./puzzles";
 import { applyTournamentSnapshot, saveGuestCredential, walletDelta } from "./tournament-device";
 
 beforeEach(() => localStorage.clear());
 it("charges 50 coins for entry", () => expect(ENTRY_FEE).toBe(50));
 it("awards 90 coins to the winner", () => expect(WIN_REWARD).toBe(90));
-it("waits 15 seconds before a bot match", () => expect(RANDOM_WAIT_MS).toBe(15000));
 it("expires friend rooms after 30 seconds", () => expect(ROOM_WAIT_MS).toBe(30000));
 it("counts down for three seconds before play", () => expect(COUNTDOWN_MS).toBe(3000));
 it("requires a six-digit friend room code", () => {

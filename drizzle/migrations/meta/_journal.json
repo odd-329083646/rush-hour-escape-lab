@@ -15,6 +15,13 @@
       "when": 1794256314441,
       "tag": "0001_guest_tournaments",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794332236968,
+      "tag": "0002_tournament_no_bots_fast_moves",
+      "breakpoints": true
     }
   ]
 }

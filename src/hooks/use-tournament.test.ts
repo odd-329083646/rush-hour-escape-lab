@@ -21,8 +21,8 @@ it("accepts another local move while its first server validation is still pendin
     guest: { id: "guest-a", coins: 100, wins: 0, losses: 0 }, serverNow: new Date().toISOString(),
     match: { id: "match", a: "guest-a", b: "guest-b", private: true, room_code: "123456", status: "playing", puzzles,
       a_state: { index: 0, moves: 0, totalMoves: 0, elapsed: 0, cars: first.cars }, b_state: null,
-      a_name: "A", a_country: "IL", b_name: "B", b_country: "IL", bot: false,
-      started_at: new Date(Date.now() - 5000).toISOString(), winner: null, bot_won: false,
+      a_name: "A", a_country: "IL", b_name: "B", b_country: "IL",
+      started_at: new Date(Date.now() - 5000).toISOString(), winner: null,
       created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
   };
   let resolveMove: ((value: RaceSnapshot) => void) | undefined;

@@ -28,6 +28,8 @@ export function useTournament() {
   const optimistic = useRef<RaceSnapshot | null>(null);
   const queued = useRef<{ id: string; direction: Move; steps: number }[]>([]);
   const recovering = useRef(false);
+  // Match id the player has finished locally; slower server snapshots may not revert it to playing.
+  const localWin = useRef<string | null>(null);
 
   const publish = useCallback((data: RaceSnapshot) => {
     authoritative.current = data;
@@ -58,6 +60,15 @@ export function useTournament() {
       };
     }
 
+    const won = localWin.current;
+    if (won && visible.match?.id === won && visible.match.status === "playing") {
+      const side = visible.match.a === data.guest.id ? "a_state" : "b_state";
+      const kept = optimistic.current?.match?.id === won ? optimistic.current.match[side] : visible.match[side];
+      visible = { ...visible, match: { ...visible.match, [side]: kept, status: "finished", winner: data.guest.id } };
+    }
+    // Once the server settles the match (or it is gone), its result is authoritative again.
+    if (won && data.match?.id !== won) localWin.current = null;
+    else if (won && data.match?.status !== "playing") localWin.current = null;
     optimistic.current = visible;
     if (alive.current) setSnapshot(visible);
   }, []);
@@ -65,6 +76,7 @@ export function useTournament() {
   const action = useCallback(
     async (kind: Action, options?: { code?: string; move?: { id: string; direction: Move; steps: number } }) => {
       if (!credential.current) return;
+      if (kind === "status" && queued.current.length > 0) return;
       if (locked.current) {
         if (kind === "status") return;
         while (locked.current && alive.current) await new Promise((resolve) => window.setTimeout(resolve, 15));
@@ -101,6 +113,7 @@ export function useTournament() {
         } else if (result.error) {
           if (kind === "move") {
             queued.current = [];
+            localWin.current = null;
             if (authoritative.current) publish(authoritative.current);
           }
           toast.error(
@@ -114,6 +127,7 @@ export function useTournament() {
       } catch {
         if (kind === "move") {
           queued.current = [];
+          localWin.current = null;
           recovering.current = true;
           if (authoritative.current) publish(authoritative.current);
         }
@@ -160,6 +174,7 @@ export function useTournament() {
 
       // זיהוי אופטימי מיידי: אם הגענו לשלב 3 - מקפיצים מנצח בלייב!
       const isWinningMove = next.state.index >= 3;
+      if (isWinningMove) localWin.current = match.id;
       const visible: RaceSnapshot = {
         ...data,
         match: {
@@ -174,14 +189,10 @@ export function useTournament() {
       setSnapshot(visible);
 
       // שידור מהיר לשרת: מהלך מנצח נשלח מיידית בעדיפות עליונה!
-      if (isWinningMove) {
-        queued.current = [];
-        void actionRef.current("move", { move });
-      } else {
-        moveChain.current = moveChain.current.then(async () => {
-          if (queued.current.includes(move)) await actionRef.current("move", { move });
-        });
-      }
+      // Moves stay ordered so the server's expected move count always matches; the win is already shown.
+      moveChain.current = moveChain.current.then(async () => {
+        if (queued.current.includes(move)) await actionRef.current("move", { move });
+      });
     },
     [clockOffset, te]
   );
