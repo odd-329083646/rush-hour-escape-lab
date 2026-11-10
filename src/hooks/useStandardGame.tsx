@@ -36,8 +36,6 @@ export function useStandardGame(level: Level) {
   const [started, setStarted] = useState(false);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
 
-
-
   const [plan, setPlan] = useState<Planned[]>([]);
   const [levelsOpen, setLevelsOpen] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -52,7 +50,7 @@ export function useStandardGame(level: Level) {
   const [collapsedTiers, setCollapsedTiers] = useState<Record<string, boolean>>({});
 
   const won = wonAt !== null;
-  // Re-render the idle hint in the newly chosen language.
+  
   useEffect(() => { if (!started) setMsg(t("msgStudy")); }, [lang]);
   const elapsed = startedAt ? Math.floor(((wonAt ?? now) - startedAt) / 1000) : 0;
   const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
@@ -206,59 +204,44 @@ export function useStandardGame(level: Level) {
     if (isSolved(r.cars)) markWon(moves + 1); else setMsg(t("msgMoved"));
   };
 
+  // 💡 הפונקציה המעודכנת והנקייה (ללא כפילויות)
   const submitPlan = async () => {
-  if (simulating || hints.peek) return;
-  if (!plan.length) return flash(t("needPlan"));
-  
-  setSimulating(true);
-  setHidden(new Set()); // חשיפת כל המכוניות לצורך הסימולציה
-  setMsg(t("msgSimulating"));
-
-  let currentCars = [...cars];
-
-  for (let i = 0; i < plan.length; i++) {
-    const p = plan[i];
-    if (!p) continue;
-    const r = applyMove(currentCars, p.id, p.move, p.steps);
+    if (simulating || hints.peek) return;
+    if (!plan.length) return flash(t("needPlan"));
     
-    if (r.error) {
-      // 1. נמתין חצי שנייה כדי שהשחקן יראה את הלוח נעצר בנקודת ההתנגשות
-      await new Promise((res) => setTimeout(res, 500));
-      // 2. רק עכשיו נעצק את הסימולציה ונציג את מסך הכישלון
-      setSimulating(false);
-      setFailed(true);
-      return;
-    }
-    
-    currentCars = r.cars;
-    setCars(currentCars);
-    setMoves(i + 1);
-    
-    // קצב האנימציה בין מהלכים תקינים (400 מילי-שניות)
-    await new Promise((res) => setTimeout(res, 400));
-  }
+    setSimulating(true);
+    setHidden(new Set()); // חשיפת המכוניות בסימולציה
+    setMsg(t("msgSimulating"));
 
-  // בסיום כל המהלכים – בדיקה אם הפתרון הביא לניצחון
-  if (isSolved(currentCars)) {
-    markWon(plan.length);
-  } else {
-    // השהייה קלה לפני הצגת מסך הכישלון בסוף כל המהלכים
-    await new Promise((res) => setTimeout(res, 400));
-    setFailed(true);
-  }
-  setSimulating(false);
-};
+    let currentStepCars = puzzle.cars.map((c) => ({ ...c }));
+
+    for (let i = 0; i < plan.length; i++) {
+      const p = plan[i];
+      if (!p) continue;
       
-      currentCars = r.cars;
-      setCars(currentCars);
+      const r = applyMove(currentStepCars, p.id, p.move, p.steps);
+      
+      if (r.error) {
+        // מציג את הרכב נתקע, מחכה חצי שנייה ורק אז מציג כישלון
+        setCars(currentStepCars.map((c) => ({ ...c })));
+        await new Promise((res) => setTimeout(res, 500));
+        setSimulating(false);
+        setFailed(true);
+        return;
+      }
+      
+      currentStepCars = r.cars;
+      // העתק עמוק של המכוניות כדי להכריח את React לרנדר את ה-DOM
+      setCars(currentStepCars.map((c) => ({ ...c })));
       setMoves(i + 1);
       
-      await new Promise((res) => setTimeout(res, 700));
+      await new Promise((res) => setTimeout(res, 400));
     }
 
-    if (isSolved(currentCars)) {
+    if (isSolved(currentStepCars)) {
       markWon(plan.length);
     } else {
+      await new Promise((res) => setTimeout(res, 400));
       setFailed(true);
     }
     setSimulating(false);
