@@ -1,10 +1,11 @@
 import { useStandardGame } from "@/hooks/useStandardGame";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, ChevronDown, ChevronUp, Coins, Eye, Home, Layers, Lightbulb, Lock, Play, Plus, RotateCcw, Send, Star, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
-import { LEVELS, IS_OFFLINE_MODE, getCoins, TIERS, type Car, type Level, type Move } from "@/lib/puzzles";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, ChevronDown, ChevronUp, Eye, Home, Layers, Lightbulb, Lock, Play, Plus, RotateCcw, Send, Star, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
+import { LEVELS, IS_OFFLINE_MODE, TIERS, type Car, type Level, type Move } from "@/lib/puzzles";
 import { Button } from "@/components/ui/button";
 import { SettingsButton } from "@/components/settings-dialog";
 import { HintSelection } from "@/components/hint-selection";
+import { CoinsBadge } from "@/components/coins-badge";
 
 export const Route = createFileRoute("/game/$level")({
   beforeLoad: ({ params }) => {
@@ -33,11 +34,10 @@ const DIRS: { m: Move; Icon: typeof ArrowUp; cls: string }[] = [
   { m: "down", Icon: ArrowDown, cls: "col-start-2 row-start-3" },
 ];
 const ARROW: Record<Move, string> = { up: "↑", down: "↓", left: "←", right: "→" };
-type Planned = { id: string; move: Move; steps: number };
 
 function Game() {
   const { level } = Route.useParams() as { level: Level };
-  const { openHints, tiers, drawRandom, t, murderer, puzzles, idx, puzzle, cars, moves, sel, setSel, move, setMove, steps, setSteps, msg, warn, started, hidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, simulating, invisibleBumps, wonStars, coins, setCoinsState, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, won, clock, progress, toggleTier, formatTime, loadPuzzle, jumpTo, start, useHint, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, handlePointerDown, handlePointerMove, handlePointerUp } = useStandardGame(level);
+  const { openHints, tiers, drawRandom, t, murderer, idx, puzzle, cars, moves, sel, setSel, move, setMove, steps, setSteps, msg, warn, started, hidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, simulating, invisibleBumps, wonStars, coins, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, won, clock, progress, toggleTier, formatTime, loadPuzzle, jumpTo, start, useHint, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, handlePointerDown, handlePointerMove, handlePointerUp } = useStandardGame(level);
 
   const carBtn = (c: Car) => (
     <Button variant="ghost" key={c.id} onClick={() => setSel(c.id)} data-active={sel === c.id} title={c.name} className="palette-cell" disabled={simulating}>
@@ -67,7 +67,7 @@ function Game() {
       )}
 
       <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2 overflow-x-auto">
-        {/* קבוצת כפתורי ניווט שמאלית - בית (אייקון בלבד) וכפתור חזור */}
+        {/* קבוצת כפתורי ניווט שמאלית - בית וכפתור חזור */}
         <div className="flex shrink-0 items-center gap-2">
           <Button asChild variant="ghost" className="chip px-2 sm:px-2.5" disabled={simulating}>
             <Link to="/" aria-label={t("backHome")} title={t("backHome")}>
@@ -87,15 +87,13 @@ function Game() {
           </Button>
         </div>
 
-        <h1 className="min-w-0 truncate font-display text-sm font-bold md:text-xl">{t(`level.${level}`)} <span className="text-muted-foreground">· {t("level", { n: idx + 1 })}</span></h1>
+        <h1 className="min-w-0 truncate font-display text-sm font-bold md:text-xl">
+          {t(`level.${level}`)} <span className="text-muted-foreground">· {t("level", { n: idx + 1 })}</span>
+        </h1>
         
         {/* קבוצת כפתורי שליטה ימינית - מטבעות, שלבים, איפוס והגדרות */}
         <div className="flex shrink-0 items-center gap-2">
-          {/* מאזן מטבעות */}
-          <div className="chip font-display flex items-center gap-1.5 px-2.5 py-1 text-amber-400 border border-amber-500/30 bg-amber-500/10 rounded-full" title={t("coins")}>
-            <Coins className="h-4 w-4 text-amber-400 fill-amber-400" />
-            <span className="font-bold">{coins}</span>
-          </div>
+          <CoinsBadge />
 
           <Button variant="ghost" onClick={() => setLevelsOpen(true)} aria-label={t("chooseLevel")} title={t("chooseLevel")} className="chip px-2 sm:px-3.5" disabled={simulating}>
             <Layers className="h-4 w-4" />
@@ -125,7 +123,7 @@ function Game() {
                    </Button>
                 ))}
 
-                {/* כפתור רמז במרכז החיצים (שורה 2, עמודה 2) */}
+                {/* כפתור רמז במרכז החיצים */}
                 <Button
                   onClick={openHints}
                   variant="outline"
@@ -147,7 +145,6 @@ function Game() {
               </div>
             </div>
 
-            {/* כפתור בצע - מופעל ומוצג תמיד לכל רמות המשחק */}
             <Button onClick={execute} disabled={won || simulating} className="execute mt-1">
               {murderer ? <Plus className="h-4 w-4 shrink-0" /> : <Play className="h-4 w-4 shrink-0" />}
               <span>{murderer ? t("addMove") : t("execute")}</span>
