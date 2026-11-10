@@ -275,9 +275,15 @@ function Competitions() {
                 >
                   {t("playAgain")}
                 </Button>
-                <Button asChild variant="outline">
-                  <Link to="/">{t("backHome")}</Link>
-                </Button>
+                <Button
+  variant="outline"
+  disabled={busy}
+  onClick={async () => {
+    await dismiss();
+  }}
+>
+  <Link to="/">{t("backHome")}</Link>
+</Button>
               </div>
             </>
           ) : (
