@@ -66,21 +66,29 @@ function Game() {
       )}
 
       <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2 overflow-x-auto">
-        {/* קבוצת כפתורי ניווט שמאלית - בית ואפשרות חזרה לשלבים */}
+        {/* קבוצת כפתורי ניווט שמאלית - בית (אייקון בלבד) וכפתור חזור */}
         <div className="flex shrink-0 items-center gap-2">
           <Button asChild variant="ghost" className="chip px-2 sm:px-2.5" disabled={simulating}>
             <Link to="/" aria-label={t("backHome")} title={t("backHome")}>
               <Home className="h-4 w-4" />
             </Link>
           </Button>
-          <Button variant="ghost" onClick={() => setLevelsOpen(true)} aria-label={t("chooseLevel")} title={t("chooseLevel")} className="chip px-2 sm:px-3.5" disabled={simulating}>
+          <Button
+            variant="ghost"
+            onClick={() => window.history.back()}
+            aria-label={t("back")}
+            title={t("back")}
+            className="chip px-2 sm:px-3.5 gap-1.5"
+            disabled={simulating}
+          >
             <ArrowRight className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("levels")}</span>
+            <span className="hidden sm:inline">{t("back")}</span>
           </Button>
         </div>
 
         <h1 className="min-w-0 truncate font-display text-sm font-bold md:text-xl">{t(`level.${level}`)} <span className="text-muted-foreground">· {t("level", { n: idx + 1 })}</span></h1>
         
+        {/* קבוצת כפתורי שליטה ימינית - מטבעות, שלבים, איפוס והגדרות */}
         <div className="flex shrink-0 items-center gap-2">
           {/* מאזן מטבעות */}
           <div className="chip font-display flex items-center gap-1.5 px-2.5 py-1 text-amber-400 border border-amber-500/30 bg-amber-500/10 rounded-full" title={t("coins")}>
@@ -88,7 +96,14 @@ function Game() {
             <span className="font-bold">{coins}</span>
           </div>
 
-          <Button variant="ghost" onClick={() => loadPuzzle(idx)} aria-label={t("reset")} title={t("reset")} className="chip px-2 sm:px-3.5" disabled={simulating}><RotateCcw className="h-4 w-4" /><span className="hidden sm:inline">{t("reset")}</span></Button>
+          <Button variant="ghost" onClick={() => setLevelsOpen(true)} aria-label={t("chooseLevel")} title={t("chooseLevel")} className="chip px-2 sm:px-3.5" disabled={simulating}>
+            <Layers className="h-4 w-4" />
+            <span className="hidden sm:inline">{t("levels")}</span>
+          </Button>
+          <Button variant="ghost" onClick={() => loadPuzzle(idx)} aria-label={t("reset")} title={t("reset")} className="chip px-2 sm:px-3.5" disabled={simulating}>
+            <RotateCcw className="h-4 w-4" />
+            <span className="hidden sm:inline">{t("reset")}</span>
+          </Button>
           <SettingsButton />
         </div>
       </header>
