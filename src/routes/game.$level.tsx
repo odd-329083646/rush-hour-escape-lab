@@ -155,7 +155,7 @@ function Game() {
                   data-hidden={hidden.has(c.id) && !boardRevealed}
                   data-escaping={won && c.id === "X"}
                   aria-label={hidden.has(c.id) && !boardRevealed ? t("hiddenCar") : c.name}
-                  className="car touch-none select-none"
+                  className="car h-auto min-w-0 touch-none select-none p-0 hover:bg-transparent"
                   style={{
                     background: c.color,
                     gridRow: `${c.row + 1} / span ${c.dir === "v" ? c.len : 1}`,
