@@ -19,7 +19,7 @@ export async function performTournamentAction(data: { credential: GuestCredentia
     // The capability is verified against its device guest before any match access or mutation.
     const verified = await supabaseAdmin.from("tournament_guests").select("id,active_match").eq("id", data.credential.id).eq("token_hash", tokenHash).single();
     if (verified.error || !verified.data) throw new Error("Invalid guest");
-    await supabaseAdmin.from("tournament_guests").update({ username: data.username, country: data.country }).eq("id", verified.data.id);
+    if (data.action !== "move" && data.action !== "status") await supabaseAdmin.from("tournament_guests").update({ username: data.username, country: data.country }).eq("id", verified.data.id);
     let state = null;
     let expected: number | undefined;
     if (data.action === "move" && data.move && verified.data.active_match) {
@@ -50,7 +50,7 @@ export async function performTournamentAction(data: { credential: GuestCredentia
     });
     if (result.error) throw new Error("Tournament unavailable");
     let snapshot = result.data as unknown as RaceSnapshot;
-    if (snapshot.error) {
+    if (snapshot.error && data.action !== "move") {
       const refreshed = await supabaseAdmin.rpc("tournament_action", { p_guest: verified.data.id, p_hash: tokenHash, p_action: "status", p_delta: 0 });
       if (refreshed.error) throw new Error("Tournament unavailable");
       snapshot = { ...(refreshed.data as unknown as RaceSnapshot), error: snapshot.error };
@@ -58,7 +58,8 @@ export async function performTournamentAction(data: { credential: GuestCredentia
     if (snapshot.match && data.action !== "status") {
       // Public capability topics carry only a refresh signal, never names, boards, balances or credentials.
       const channel = supabaseAdmin.channel(`race-${snapshot.match.id}`);
-      try { await channel.send({ type: "broadcast", event: "refresh", payload: {} }); }
+      // REST broadcast: no socket handshake, so both clients get the refresh signal immediately.
+      try { await channel.httpSend("refresh", {}); }
       finally { await supabaseAdmin.removeChannel(channel); }
     }
     return snapshot;

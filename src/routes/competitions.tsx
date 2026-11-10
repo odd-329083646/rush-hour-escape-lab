@@ -118,8 +118,7 @@ function Competitions() {
             </div>
             <div className="min-w-0 text-right">
               <p className="truncate font-semibold">
-                {opponentCountry ? flag(opponentCountry) : ""} {opponentName}{" "}
-                {match.bot && <span className="text-xs text-muted-foreground">· {t("raceBot")}</span>}
+                {opponentCountry ? flag(opponentCountry) : ""} {opponentName}
               </p>
               <p className="text-xs text-muted-foreground">
                 {opponent?.index === 3
@@ -207,7 +206,7 @@ function Competitions() {
               <DialogTitle className="font-display text-xl">
                 {t(match.private ? "raceWaiting" : "raceSearching")}
               </DialogTitle>
-              <DialogDescription>{t("raceWaitRemaining", { n: waitRemaining })}</DialogDescription>
+              {match.private && <DialogDescription>{t("raceWaitRemaining", { n: waitRemaining })}</DialogDescription>}
               {match.room_code && (
                 <div className="flex items-center justify-center gap-2">
                   <strong className="font-display text-4xl text-primary">

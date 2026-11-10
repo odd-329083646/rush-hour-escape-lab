@@ -50,7 +50,8 @@ export function useCompetitions() {
 
   const waitRemaining = useMemo(() => {
     if (!match?.created_at) return 0;
-    const limit = match.private ? 30000 : 15000;
+    if (!match.private) return 0;
+    const limit = 30000;
     return Math.max(0, Math.ceil((limit - serverNow + Date.parse(match.created_at)) / 1000));
   }, [match?.created_at, match?.private, serverNow]);
 
