@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { LEVELS, type Level } from "@/lib/puzzles";
+import { LEVELS, getSavedProgress, type Level } from "@/lib/puzzles";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import { SettingsButton } from "@/components/settings-dialog";
@@ -29,6 +29,7 @@ export const Route = createFileRoute("/play")({
 
 function Play() {
   const { t } = useI18n();
+
   return (
     <main className="lot-bg flex min-h-dvh flex-col items-center justify-center gap-8 px-5 py-10">
       <header className="flex w-full max-w-sm items-center justify-between">
@@ -52,11 +53,27 @@ function Play() {
       </div>
 
       <div className="flex w-full max-w-sm flex-col gap-4">
-        {(Object.keys(LEVELS) as Level[]).map((l) => (
-          <Link key={l} to="/game/$level" params={{ level: l }} className="level-btn">
-            <span>{t(`level.${l}`)}</span>
-          </Link>
-        ))}
+        {(Object.keys(LEVELS) as Level[]).map((l) => {
+          const progress = getSavedProgress(l);
+          const totalPuzzles = LEVELS[l]?.puzzles?.length ?? 0;
+          const solvedCount = Object.values(progress).filter(
+            (p) => (p.stars ?? 0) > 0
+          ).length;
+
+          return (
+            <Link
+              key={l}
+              to="/game/$level"
+              params={{ level: l }}
+              className="level-btn flex items-center justify-between px-5"
+            >
+              <span>{t(`level.${l}`)}</span>
+              <span className="chip px-2.5 py-0.5 text-xs font-mono font-semibold opacity-90">
+                {solvedCount}/{totalPuzzles}
+              </span>
+            </Link>
+          );
+        })}
       </div>
     </main>
   );
