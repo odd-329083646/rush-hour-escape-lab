@@ -90,6 +90,7 @@ export type Database = {
           created_at: string
           id: string
           private: boolean
+          puzzle_indices: number[] | null
           puzzles: Json
           room_code: string | null
           settled: boolean
@@ -113,6 +114,7 @@ export type Database = {
           created_at?: string
           id?: string
           private?: boolean
+          puzzle_indices?: number[] | null
           puzzles: Json
           room_code?: string | null
           settled?: boolean
@@ -136,6 +138,7 @@ export type Database = {
           created_at?: string
           id?: string
           private?: boolean
+          puzzle_indices?: number[] | null
           puzzles?: Json
           room_code?: string | null
           settled?: boolean
