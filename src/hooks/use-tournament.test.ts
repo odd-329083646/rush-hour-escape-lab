@@ -19,7 +19,7 @@ it("accepts another local move while its first server validation is still pendin
   if (!first) throw new Error("Missing fixture");
   const snapshot: RaceSnapshot = {
     guest: { id: "guest-a", coins: 100, wins: 0, losses: 0 }, serverNow: new Date().toISOString(),
-    match: { id: "match", a: "guest-a", b: "guest-b", private: true, room_code: "123456", status: "playing", puzzles,
+    match: { id: "match", a: "guest-a", b: "guest-b", private: true, room_code: "123456", status: "playing", puzzle_indices: null, puzzles,
       a_state: { index: 0, moves: 0, totalMoves: 0, elapsed: 0, cars: first.cars }, b_state: null,
       a_name: "A", a_country: "IL", b_name: "B", b_country: "IL",
       started_at: new Date(Date.now() - 5000).toISOString(), winner: null,
@@ -46,7 +46,7 @@ it("sends moves made during a pending request together in the next single reques
   const first = puzzles[0]!;
   const snapshot: RaceSnapshot = {
     guest: { id: "guest-a", coins: 100, wins: 0, losses: 0 }, serverNow: new Date().toISOString(),
-    match: { id: "match", a: "guest-a", b: "guest-b", private: true, room_code: "123456", status: "playing", puzzles,
+    match: { id: "match", a: "guest-a", b: "guest-b", private: true, room_code: "123456", status: "playing", puzzle_indices: null, puzzles,
       a_state: { index: 0, moves: 0, totalMoves: 0, elapsed: 0, cars: first.cars }, b_state: null,
       a_name: "A", a_country: "IL", b_name: "B", b_country: "IL",
       started_at: new Date(Date.now() - 5000).toISOString(), winner: null,

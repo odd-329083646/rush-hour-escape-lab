@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { advanceRace, COUNTDOWN_MS, ENTRY_FEE, fallbackRacePuzzles, normalizeRoomCode, ROOM_WAIT_MS, WIN_REWARD, type RaceState, type RaceSnapshot } from "./tournament";
-import { minSolution, getCoins } from "./puzzles";
+import { minSolution, getCoins, PUZZLES, setPuzzleCatalogue } from "./puzzles";
+import { pickRacePuzzleIndices, resolveRacePuzzles } from "./tournament";
 import { applyTournamentSnapshot, saveGuestCredential, walletDelta } from "./tournament-device";
 
 beforeEach(() => localStorage.clear());
@@ -14,6 +15,24 @@ it("requires a six-digit friend room code", () => {
   expect(normalizeRoomCode("1234567")).toBeNull();
 });
 describe("three-puzzle race", () => {
+  it("selects exactly three distinct valid catalogue indices", () => {
+    const indices = pickRacePuzzleIndices(() => 0.5);
+    expect(indices).toHaveLength(3);
+    expect(new Set(indices).size).toBe(3);
+    for (const index of indices) expect(PUZZLES[index]).toBeDefined();
+  });
+  it("resolves the same three indices for both players independently of regular-game loading", () => {
+    const indices = [0, 12, 245];
+    const host = resolveRacePuzzles({ puzzle_indices: indices });
+    setPuzzleCatalogue(fallbackRacePuzzles(), false);
+    const guest = resolveRacePuzzles({ puzzle_indices: [...indices] });
+    expect(guest).toEqual(host);
+    expect(host).toEqual(indices.map((index) => PUZZLES[index]));
+  });
+  it("rejects invalid or incomplete puzzle indices rather than substituting different boards", () => {
+    expect(() => resolveRacePuzzles({ puzzle_indices: [0, 1] })).toThrow();
+    expect(() => resolveRacePuzzles({ puzzle_indices: [0, 1, PUZZLES.length] })).toThrow();
+  });
   it("supplies exactly three solvable puzzles", () => {
     const puzzles = fallbackRacePuzzles();
     expect(puzzles).toHaveLength(3);
