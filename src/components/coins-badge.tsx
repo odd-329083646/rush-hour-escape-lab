@@ -1,12 +1,13 @@
 import { Coins } from "lucide-react";
+import { useCoins } from "@/hooks/useCoins";
 import { useI18n } from "@/lib/i18n";
 
 interface CoinsBadgeProps {
-  coins: number;
   className?: string;
 }
 
-export function CoinsBadge({ coins, className = "" }: CoinsBadgeProps) {
+export function CoinsBadge({ className = "" }: CoinsBadgeProps) {
+  const coins = useCoins();
   const { t } = useI18n();
 
   return (
