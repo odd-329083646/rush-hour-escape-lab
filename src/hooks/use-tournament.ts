@@ -10,6 +10,7 @@ import { useI18n } from "@/lib/i18n";
 import { advanceRace, type GuestCredential, type RaceSnapshot } from "@/lib/tournament";
 
 type Action = "status" | "random" | "create" | "join" | "cancel" | "move" | "forfeit" | "leave";
+
 export function useTournament() {
   const register = useServerFn(registerTournamentGuest);
   const invoke = useServerFn(tournamentAction);
@@ -27,10 +28,13 @@ export function useTournament() {
   const optimistic = useRef<RaceSnapshot | null>(null);
   const queued = useRef<{ id: string; direction: Move; steps: number }[]>([]);
   const recovering = useRef(false);
+
   const publish = useCallback((data: RaceSnapshot) => {
     authoritative.current = data;
     let visible = data;
     const match = data.match;
+
+    // אם המשחק עדיין פעיל בשרת, נסנכרן מהלכים עומדים בתור
     if (match?.status === "playing") {
       const side = match.a === data.guest.id ? "a_state" : "b_state";
       let state = match[side];
@@ -40,92 +44,193 @@ export function useTournament() {
         if (next.error) break;
         state = next.state;
       }
-      visible = { ...data, match: { ...match, [side]: state } };
+
+      // בדיקה: אם בעקבות המהלכים המקומיים הגענו ל-3 שלבים - נעדכן אופטימית לניצחון!
+      const isFinishedOptimistically = state && state.index >= 3;
+      visible = {
+        ...data,
+        match: {
+          ...match,
+          [side]: state,
+          status: isFinishedOptimistically ? "finished" : match.status,
+          winner: isFinishedOptimistically ? data.guest.id : match.winner,
+        },
+      };
     }
+
     optimistic.current = visible;
     if (alive.current) setSnapshot(visible);
   }, []);
-  const action = useCallback(async (kind: Action, options?: { code?: string; move?: { id: string; direction: Move; steps: number } }) => {
-    if (!credential.current) return;
-    if (locked.current) {
-      if (kind === "status") return;
-      while (locked.current && alive.current) await new Promise((resolve) => window.setTimeout(resolve, 25));
-      if (!alive.current) return;
-    }
-    locked.current = true;
-    if (kind !== "status") setBusy(true);
-    const balance = getCoins();
-    try {
-      const profile = getProfile();
-      const result = await invoke({ data: { credential: credential.current, action: kind, delta: walletDelta(), username: profile.username, country: profile.country, ...options } });
-      if ("guest" in result && result.guest) {
-        const data = result as RaceSnapshot;
-        applyTournamentSnapshot(data, balance);
-        if (alive.current) {
-          setClockOffset(Date.parse(data.serverNow) - Date.now());
-          if (kind === "move") queued.current.shift();
-          if (recovering.current || data.match?.status !== "playing") { queued.current = []; recovering.current = false; }
-          publish(data);
+
+  const action = useCallback(
+    async (kind: Action, options?: { code?: string; move?: { id: string; direction: Move; steps: number } }) => {
+      if (!credential.current) return;
+      if (locked.current) {
+        if (kind === "status") return;
+        while (locked.current && alive.current) await new Promise((resolve) => window.setTimeout(resolve, 15));
+        if (!alive.current) return;
+      }
+      locked.current = true;
+      if (kind !== "status") setBusy(true);
+      const balance = getCoins();
+      try {
+        const profile = getProfile();
+        const result = await invoke({
+          data: {
+            credential: credential.current,
+            action: kind,
+            delta: walletDelta(),
+            username: profile.username,
+            country: profile.country,
+            ...options,
+          },
+        });
+        if ("guest" in result && result.guest) {
+          const data = result as RaceSnapshot;
+          applyTournamentSnapshot(data, balance);
+          if (alive.current) {
+            setClockOffset(Date.parse(data.serverNow) - Date.now());
+            if (kind === "move") queued.current.shift();
+            if (recovering.current || data.match?.status !== "playing") {
+              queued.current = [];
+              recovering.current = false;
+            }
+            publish(data);
+          }
+          if (data.error) toast.error(data.error === "coins" ? t("raceNeedCoins") : t("raceUnavailable"));
+        } else if (result.error) {
+          if (kind === "move") {
+            queued.current = [];
+            if (authoritative.current) publish(authoritative.current);
+          }
+          toast.error(
+            result.error === "coins"
+              ? t("raceNeedCoins")
+              : result.error === "unavailable"
+              ? t("raceUnavailable")
+              : te(result.error)
+          );
         }
-        if (data.error) toast.error(data.error === "coins" ? t("raceNeedCoins") : t("raceUnavailable"));
-      } else if (result.error) {
-        if (kind === "move") { queued.current = []; if (authoritative.current) publish(authoritative.current); }
-        toast.error(result.error === "coins" ? t("raceNeedCoins") : result.error === "unavailable" ? t("raceUnavailable") : te(result.error));
+      } catch {
+        if (kind === "move") {
+          queued.current = [];
+          recovering.current = true;
+          if (authoritative.current) publish(authoritative.current);
+        }
+        if (kind !== "status") toast.error(t("raceConnectionError"));
+      } finally {
+        locked.current = false;
+        if (alive.current) {
+          setBusy(false);
+          setReady(true);
+        }
       }
-    } catch {
-      if (kind === "move") {
-        // Unknown delivery: do not replay a potentially accepted move. Recover from authority.
-        queued.current = []; recovering.current = true;
-        if (authoritative.current) publish(authoritative.current);
-      }
-      if (kind !== "status") toast.error(t("raceConnectionError"));
-    } finally {
-      locked.current = false;
-      if (alive.current) { setBusy(false); setReady(true); }
-    }
-  }, [invoke, t, te, publish]);
+    },
+    [invoke, t, te, publish]
+  );
+
   const actionRef = useRef(action);
   actionRef.current = action;
   const moveChain = useRef(Promise.resolve());
-  const commitMove = useCallback((id: string, direction: Move, steps: number) => {
-    const data = optimistic.current;
-    const match = data?.match;
-    if (!data || !match || match.status !== "playing" || recovering.current) return;
-    const side = match.a === data.guest.id ? "a_state" : "b_state";
-    const current = match[side];
-    if (!current || Date.now() + clockOffset < Date.parse(match.started_at ?? "")) return;
-    const next = advanceRace(match.puzzles, current, id, direction, steps, Math.max(0, Math.floor((Date.now() + clockOffset - Date.parse(match.started_at ?? "")) / 1000)));
-    if (next.error) { toast.error(te(next.error)); return; }
-    const move = { id, direction, steps };
-    queued.current.push(move);
-    const visible = { ...data, match: { ...match, [side]: next.state } };
-    optimistic.current = visible;
-    setSnapshot(visible);
-    moveChain.current = moveChain.current.then(async () => {
-      if (queued.current.includes(move)) await actionRef.current("move", { move });
-    });
-  }, [clockOffset, te]);
+
+  const commitMove = useCallback(
+    (id: string, direction: Move, steps: number) => {
+      const data = optimistic.current;
+      const match = data?.match;
+      if (!data || !match || match.status !== "playing" || recovering.current) return;
+      const side = match.a === data.guest.id ? "a_state" : "b_state";
+      const current = match[side];
+      if (!current || Date.now() + clockOffset < Date.parse(match.started_at ?? "")) return;
+
+      const next = advanceRace(
+        match.puzzles,
+        current,
+        id,
+        direction,
+        steps,
+        Math.max(0, Math.floor((Date.now() + clockOffset - Date.parse(match.started_at ?? "")) / 1000))
+      );
+      if (next.error) {
+        toast.error(te(next.error));
+        return;
+      }
+
+      const move = { id, direction, steps };
+      queued.current.push(move);
+
+      // זיהוי אופטימי מיידי: אם הגענו לשלב 3 - מקפיצים מנצח בלייב!
+      const isWinningMove = next.state.index >= 3;
+      const visible: RaceSnapshot = {
+        ...data,
+        match: {
+          ...match,
+          [side]: next.state,
+          status: isWinningMove ? "finished" : match.status,
+          winner: isWinningMove ? data.guest.id : match.winner,
+        },
+      };
+
+      optimistic.current = visible;
+      setSnapshot(visible);
+
+      // שידור מהיר לשרת: מהלך מנצח נשלח מיידית בעדיפות עליונה!
+      if (isWinningMove) {
+        queued.current = [];
+        void actionRef.current("move", { move });
+      } else {
+        moveChain.current = moveChain.current.then(async () => {
+          if (queued.current.includes(move)) await actionRef.current("move", { move });
+        });
+      }
+    },
+    [clockOffset, te]
+  );
+
   useEffect(() => {
     alive.current = true;
-    if (!initialization.current) initialization.current = (async () => {
-      const existing = getGuestCredential();
-      if (existing) return existing;
-      const profile = getProfile();
-      const guest = await register({ data: { ...profile, coins: Math.min(100000, Math.max(0, getCoins())) } });
-      saveGuestCredential(guest);
-      return guest;
-    })();
-    void initialization.current.then(async (guest) => {
-      credential.current = guest;
-      if (alive.current) await actionRef.current("status");
-    }).catch(() => { if (alive.current) { setReady(true); toast.error(t("raceConnectionError")); } });
-    const poll = window.setInterval(() => { if (alive.current) void actionRef.current("status"); }, 1000);
-    return () => { alive.current = false; window.clearInterval(poll); };
+    if (!initialization.current)
+      initialization.current = (async () => {
+        const existing = getGuestCredential();
+        if (existing) return existing;
+        const profile = getProfile();
+        const guest = await register({ data: { ...profile, coins: Math.min(100000, Math.max(0, getCoins())) } });
+        saveGuestCredential(guest);
+        return guest;
+      })();
+    void initialization.current
+      .then(async (guest) => {
+        credential.current = guest;
+        if (alive.current) await actionRef.current("status");
+      })
+      .catch(() => {
+        if (alive.current) {
+          setReady(true);
+          toast.error(t("raceConnectionError"));
+        }
+      });
+    const poll = window.setInterval(() => {
+      if (alive.current) void actionRef.current("status");
+    }, 1000);
+    return () => {
+      alive.current = false;
+      window.clearInterval(poll);
+    };
   }, [register]);
+
   const matchId = snapshot?.match?.id;
   useEffect(() => {
-    if (!matchId) { setConnected(false); return; }
-    return subscribeRace(matchId, () => { void actionRef.current("status"); }, setConnected);
+    if (!matchId) {
+      setConnected(false);
+      return;
+    }
+    return subscribeRace(
+      matchId,
+      () => {
+        void actionRef.current("status");
+      },
+      setConnected
+    );
   }, [matchId]);
+
   return { snapshot, busy, ready, connected, clockOffset, action, commitMove };
 }
