@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { type Car, type Move } from "@/lib/puzzles";
 import { translate } from "@/lib/i18n";
+import { CoinsBadge } from "@/components/coins-badge";
 
 export const Route = createFileRoute("/tutorial")({
   head: () => ({
@@ -31,10 +32,21 @@ export function Tutorial() {
   return (
     <main className="tutorial lot-bg flex h-dvh flex-col items-center gap-3 overflow-hidden px-3 py-3">
       <header className="flex w-full max-w-3xl items-center justify-between gap-2">
-        <Button asChild variant="ghost" className="chip px-3"><Link to="/" aria-label={t("backMenu")}><Home className="h-4 w-4" /><span className="hidden sm:inline">{t("menu")}</span></Link></Button>
+        <Button asChild variant="ghost" className="chip px-3">
+          <Link to="/" aria-label={t("backMenu")}>
+            <Home className="h-4 w-4" />
+            <span className="hidden sm:inline">{t("menu")}</span>
+          </Link>
+        </Button>
         <h1 className="font-display text-xl font-bold">{t("tutorial")}</h1>
-        <span className="chip px-3 py-1 text-xs">{t("tutLesson", { n: step + 1 })}</span>
+        
+        {/* קבוצה ימנית: תג מטבעות ומספר שיעור */}
+        <div className="flex items-center gap-2">
+          <CoinsBadge />
+          <span className="chip px-3 py-1 text-xs">{t("tutLesson", { n: step + 1 })}</span>
+        </div>
       </header>
+
       {phase === "play" && lesson && <LessonView key={step} lesson={lesson} onNext={next} />}
       <Dialog open={phase !== null && phase !== "play"}>
         <DialogContent className="w-[calc(100%-2rem)] max-w-lg rounded-lg border-border bg-card text-center [&>button:last-child]:hidden" dir="ltr" onEscapeKeyDown={(event) => event.preventDefault()} onPointerDownOutside={(event) => event.preventDefault()}>
