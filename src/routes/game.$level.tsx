@@ -38,6 +38,7 @@ type Planned = { id: string; move: Move; steps: number };
 function Game() {
   const { level } = Route.useParams() as { level: Level };
   const { openHints, tiers, drawRandom, t, murderer, puzzles, idx, puzzle, cars, moves, sel, setSel, move, setMove, steps, setSteps, msg, warn, started, hidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, simulating, invisibleBumps, wonStars, coins, setCoinsState, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, won, clock, progress, toggleTier, formatTime, loadPuzzle, jumpTo, start, useHint, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, handlePointerDown, handlePointerMove, handlePointerUp } = useStandardGame(level);
+
   const carBtn = (c: Car) => (
     <Button variant="ghost" key={c.id} onClick={() => setSel(c.id)} data-active={sel === c.id} title={c.name} className="palette-cell" disabled={simulating}>
       <span className="h-3 rounded-sm" style={{ background: c.color, width: c.len === 3 ? "2.5rem" : "1.5rem" }} />
