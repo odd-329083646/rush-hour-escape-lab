@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { useEffect, useState } from "react";
-import { LEVELS, getSavedProgress, type Level } from "@/lib/puzzles";
+import { LEVELS, type Level } from "@/lib/puzzles";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import { SettingsButton } from "@/components/settings-dialog";
@@ -30,36 +29,6 @@ export const Route = createFileRoute("/play")({
 
 function Play() {
   const { t } = useI18n();
-  const [progressMap, setProgressMap] = useState<Record<string, Record<number, any>>>({});
-
-  // טעינת ההתקדמות מ-localStorage לאחר טעינת הרכיב בדפדפן
-  useEffect(() => {
-    const map: Record<string, Record<number, any>> = {};
-    (Object.keys(LEVELS) as Level[]).forEach((l) => {
-      map[l] = getSavedProgress(l) || {};
-    });
-    setProgressMap(map);
-  }, []);
-
-  // חישוב השלב הנוכחי עבור רמת קושי מסוימת
-  const getCurrentLevel = (l: Level) => {
-    const progress = progressMap[l] || {};
-    const totalPuzzles = LEVELS[l]?.puzzles?.length ?? 1;
-
-    // סינון כל השלבים שצברו כוכבים (> 0)
-    const solvedIndices = Object.entries(progress)
-      .filter(([_, stats]) => stats && (stats.stars ?? 0) > 0)
-      .map(([idx]) => Number(idx))
-      .filter((n) => !isNaN(n));
-
-    if (solvedIndices.length === 0) {
-      return 1;
-    }
-
-    const maxSolvedIdx = Math.max(...solvedIndices);
-    // השלב הבא לפתיחה הוא האינדקס הכי גבוה שנפתר + 2 (כי אינדקס 0 הוא שלב 1)
-    return Math.min(maxSolvedIdx + 2, totalPuzzles);
-  };
 
   return (
     <main className="lot-bg flex min-h-dvh flex-col items-center justify-center gap-8 px-5 py-10">
@@ -84,23 +53,11 @@ function Play() {
       </div>
 
       <div className="flex w-full max-w-sm flex-col gap-4">
-        {(Object.keys(LEVELS) as Level[]).map((l) => {
-          const levelNum = getCurrentLevel(l);
-
-          return (
-            <Link
-              key={l}
-              to="/game/$level"
-              params={{ level: l }}
-              className="level-btn flex items-center justify-between px-5"
-            >
-              <span>{t(`level.${l}`)}</span>
-              <span className="chip px-2.5 py-0.5 text-xs font-mono font-semibold opacity-90">
-                {t("level", { n: levelNum })}
-              </span>
-            </Link>
-          );
-        })}
+        {(Object.keys(LEVELS) as Level[]).map((l) => (
+          <Link key={l} to="/game/$level" params={{ level: l }} className="level-btn">
+            <span>{t(`level.${l}`)}</span>
+          </Link>
+        ))}
       </div>
     </main>
   );
