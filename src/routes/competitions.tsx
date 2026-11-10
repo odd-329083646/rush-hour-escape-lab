@@ -9,6 +9,7 @@ import { flag } from "@/lib/profile";
 import { fmtTime } from "@/lib/daily-scores";
 import { formatRoomCode, normalizeRoomCode } from "@/lib/tournament";
 import { toast } from "sonner";
+import { CoinsBadge } from "@/components/coins-badge";
 
 export const Route = createFileRoute("/competitions")({
   head: () => ({
@@ -32,12 +33,17 @@ export const Route = createFileRoute("/competitions")({
 });
 
 function Competitions() {
-  const { t, ready, busy, connected, action, profile, joinOpen, setJoinOpen, forfeitOpen, setForfeitOpen, code, setCode, coins, match, mine, opponent, opponentName, opponentCountry, start, serverNow, countdown, elapsed, waitRemaining, winner, resultElapsed, begin, commit, dismiss } = useCompetitions();
+  const { t, ready, busy, connected, action, profile, joinOpen, setJoinOpen, forfeitOpen, setForfeitOpen, code, setCode, match, mine, opponent, opponentName, opponentCountry, start, serverNow, countdown, elapsed, waitRemaining, winner, resultElapsed, begin, commit, dismiss } = useCompetitions();
   return <main className="tournament lot-bg flex h-dvh flex-col gap-3 overflow-hidden px-3 py-3" dir="ltr">
     <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2">
       {match?.status === "playing" ? <Button variant="ghost" size="icon" className="chip" aria-label={t("raceForfeit")} title={t("raceForfeit")} onClick={() => setForfeitOpen(true)}><Home className="h-4 w-4" /></Button> : match?.status === "waiting" ? <Button variant="ghost" size="icon" className="chip" aria-label={t("raceCancel")} onClick={() => { void action("cancel"); }}><Home className="h-4 w-4" /></Button> : <Button asChild variant="ghost" size="icon" className="chip"><Link to="/" aria-label={t("backMenu")}><Home className="h-4 w-4" /></Link></Button>}
       <h1 className="font-display text-base font-bold sm:text-xl">{t("raceTitle")}</h1>
-      <div className="flex items-center gap-2"><span className="flex items-center gap-1 text-sm text-primary"><Coins className="h-4 w-4" />{coins}</span><SettingsButton /></div>
+      
+      {/* סרגל עליון - תג מטבעות והגדרות */}
+      <div className="flex items-center gap-2">
+        <CoinsBadge />
+        <SettingsButton />
+      </div>
     </header>
     {match?.status === "playing" && mine ? <>
       <div className="mx-auto grid w-full max-w-6xl grid-cols-2 gap-3 border-y border-border py-2 text-sm">
