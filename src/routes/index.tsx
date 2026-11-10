@@ -1,11 +1,8 @@
 import { useMainMenu } from "@/hooks/useMainMenu";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { isSolvedOn } from "@/lib/daily-scores";
-import { todayKey } from "@/lib/puzzles";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useI18n, type TKey } from "@/lib/i18n";
-import { hasSeenTutorial } from "@/lib/tutorial";
 import { SettingsButton } from "@/components/settings-dialog";
+import { CoinsBadge } from "@/components/coins-badge";
 import { CalendarDays, ChevronRight, Gamepad2, Trophy, type LucideIcon } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -65,7 +62,12 @@ function Index() {
   const { dailySolved, t } = useMainMenu();
   return (
     <main className="lot-bg relative flex min-h-dvh flex-col items-center justify-center gap-4 px-4 py-4 sm:gap-8 sm:px-5 sm:py-10">
-      <div className="absolute end-3 top-3"><SettingsButton /></div>
+      {/* סרגל עליון: תג מטבעות והגדרות */}
+      <div className="absolute end-3 top-3 flex items-center gap-2">
+        <CoinsBadge />
+        <SettingsButton />
+      </div>
+
       <header className="text-center">
         <p className="font-display text-[10px] uppercase tracking-[0.4em] text-primary sm:text-sm">
           {t("parkingPuzzle")}
