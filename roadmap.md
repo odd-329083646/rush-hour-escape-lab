@@ -30,6 +30,6 @@
 - [x] Verify storage/reward/movement regressions, delayed-network gameplay, and existing modes.
 
 # Tournament puzzle indices
-- [ ] Send three server-selected indices from a stable shared catalogue instead of puzzle objects.
-- [ ] Update match storage, local resolution, and server move validation.
-- [ ] Run regression tests and verify two guests receive identical boards.
+- [x] Send three server-selected indices from a stable shared catalogue instead of puzzle objects.
+- [x] Update match storage, local resolution, and server move validation.
+- [x] Run regression tests and verify two guests receive identical boards.

@@ -1,5 +1,5 @@
 import { applyMove, isSolved, type Car, type Move } from "@/engine/game";
-import { PUZZLES } from "@/services/tournamentCatalogue";
+import { PUZZLES } from "@/engine/tournamentCatalogue";
 
 export const ENTRY_FEE = 50;
 export const WIN_REWARD = 90;
