@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { SettingsButton } from "@/components/settings-dialog";
 import { HintSelection } from "@/components/hint-selection";
 import { CoinsBadge } from "@/components/coins-badge";
+import { useEffect, useRef } from "react";
 
 export const Route = createFileRoute("/game/$level")({
   beforeLoad: ({ params }) => {
@@ -38,6 +39,15 @@ const ARROW: Record<Move, string> = { up: "↑", down: "↓", left: "←", right
 function Game() {
   const { level } = Route.useParams() as { level: Level };
   const { openHints, tiers, drawRandom, t, murderer, idx, puzzle, cars, moves, sel, setSel, move, setMove, steps, setSteps, msg, warn, started, hidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, simulating, invisibleBumps, wonStars, coins, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, won, clock, progress, toggleTier, formatTime, loadPuzzle, jumpTo, start, useHint, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, handlePointerDown, handlePointerMove, handlePointerUp } = useStandardGame(level);
+
+  // רפרנס לגלילה אוטומטית לסוף רשימת המהלכים בשלב רוצח
+  const planEndRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (murderer && plan.length > 0) {
+      planEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [plan, murderer]);
 
   const carBtn = (c: Car) => (
     <Button variant="ghost" key={c.id} onClick={() => setSel(c.id)} data-active={sel === c.id} title={c.name} className="palette-cell" disabled={simulating}>
@@ -245,7 +255,8 @@ function Game() {
               {plan.length === 0 ? (
                 <p className="py-10 text-center text-sm text-muted-foreground">{t("planEmpty")}</p>
               ) : (
-                <ol className="flex min-h-0 flex-1 flex-col gap-2 overflow-auto">
+                /* 💡 הגבלת גובה מקסימלית למובייל (max-h) + גלילה פנימית קבועה */
+                <ol className="flex min-h-0 max-h-[35vh] sm:max-h-[50vh] flex-1 flex-col gap-2 overflow-y-auto pr-1">
                   {plan.map((p, i) => {
                     const c = cars.find((x) => x.id === p.id)!;
                     return (
@@ -258,6 +269,8 @@ function Game() {
                       </li>
                     );
                   })}
+                  {/* 💡 נקודת עוגן לגלילה אוטומטית בכל מהלך חדש */}
+                  <div ref={planEndRef} />
                 </ol>
               )}
               <div className="flex gap-2">
