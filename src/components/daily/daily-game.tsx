@@ -4,6 +4,7 @@ import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CalendarDays, Coins, Home, L
 import { Button } from "@/components/ui/button";
 import { SettingsButton } from "@/components/settings-dialog";
 import { HintSelection } from "@/components/hint-selection";
+import { CoinsBadge } from "@/components/coins-badge";
 import { DailyCalendar } from "./daily-calendar";
 import { getCoins, pickHidden, type Car, type Move } from "@/lib/puzzles";
 import { fmtTime } from "@/lib/daily-scores";
@@ -33,11 +34,8 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
         <h1 className="min-w-0 truncate font-display text-sm font-bold md:text-xl">{t("daily")} <span className="text-muted-foreground">· {label}</span></h1>
         
         <div className="flex shrink-0 items-center gap-2">
-          {/* מאזן מטבעות */}
-          <div className="chip font-display flex items-center gap-1.5 px-2.5 py-1 text-amber-400 border border-amber-500/30 bg-amber-500/10 rounded-full" title={t("coins")}>
-            <Coins className="h-4 w-4 text-amber-400 fill-amber-400" />
-            <span className="font-bold">{coins}</span>
-          </div>
+          {/* מאזן מטבעות מבוסס CoinsBadge */}
+          <CoinsBadge />
 
           <Button variant="ghost" className="chip px-2 sm:px-3.5" onClick={() => setCalOpen(true)} aria-label={t("calendar")}><CalendarDays className="h-4 w-4" /><span className="hidden sm:inline">{t("calendar")}</span></Button>
           <Button variant="ghost" className="chip px-2 sm:px-3.5" onClick={() => reset(start)} aria-label={t("reset")}><RotateCcw className="h-4 w-4" /><span className="hidden sm:inline">{t("reset")}</span></Button>
@@ -70,7 +68,6 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
                     className="ctrl col-start-2 row-start-2 border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 font-bold p-0 flex flex-col items-center justify-center gap-0.5"
                   >
                     <Lightbulb className="h-4 w-4 fill-amber-500 shrink-0" />
-                    
                   </Button>
                 </div>
               </div>
