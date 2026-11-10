@@ -207,25 +207,47 @@ export function useStandardGame(level: Level) {
   };
 
   const submitPlan = async () => {
-    if (simulating || hints.peek) return;
-    if (!plan.length) return flash(t("needPlan"));
+  if (simulating || hints.peek) return;
+  if (!plan.length) return flash(t("needPlan"));
+  
+  setSimulating(true);
+  setHidden(new Set()); // חשיפת כל המכוניות לצורך הסימולציה
+  setMsg(t("msgSimulating"));
+
+  let currentCars = [...cars];
+
+  for (let i = 0; i < plan.length; i++) {
+    const p = plan[i];
+    if (!p) continue;
+    const r = applyMove(currentCars, p.id, p.move, p.steps);
     
-    setSimulating(true);
-    setHidden(new Set());
-    setMsg(t("msgSimulating"));
+    if (r.error) {
+      // 1. נמתין חצי שנייה כדי שהשחקן יראה את הלוח נעצר בנקודת ההתנגשות
+      await new Promise((res) => setTimeout(res, 500));
+      // 2. רק עכשיו נעצק את הסימולציה ונציג את מסך הכישלון
+      setSimulating(false);
+      setFailed(true);
+      return;
+    }
+    
+    currentCars = r.cars;
+    setCars(currentCars);
+    setMoves(i + 1);
+    
+    // קצב האנימציה בין מהלכים תקינים (400 מילי-שניות)
+    await new Promise((res) => setTimeout(res, 400));
+  }
 
-    let currentCars = [...cars];
-
-    for (let i = 0; i < plan.length; i++) {
-      const p = plan[i];
-      if (!p) continue;
-      const r = applyMove(currentCars, p.id, p.move, p.steps);
-      
-      if (r.error) {
-        setFailed(true);
-        setSimulating(false);
-        return;
-      }
+  // בסיום כל המהלכים – בדיקה אם הפתרון הביא לניצחון
+  if (isSolved(currentCars)) {
+    markWon(plan.length);
+  } else {
+    // השהייה קלה לפני הצגת מסך הכישלון בסוף כל המהלכים
+    await new Promise((res) => setTimeout(res, 400));
+    setFailed(true);
+  }
+  setSimulating(false);
+};
       
       currentCars = r.cars;
       setCars(currentCars);
