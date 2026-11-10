@@ -58,12 +58,18 @@ export function getCoins(): number {
 }
 
 /**
- * מוסיף (או מוריד) מטבעות למאזן המשתמש
+ * מוסיף (או מוריד) מטבעות למאזן המשתמש ומפיץ אירוע עדכון
  */
 export function addCoins(amount: number): number {
   if (!Number.isSafeInteger(amount)) return getCoins();
   const newBalance = Math.max(0, getCoins() + amount);
   storageService.setItem("rush_hour_coins", String(newBalance));
+  
+  // שליחת אירוע בדפדפן כדי לעדכן רכיבי React בזמן אמת
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event("rush_hour_coins_updated"));
+  }
+  
   return newBalance;
 }
 
