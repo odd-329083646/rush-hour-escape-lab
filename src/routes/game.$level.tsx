@@ -66,7 +66,19 @@ function Game() {
       )}
 
       <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2 overflow-x-auto">
-        <Button asChild variant="ghost" className="chip shrink-0 px-2 sm:px-3.5" disabled={simulating}><Link to="/" aria-label={t("backHome")} title={t("backHome")}><Home className="h-4 w-4" /><span className="hidden sm:inline">{t("backHome")}</span></Link></Button>
+        {/* קבוצת כפתורי ניווט שמאלית - בית ואפשרות חזרה לשלבים */}
+        <div className="flex shrink-0 items-center gap-2">
+          <Button asChild variant="ghost" className="chip px-2 sm:px-2.5" disabled={simulating}>
+            <Link to="/" aria-label={t("backHome")} title={t("backHome")}>
+              <Home className="h-4 w-4" />
+            </Link>
+          </Button>
+          <Button variant="ghost" onClick={() => setLevelsOpen(true)} aria-label={t("chooseLevel")} title={t("chooseLevel")} className="chip px-2 sm:px-3.5" disabled={simulating}>
+            <ArrowRight className="h-4 w-4" />
+            <span className="hidden sm:inline">{t("levels")}</span>
+          </Button>
+        </div>
+
         <h1 className="min-w-0 truncate font-display text-sm font-bold md:text-xl">{t(`level.${level}`)} <span className="text-muted-foreground">· {t("level", { n: idx + 1 })}</span></h1>
         
         <div className="flex shrink-0 items-center gap-2">
@@ -76,9 +88,8 @@ function Game() {
             <span className="font-bold">{coins}</span>
           </div>
 
-           <Button variant="ghost" onClick={() => setLevelsOpen(true)} aria-label={t("chooseLevel")} title={t("chooseLevel")} className="chip px-2 sm:px-3.5" disabled={simulating}><Layers className="h-4 w-4" /><span className="hidden sm:inline">{t("levels")}</span></Button>
-           <Button variant="ghost" onClick={() => loadPuzzle(idx)} aria-label={t("reset")} title={t("reset")} className="chip px-2 sm:px-3.5" disabled={simulating}><RotateCcw className="h-4 w-4" /><span className="hidden sm:inline">{t("reset")}</span></Button>
-           <SettingsButton />
+          <Button variant="ghost" onClick={() => loadPuzzle(idx)} aria-label={t("reset")} title={t("reset")} className="chip px-2 sm:px-3.5" disabled={simulating}><RotateCcw className="h-4 w-4" /><span className="hidden sm:inline">{t("reset")}</span></Button>
+          <SettingsButton />
         </div>
       </header>
 
@@ -107,7 +118,6 @@ function Game() {
                   className="ctrl col-start-2 row-start-2 border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 font-bold p-0 flex flex-col items-center justify-center gap-0.5"
                 >
                   <Lightbulb className="h-4 w-4 fill-amber-500 shrink-0" />
-                  
                 </Button>
               </div>
             </div>
