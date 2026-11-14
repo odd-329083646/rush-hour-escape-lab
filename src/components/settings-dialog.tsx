@@ -1,6 +1,6 @@
 import { usePlayerSettings } from "@/hooks/usePlayerSettings";
 import { useEffect, useState } from "react";
-import { GraduationCap, Settings, X } from "lucide-react";
+import { GraduationCap, Settings, UserRound, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { setLang, useI18n, type Lang } from "@/lib/i18n";
@@ -38,7 +38,7 @@ function SettingsDialog({ onClose }: { onClose: () => void }) {
           <label className="flex flex-col gap-1 text-sm">
             <span className="text-muted-foreground">{t("username")}</span>
             <div className="flex gap-2">
-              <input value={username} maxLength={24} onChange={(e) => { setUsername(e.target.value); setSaved(false); }}
+              <input value={username} maxLength={20} onChange={(e) => { setUsername(e.target.value); setSaved(false); }}
                 onKeyDown={(e) => { e.stopPropagation(); if (e.key === "Enter") commit(); }}
                 className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-2 text-foreground" />
               <Button onClick={() => commit()} className="execute">{saved ? t("saved") : t("save")}</Button>
@@ -62,6 +62,7 @@ function SettingsDialog({ onClose }: { onClose: () => void }) {
           </div>
         </section>
 
+        <Button asChild className="execute"><Link to="/profile" onClick={onClose}><UserRound className="h-4 w-4" />{t("profile")}</Link></Button>
         <Link to="/tutorial" onClick={onClose} className="palette-item border-border"><GraduationCap className="h-4 w-4 text-primary" /><span><span className="block font-medium">{t("tutorial")}</span><span className="text-xs text-muted-foreground">{t("tutorialDesc")}</span></span></Link>
 
         <section>

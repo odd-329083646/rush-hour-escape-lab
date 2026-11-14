@@ -17,6 +17,7 @@ import { loadPuzzlesAsync } from "../lib/puzzles";
 import { applyDocumentLang, useI18n } from "../lib/i18n";
 import { getProfile } from "../lib/profile";
 import { Toaster } from "@/components/ui/sonner";
+import { useProfileSync } from "@/hooks/useProfile";
 
 function NotFoundComponent() {
   return (
@@ -114,6 +115,7 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function RootComponent() {
+  useProfileSync();
   const { queryClient } = Route.useRouteContext();
 
   const { t } = useI18n();

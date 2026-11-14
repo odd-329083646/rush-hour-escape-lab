@@ -29,6 +29,13 @@
       "when": 1794338610363,
       "tag": "0003_tournament_puzzle_indices",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794692890803,
+      "tag": "0004_guest_player_profile_avatars",
+      "breakpoints": true
     }
   ]
 }

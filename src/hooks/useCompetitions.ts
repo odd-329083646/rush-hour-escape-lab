@@ -5,11 +5,12 @@ import { getProfile, type Profile } from "@/lib/profile";
 import { getCoins } from "@/lib/puzzles";
 import { ENTRY_FEE } from "@/lib/tournament";
 import { toast } from "sonner";
+import { useProfile } from "@/hooks/useProfile";
 
 export function useCompetitions() {
   const { t } = useI18n();
   const { snapshot, ready, busy, connected, clockOffset, action, commitMove } = useTournament();
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const { profile } = useProfile();
   const [joinOpen, setJoinOpen] = useState(false);
   const [forfeitOpen, setForfeitOpen] = useState(false);
   const [code, setCode] = useState("");
@@ -18,7 +19,6 @@ export function useCompetitions() {
 
   // טעינה ראשונית וסנכרון מטבעות רק כשיש שינוי
   useEffect(() => {
-    setProfile(getProfile());
     setCoins(getCoins());
   }, []);
 
@@ -42,6 +42,7 @@ export function useCompetitions() {
   const opponent = useMemo(() => (match ? (isHost ? match.b_state : match.a_state) : null), [match, isHost]);
   const opponentName = match ? (isHost ? match.b_name : match.a_name) : null;
   const opponentCountry = match ? (isHost ? match.b_country : match.a_country) : null;
+  const opponentAvatarId = match ? (isHost ? match.b_avatar_id : match.a_avatar_id) : undefined;
 
   const start = useMemo(() => (match?.started_at ? Date.parse(match.started_at) : 0), [match?.started_at]);
   const serverNow = now + clockOffset;
@@ -100,6 +101,7 @@ export function useCompetitions() {
     opponent,
     opponentName,
     opponentCountry,
+    opponentAvatarId,
     start,
     serverNow,
     countdown,

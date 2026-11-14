@@ -33,3 +33,8 @@
 - [x] Send three server-selected indices from a stable shared catalogue instead of puzzle objects.
 - [x] Update match storage, local resolution, and server move validation.
 - [x] Run regression tests and verify two guests receive identical boards.
+
+# Player Profile
+- [x] Add Settings navigation, bilingual profile page, and modular racing avatars.
+- [x] Persist validated profile edits and derived records locally; sync guest profiles in the background.
+- [x] Show both players' avatars in races; test validation, records, persistence, and two-guest sync.

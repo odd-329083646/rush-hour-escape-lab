@@ -17,6 +17,7 @@ export type RaceMatch = {
   puzzles?: RacePuzzle[];
   a_state: RaceState; b_state: RaceState | null; a_name: string; a_country: string;
   b_name: string | null; b_country: string | null; started_at: string | null;
+  a_avatar_id?: string; b_avatar_id?: string;
   winner: string | null; created_at: string; updated_at: string;
 };
 export type RaceSnapshot = { guest: RaceGuest; match: RaceMatch | null; serverNow: string; error?: string };

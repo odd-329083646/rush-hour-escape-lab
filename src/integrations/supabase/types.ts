@@ -41,33 +41,39 @@ export type Database = {
       tournament_guests: {
         Row: {
           active_match: string | null
+          avatar_id: string
           coins: number
           country: string
           created_at: string
           id: string
           losses: number
+          player_records: Json
           token_hash: string
           username: string
           wins: number
         }
         Insert: {
           active_match?: string | null
+          avatar_id?: string
           coins?: number
           country?: string
           created_at?: string
           id?: string
           losses?: number
+          player_records?: Json
           token_hash: string
           username: string
           wins?: number
         }
         Update: {
           active_match?: string | null
+          avatar_id?: string
           coins?: number
           country?: string
           created_at?: string
           id?: string
           losses?: number
+          player_records?: Json
           token_hash?: string
           username?: string
           wins?: number

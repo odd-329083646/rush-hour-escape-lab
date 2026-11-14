@@ -10,6 +10,7 @@ import { fmtTime } from "@/lib/daily-scores";
 import { formatRoomCode, normalizeRoomCode } from "@/lib/tournament";
 import { toast } from "sonner";
 import { CoinsBadge } from "@/components/coins-badge";
+import { PlayerAvatar } from "@/components/player-avatar";
 
 export const Route = createFileRoute("/competitions")({
   head: () => ({
@@ -51,6 +52,7 @@ function Competitions() {
     opponent,
     opponentName,
     opponentCountry,
+    opponentAvatarId,
     start,
     serverNow,
     countdown,
@@ -109,16 +111,16 @@ function Competitions() {
         <>
           <div className="mx-auto grid w-full max-w-6xl grid-cols-2 gap-3 border-y border-border py-2 text-sm">
             <div className="min-w-0">
-              <p className="truncate font-semibold">
-                {profile?.country ? flag(profile.country) : ""} {profile?.username}
+              <p className="flex items-center gap-2 font-semibold">
+                <PlayerAvatar avatarId={profile?.avatarId} /><span className="truncate">{profile?.country ? flag(profile.country) : ""} {profile?.username}</span>
               </p>
               <p className="text-xs text-muted-foreground">
                 {t("raceProgress", { n: Math.min(mine.index + 1, 3), moves: mine.moves })} · {fmtTime(elapsed)}
               </p>
             </div>
             <div className="min-w-0 text-right">
-              <p className="truncate font-semibold">
-                {opponentCountry ? flag(opponentCountry) : ""} {opponentName}
+              <p className="flex items-center justify-end gap-2 font-semibold">
+                <span className="truncate">{opponentCountry ? flag(opponentCountry) : ""} {opponentName}</span><PlayerAvatar avatarId={opponentAvatarId} />
               </p>
               <p className="text-xs text-muted-foreground">
                 {opponent?.index === 3
@@ -247,7 +249,7 @@ function Competitions() {
               <DialogDescription>{t(winner ? "raceReward" : "raceNoReward")}</DialogDescription>
               <div className="grid grid-cols-2 divide-x divide-border border-y border-border py-4 text-sm">
                 <div className="flex min-w-0 flex-col gap-2 px-2">
-                  <strong className="truncate">{t("raceYou")}</strong>
+                  <strong className="flex items-center justify-center gap-2"><PlayerAvatar avatarId={profile?.avatarId} /><span className="truncate">{profile.username}</span></strong>
                   <span>{t("statTime", { t: fmtTime(mine?.index === 3 ? mine.elapsed : resultElapsed) })}</span>
                   <span>{t("statMoves", { n: mine?.totalMoves ?? 0 })}</span>
                   <span className="text-xs text-muted-foreground">
@@ -255,7 +257,7 @@ function Competitions() {
                   </span>
                 </div>
                 <div className="flex min-w-0 flex-col gap-2 px-2">
-                  <strong className="truncate">{opponentName}</strong>
+                  <strong className="flex items-center justify-center gap-2"><PlayerAvatar avatarId={opponentAvatarId} /><span className="truncate">{opponentName}</span></strong>
                   <span>
                     {t("statTime", { t: fmtTime(opponent?.index === 3 ? opponent.elapsed : resultElapsed) })}
                   </span>

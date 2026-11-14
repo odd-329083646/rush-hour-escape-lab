@@ -1,7 +1,12 @@
 import { storageService } from "@/services/storageService";
 import { getSavedProgress, type Level } from "@/lib/puzzles";
+import { AVATARS, DEFAULT_AVATAR_ID } from "@/config/avatars";
+import { getMySolves } from "@/engine/daily-scores";
+import { getCoins } from "@/engine/rewards";
+import { tournamentStats } from "@/engine/tournament-device";
 
-export type Profile = { username: string; country: string };
+export type Profile = { username: string; country: string; avatarId: string };
+export type PlayerRecords = { standardCompleted: number; dailySolved: number; wins: number; losses: number; coins: number };
 const KEY = "rush_hour_profile";
 
 export const COUNTRIES: { code: string; en: string; he: string }[] = [
@@ -47,18 +52,33 @@ export function getProfile(): Profile {
     const raw = storageService.getItem(KEY);
     if (raw) {
       const p = JSON.parse(raw) as Partial<Profile>;
-      if (p.username) return { username: p.username, country: p.country ?? "" };
+      if (typeof p.username === "string" && p.username.trim()) return { username: p.username.trim().slice(0, 20), country: p.country ?? "", avatarId: AVATARS.some((a) => a.id === p.avatarId) ? p.avatarId ?? DEFAULT_AVATAR_ID : DEFAULT_AVATAR_ID };
     }
   } catch { /* fall through */ }
-  const p = { username: randomUsername(), country: "" };
+  const p = { username: randomUsername(), country: "", avatarId: DEFAULT_AVATAR_ID };
   saveProfile(p);
   return p;
 }
 
-export function saveProfile(p: Profile) {
-  const username = p.username.trim().slice(0, 24) || randomUsername();
-  storageService.setItem(KEY, JSON.stringify({ ...p, username }));
+export function validateUsername(value: string): string | null {
+  const trimmed = value.trim();
+  return trimmed.length > 0 && trimmed.length <= 20 ? trimmed : null;
+}
+
+export function saveProfile(p: Omit<Profile, "avatarId"> & { avatarId?: string }) {
+  const username = p.username.trim().slice(0, 20) || randomUsername();
+  let previousAvatar: string | undefined;
+  try { previousAvatar = JSON.parse(storageService.getItem(KEY) ?? "{}").avatarId; } catch { /* legacy profile */ }
+  const candidate = p.avatarId ?? previousAvatar;
+  const avatarId = AVATARS.some((a) => a.id === candidate) ? candidate : DEFAULT_AVATAR_ID;
+  storageService.setItem(KEY, JSON.stringify({ username, country: p.country, avatarId }));
   storageService.setItem("player_name", username);
+}
+
+export function getPlayerRecords(): PlayerRecords {
+  const standardCompleted = (["easy", "medium", "hard", "murderer"] as Level[]).reduce((total, level) => total + Object.values(getSavedProgress(level)).filter((s) => s?.stars > 0).length, 0);
+  const dailySolved = Object.values(getMySolves()).filter((time) => Number.isFinite(time) && time >= 0).length;
+  return { standardCompleted, dailySolved, ...tournamentStats(), coins: getCoins() };
 }
 
 /** Best time (seconds) and fewest moves across all solved puzzles of a level. */

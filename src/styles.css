@@ -314,3 +314,42 @@
 @media (orientation: landscape) {
   .tournament .game-grid { --board: min(calc(100dvh - 10rem), calc(100vw - 31rem)); }
 }
+
+:root {
+  --avatar-car: linear-gradient(145deg, var(--car-red), var(--car-orange));
+  --avatar-truck: linear-gradient(145deg, var(--car-blue), var(--car-teal));
+  --avatar-trophy: linear-gradient(145deg, var(--car-yellow), var(--car-orange));
+  --avatar-flame: linear-gradient(145deg, var(--car-orange), var(--car-pink));
+  --avatar-zap: linear-gradient(145deg, var(--car-lime), var(--car-green));
+  --avatar-shield: linear-gradient(145deg, var(--car-teal), var(--car-dark-green));
+  --avatar-crown: linear-gradient(145deg, var(--car-pink), var(--car-purple));
+  --avatar-flag: linear-gradient(145deg, var(--car-slate), var(--car-blue));
+  --avatar-foreground: oklch(0.99 0 0);
+}
+.player-avatar { display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; width: 2rem; aspect-ratio: 1; border-radius: 50%; overflow: hidden; color: var(--avatar-foreground); }
+.avatar-car { background: var(--avatar-car); }
+.avatar-truck { background: var(--avatar-truck); }
+.avatar-trophy { background: var(--avatar-trophy); }
+.avatar-flame { background: var(--avatar-flame); }
+.avatar-zap { background: var(--avatar-zap); }
+.avatar-shield { background: var(--avatar-shield); }
+.avatar-crown { background: var(--avatar-crown); }
+.avatar-flag { background: var(--avatar-flag); }
+.profile-avatar-large { width: 5.5rem; }
+.profile-avatar-choice { width: 3rem; }
+.profile-page { height: 100dvh; overflow: hidden; }
+.profile-content { width: 100%; max-width: 56rem; margin: auto; min-width: 0; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+.profile-records { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .6rem; }
+.profile-record { border: 1px solid var(--border); border-radius: 8px; background: var(--card); padding: .85rem; min-width: 0; }
+@media (max-width: 639px) {
+  .profile-content { gap: 1.25rem; }
+  .profile-records { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .profile-record:last-child { grid-column: span 2; }
+  .profile-avatar-large { width: 4rem; }
+  .profile-record { padding: .65rem; }
+}
+@media (max-height: 650px) and (orientation: landscape) {
+  .profile-content { gap: .8rem; }
+  .profile-avatar-large { width: 4rem; }
+  .profile-avatar-choice { width: 2.5rem; }
+}

@@ -6,7 +6,7 @@ import { storageService } from "@/services/storageService";
 const rpc = vi.hoisted(() => ({ invoke: vi.fn(), register: vi.fn() }));
 vi.mock("@tanstack/react-start", () => ({ useServerFn: (fn: unknown) => fn }));
 vi.mock("@/lib/tournament.functions", () => ({ registerTournamentGuest: rpc.register, tournamentAction: rpc.invoke }));
-vi.mock("@/services/supabaseService", () => ({ subscribeRace: () => () => {} }));
+vi.mock("@/services/supabaseService", async (importOriginal) => ({ ...await importOriginal<typeof import("@/services/supabaseService")>(), subscribeRace: () => () => {} }));
 vi.mock("sonner", () => ({ toast: { error: vi.fn() } }));
 import { useTournament } from "./use-tournament";
 

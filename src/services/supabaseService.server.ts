@@ -1,17 +1,27 @@
 import { advanceRace, pickRacePuzzleIndices, resolveRacePuzzles, type RaceMatch, type RaceSnapshot, type GuestCredential } from "@/lib/tournament";
 import type { Move } from "@/engine/game";
+import type { Profile } from "@/engine/profile";
 async function hashToken(token: string) {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-export async function registerGuest(data: { username: string; country: string; coins: number }) {
+export async function registerGuest(data: { username: string; country: string; avatarId?: string; coins: number }) {
     const token = crypto.randomUUID() + crypto.randomUUID();
     const tokenHash = await hashToken(token);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const result = await supabaseAdmin.from("tournament_guests").insert({ token_hash: tokenHash, username: data.username, country: data.country, coins: data.coins }).select("id").single();
+    const result = await supabaseAdmin.from("tournament_guests").insert({ token_hash: tokenHash, username: data.username, country: data.country, avatar_id: data.avatarId ?? "car", coins: data.coins }).select("id").single();
     if (result.error || !result.data) throw new Error("Tournament unavailable");
     return { id: result.data.id, token };
+}
+export async function syncGuestProfile(data: { credential: GuestCredential; profile: Profile; records: { standardCompleted: number; dailySolved: number } }) {
+    const tokenHash = await hashToken(data.credential.token);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const verified = await supabaseAdmin.from("tournament_guests").select("id").eq("id", data.credential.id).eq("token_hash", tokenHash).single();
+    if (verified.error || !verified.data) throw new Error("Invalid guest");
+    const result = await supabaseAdmin.from("tournament_guests").update({ username: data.profile.username, country: data.profile.country, avatar_id: data.profile.avatarId, player_records: data.records }).eq("id", verified.data.id);
+    if (result.error) throw new Error("Profile unavailable");
+    return { saved: true };
 }
 export async function performTournamentAction(data: { credential: GuestCredential; action: "status" | "random" | "create" | "join" | "cancel" | "move" | "forfeit" | "leave"; code?: string | undefined; delta: number; username: string; country: string; move?: { id: string; direction: Move; steps: number } | undefined; moves?: { id: string; direction: Move; steps: number }[] | undefined }) {
     const tokenHash = await hashToken(data.credential.token);
@@ -83,6 +93,14 @@ export async function performTournamentAction(data: { credential: GuestCredentia
     if (snapshot.match?.puzzle_indices) {
       const { puzzles: _legacy, ...match } = snapshot.match;
       snapshot = { ...snapshot, match };
+    }
+    if (snapshot.match) {
+      const players = [snapshot.match.a, snapshot.match.b].filter((id): id is string => Boolean(id));
+      const avatars = await supabaseAdmin.from("tournament_guests").select("id,avatar_id").in("id", players);
+      snapshot = { ...snapshot, match: { ...snapshot.match,
+        a_avatar_id: avatars.data?.find((p) => p.id === snapshot.match?.a)?.avatar_id ?? "car",
+        b_avatar_id: avatars.data?.find((p) => p.id === snapshot.match?.b)?.avatar_id ?? "car",
+      } };
     }
     return snapshot;
 }

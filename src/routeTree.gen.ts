@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CompetitionsRouteImport } from './routes/competitions'
 import { Route as PlayRouteImport } from './routes/play'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as TutorialRouteImport } from './routes/tutorial'
 import { Route as DailyIndexRouteImport } from './routes/daily.index'
 import { Route as DailyDateRouteImport } from './routes/daily.$date'
@@ -30,6 +31,11 @@ const CompetitionsRoute = CompetitionsRouteImport.update({
 const PlayRoute = PlayRouteImport.update({
   id: '/play',
   path: '/play',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TutorialRoute = TutorialRouteImport.update({
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/competitions': typeof CompetitionsRoute
   '/play': typeof PlayRoute
+  '/profile': typeof ProfileRoute
   '/tutorial': typeof TutorialRoute
   '/daily/$date': typeof DailyDateRoute
   '/game/$level': typeof GameLevelRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/competitions': typeof CompetitionsRoute
   '/play': typeof PlayRoute
+  '/profile': typeof ProfileRoute
   '/tutorial': typeof TutorialRoute
   '/daily/$date': typeof DailyDateRoute
   '/game/$level': typeof GameLevelRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/competitions': typeof CompetitionsRoute
   '/play': typeof PlayRoute
+  '/profile': typeof ProfileRoute
   '/tutorial': typeof TutorialRoute
   '/daily/$date': typeof DailyDateRoute
   '/game/$level': typeof GameLevelRoute
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/'
     | '/competitions'
     | '/play'
+    | '/profile'
     | '/tutorial'
     | '/daily/$date'
     | '/game/$level'
@@ -96,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/competitions'
     | '/play'
+    | '/profile'
     | '/tutorial'
     | '/daily/$date'
     | '/game/$level'
@@ -105,6 +116,7 @@ export interface FileRouteTypes {
     | '/'
     | '/competitions'
     | '/play'
+    | '/profile'
     | '/tutorial'
     | '/daily/$date'
     | '/game/$level'
@@ -115,6 +127,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CompetitionsRoute: typeof CompetitionsRoute
   PlayRoute: typeof PlayRoute
+  ProfileRoute: typeof ProfileRoute
   TutorialRoute: typeof TutorialRoute
   DailyDateRoute: typeof DailyDateRoute
   GameLevelRoute: typeof GameLevelRoute
@@ -142,6 +155,13 @@ declare module '@tanstack/react-router' {
       path: '/play'
       fullPath: '/play'
       preLoaderRoute: typeof PlayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tutorial': {
@@ -179,6 +199,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CompetitionsRoute: CompetitionsRoute,
   PlayRoute: PlayRoute,
+  ProfileRoute: ProfileRoute,
   TutorialRoute: TutorialRoute,
   DailyDateRoute: DailyDateRoute,
   GameLevelRoute: GameLevelRoute,

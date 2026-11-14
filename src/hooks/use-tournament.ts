@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { subscribeRace } from "@/services/supabaseService";
+import { subscribeRace, ensureGuestCredential } from "@/services/supabaseService";
 import { registerTournamentGuest, tournamentAction } from "@/lib/tournament.functions";
 import { applyTournamentSnapshot, getGuestCredential, saveGuestCredential, walletDelta } from "@/lib/tournament-device";
 import { getProfile } from "@/lib/profile";
@@ -211,14 +211,7 @@ export function useTournament() {
   useEffect(() => {
     alive.current = true;
     if (!initialization.current)
-      initialization.current = (async () => {
-        const existing = getGuestCredential();
-        if (existing) return existing;
-        const profile = getProfile();
-        const guest = await register({ data: { ...profile, coins: Math.min(100000, Math.max(0, getCoins())) } });
-        saveGuestCredential(guest);
-        return guest;
-      })();
+      initialization.current = ensureGuestCredential(register);
     void initialization.current
       .then(async (guest) => {
         credential.current = guest;

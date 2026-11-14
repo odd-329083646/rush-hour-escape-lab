@@ -1,13 +1,27 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { AVATARS } from "@/config/avatars";
+
+const avatarSchema = z.string().refine((id) => AVATARS.some((avatar) => avatar.id === id));
 
 const moveSchema = z.object({ id: z.string().min(1).max(3), direction: z.enum(["up", "down", "left", "right"]), steps: z.number().int().min(1).max(4) });
 const credentialSchema = z.object({ id: z.string().uuid(), token: z.string().min(32).max(128) });
 export const registerTournamentGuest = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => z.object({ username: z.string().trim().min(1).max(24), country: z.string().regex(/^([A-Z]{2})?$/), coins: z.number().int().min(0).max(100000) }).parse(input))
+  .inputValidator((input: unknown) => z.object({ username: z.string().trim().min(1).max(20), country: z.string().regex(/^([A-Z]{2})?$/), avatarId: avatarSchema.default("car"), coins: z.number().int().min(0).max(100000) }).parse(input))
   .handler(async ({ data }) => {
     const { registerGuest } = await import("@/services/supabaseService.server");
     return registerGuest(data);
+  });
+
+export const syncTournamentProfile = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => z.object({
+    credential: credentialSchema,
+    profile: z.object({ username: z.string().trim().min(1).max(20), country: z.string().regex(/^([A-Z]{2})?$/), avatarId: avatarSchema }),
+    records: z.object({ standardCompleted: z.number().int().min(0).max(100000), dailySolved: z.number().int().min(0).max(100000) }),
+  }).parse(input))
+  .handler(async ({ data }) => {
+    const { syncGuestProfile } = await import("@/services/supabaseService.server");
+    return syncGuestProfile(data);
   });
 
 export const tournamentAction = createServerFn({ method: "POST" })
