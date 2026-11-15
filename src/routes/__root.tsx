@@ -18,6 +18,8 @@ import { applyDocumentLang, useI18n } from "../lib/i18n";
 import { getProfile } from "../lib/profile";
 import { Toaster } from "@/components/ui/sonner";
 import { useProfileSync } from "@/hooks/useProfile";
+import portraitCity from "@/assets/toy-city-portrait.jpg.asset.json";
+import landscapeCity from "@/assets/toy-city-landscape.jpg.asset.json";
 
 function NotFoundComponent() {
   return (
@@ -89,7 +91,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" },
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Rubik:wght@400;500;600;700;800&display=swap" },
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
@@ -107,6 +109,11 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <picture className="city-backdrop" aria-hidden="true">
+          <source media="(min-width: 768px)" srcSet={landscapeCity.url} />
+          <img src={portraitCity.url} alt="" fetchPriority="high" />
+        </picture>
+        <div className="city-shade" aria-hidden="true" />
         {children}
         <Scripts />
       </body>

@@ -26,3 +26,4 @@
 - Resolve tournament puzzle_indices against the immutable bundled catalogue exported as PUZZLES, never the mutable regular-game catalogue; both server and clients must use identical index ordering. Only legacy matches may carry puzzle objects.
 
 - Device control preferences live in storageService and useSettings exposes hydration-safe reactive switches; all board hooks gate keyboard and pointer gestures without disabling on-screen controls.
+- Render responsive city artwork once in the root shell using CDN asset pointers; shared CSS tokens and button variants own the toy theme, while vehicle transforms remain exclusively controlled by gameplay gestures.

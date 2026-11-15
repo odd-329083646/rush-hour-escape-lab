@@ -3,7 +3,7 @@ import { PlayerAvatar } from "@/components/player-avatar";
 import { Button } from "@/components/ui/button";
 import { useMainMenu } from "@/hooks/useMainMenu";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useI18n, type TKey } from "@/lib/i18n";
+import { type TKey } from "@/lib/i18n";
 import { SettingsButton } from "@/components/settings-dialog";
 import { CoinsBadge } from "@/components/coins-badge";
 import { CalendarDays, ChevronRight, Gamepad2, Trophy, type LucideIcon } from "lucide-react";
@@ -65,52 +65,54 @@ function Index() {
   const { dailySolved, t } = useMainMenu();
   const { profile } = useProfile();
   return (
-    <main className="lot-bg relative flex min-h-dvh flex-col items-center justify-center gap-4 px-4 py-4 sm:gap-8 sm:px-5 sm:py-10">
+    <main className="home-screen lot-bg relative flex h-dvh flex-col items-center overflow-hidden px-4 py-4 sm:px-5">
       {/* סרגל עליון: תג מטבעות והגדרות */}
-      <div className="absolute end-3 top-3 flex items-center gap-2">
+      <div className="home-tools absolute end-3 top-3 flex items-center gap-2">
         <CoinsBadge />
         <Button asChild variant="ghost" size="icon" className="h-9 w-9 rounded-full p-0" aria-label={t("profile")} title={t("profile")}><Link to="/profile"><PlayerAvatar avatarId={profile.avatarId} className="h-9 w-9" /></Link></Button>
         <SettingsButton />
       </div>
 
-      <header className="text-center">
-        <p className="font-display text-[10px] uppercase tracking-[0.4em] text-primary sm:text-sm">
+      <header className="home-title text-center">
+        <p className="home-eyebrow font-display text-xs font-semibold sm:text-sm">
           {t("parkingPuzzle")}
         </p>
-        <h1 className="mt-2 font-display text-4xl font-bold sm:mt-3 sm:text-5xl md:text-6xl lg:text-7xl">
+        <h1 className="font-display text-5xl font-bold sm:text-6xl lg:text-7xl">
           Rush Hour
         </h1>
-        <p className="mt-1 font-display text-base text-muted-foreground sm:mt-2 sm:text-xl">
+        <p className="home-edition mt-1 font-display text-base font-semibold sm:text-xl">
           {t("edition")}
         </p>
       </header>
 
       <nav
         aria-label={t("mainMenu")}
-        className="grid w-full max-w-4xl gap-3 md:grid-cols-3 md:gap-5 lg:max-w-5xl"
+        className="home-menu mt-auto grid w-full max-w-5xl gap-3 md:grid-cols-3 md:gap-4"
       >
         {ENTRIES.map(({ to, title, desc, tag, Icon }) => (
-          <Link key={to} to={to} search={(to === "/daily" && dailySolved ? { calendar: true } : {}) as never} className="menu-card">
+          <Button asChild key={to} className={`home-entry ${to === "/play" ? "entry-play" : to === "/daily" ? "entry-daily" : "entry-race"}`}>
+          <Link to={to} search={(to === "/daily" && dailySolved ? { calendar: true } : {}) as never}>
             <span className="menu-icon">
               <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
             </span>
-            <span>
+            <span className="min-w-0 flex-1 text-left">
               <span className="block font-display text-lg font-bold sm:text-xl">{t(title)}</span>
             </span>
-            <span className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
+            <span className="sr-only">
               {t(desc)}
             </span>
-            <span className="mt-auto flex items-center justify-between gap-2 pt-1">
-              <span className="chip px-2.5 py-1 text-[11px] sm:px-3 sm:py-1.5 sm:text-xs">
+            <span className="home-entry-end flex shrink-0 items-center gap-2">
+              <span className="home-tag text-[10px] sm:text-xs">
                 {to === "/daily" && dailySolved ? t("solvedBadge") : t(tag)}
               </span>
-              <ChevronRight className="h-5 w-5 shrink-0 text-primary rtl:rotate-180" aria-hidden />
+               <ChevronRight className="h-5 w-5 shrink-0" aria-hidden />
             </span>
           </Link>
+          </Button>
         ))}
       </nav>
 
-      <p className="max-w-md text-center text-[11px] text-muted-foreground sm:text-sm">
+      <p className="home-tagline mt-4 max-w-md text-center text-[11px] font-medium sm:text-sm">
         {t("tagline")}
       </p>
     </main>

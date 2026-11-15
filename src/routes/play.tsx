@@ -31,7 +31,7 @@ function Play() {
   const { t } = useI18n();
 
   return (
-    <main className="lot-bg flex min-h-dvh flex-col items-center justify-center gap-8 px-5 py-10">
+    <main className="mode-screen lot-bg flex h-dvh flex-col items-center justify-center gap-5 overflow-hidden px-5 py-5">
       <header className="flex w-full max-w-sm items-center justify-between">
         <Button asChild variant="ghost" className="chip px-3">
           <Link to="/" aria-label={t("backMenu")} title={t("backMenu")}>
@@ -45,18 +45,20 @@ function Play() {
         </div>
       </header>
 
-      <div className="text-center">
-        <p className="font-display text-xs uppercase tracking-[0.4em] text-primary sm:text-sm">
+      <div className="home-title text-center !pt-0">
+        <p className="home-edition font-display text-sm font-semibold">
           {t("regularGames")}
         </p>
         <h1 className="mt-3 font-display text-4xl font-bold sm:text-5xl">{t("chooseMode")}</h1>
       </div>
 
-      <div className="flex w-full max-w-sm flex-col gap-4">
+      <div className="flex w-full max-w-sm flex-col gap-3">
         {(Object.keys(LEVELS) as Level[]).map((l) => (
-          <Link key={l} to="/game/$level" params={{ level: l }} className="level-btn">
+          <Button asChild key={l} className={`mode-entry mode-${l} h-14 text-lg`}>
+          <Link to="/game/$level" params={{ level: l }}>
             <span>{t(`level.${l}`)}</span>
           </Link>
+          </Button>
         ))}
       </div>
     </main>

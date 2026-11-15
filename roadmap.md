@@ -43,3 +43,8 @@
 - [x] Simplify Settings and add the Home avatar shortcut.
 - [x] Move country editing and difficulty records to Profile.
 - [x] Persist reactive drag/keyboard switches across all boards; test and verify.
+
+# Toy-style visual redesign
+- [x] Use the uploaded backgrounds at the requested screen-width breakpoint.
+- [x] Restyle Home and shared controls/panels without changing gameplay.
+- [x] Verify mobile, tablet, desktop, Hebrew, and game navigation.
