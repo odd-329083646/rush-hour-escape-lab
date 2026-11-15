@@ -343,13 +343,16 @@
 .profile-records { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .6rem; }
 .profile-record { border: 1px solid var(--border); border-radius: 8px; background: var(--card); padding: .85rem; min-width: 0; }
 @media (max-width: 639px) {
-  .profile-content { gap: .75rem; }
+  .profile-page { gap: .5rem; padding: .75rem; }
+  .profile-content { gap: .5rem; }
+  .profile-content h2 { margin-bottom: .5rem; }
+  .profile-avatar-choice { width: 2.5rem; }
   .profile-record strong { font-size: 1.25rem; }
   .profile-record span { line-height: 1.25; }
   .profile-records { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .profile-record:last-child { grid-column: auto; }
   .profile-avatar-large { width: 4rem; }
-  .profile-record { padding: .65rem; }
+  .profile-record { padding: .45rem; }
 }
 @media (max-height: 650px) and (orientation: landscape) {
   .profile-content { gap: .8rem 1.5rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
