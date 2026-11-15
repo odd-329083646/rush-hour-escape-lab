@@ -1,4 +1,4 @@
-import rawPuzzles from "../../public/puzzles.json";
+import rawPuzzles from "@/engine/tournament-puzzles.json";
 import { inflateCars, isValidPuzzle } from "@/engine/game";
 
 // Immutable build snapshot: dynamic regular-game loading must never reorder race indices.

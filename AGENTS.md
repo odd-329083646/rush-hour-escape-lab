@@ -24,6 +24,7 @@
 - Apply tournament moves optimistically and serialize their server validation in the background, batching moves queued during an in-flight request into one ordered request; a local third-puzzle escape shows victory immediately and polls cannot revert it, but coins and win records come only from the server, which declares the first index-3 state the winner. Matches are always two real guests; there are no bot opponents.
 - Keep privileged tournament DAL helpers in server-only services dynamically loaded from validated server-function handlers; browser services must never import administrative clients.
 - Resolve tournament puzzle_indices against the immutable bundled catalogue exported as PUZZLES, never the mutable regular-game catalogue; both server and clients must use identical index ordering. Only legacy matches may carry puzzle objects.
+- Keep the immutable tournament JSON snapshot under src/engine, not public; Vite forbids JavaScript imports of public assets, while regular games retain network-loaded public puzzles.
 
 - Device control preferences live in storageService and useSettings exposes hydration-safe reactive switches; all board hooks gate keyboard and pointer gestures without disabling on-screen controls.
 - Render responsive city artwork once in the root shell using CDN asset pointers; shared CSS tokens and button variants own the toy theme, while vehicle transforms remain exclusively controlled by gameplay gestures.
