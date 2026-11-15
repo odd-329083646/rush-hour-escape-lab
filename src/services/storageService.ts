@@ -66,6 +66,13 @@ export type ControlSetting = "dragEnabled" | "keyboardEnabled";
 export function getControlSetting(key: ControlSetting): boolean {
   return storageService.getItem(key) !== "false";
 }
+/** Unset panel preference defaults to visible on wide screens and hidden on narrow ones. */
+export function getPanelsVisible(): boolean {
+  const saved = storageService.getItem("panelsVisible");
+  if (saved === "true" || saved === "false") return saved === "true";
+  return typeof window === "undefined" || window.matchMedia?.("(min-width: 768px)").matches !== false;
+}
+export function setPanelsVisible(visible: boolean) { storageService.setItem("panelsVisible", String(visible)); }
 export function setControlSetting(key: ControlSetting, enabled: boolean) {
   storageService.setItem(key, String(enabled));
 }

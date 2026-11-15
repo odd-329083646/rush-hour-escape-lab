@@ -1,3 +1,4 @@
+import { useSettings } from "@/hooks/useSettings";
 import { useStandardGame } from "@/hooks/useStandardGame";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, ChevronDown, ChevronUp, Eye, Home, Layers, Lightbulb, Lock, Play, Plus, RotateCcw, Send, Star, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
@@ -38,6 +39,7 @@ const DIRS: { m: Move; Icon: typeof ArrowUp; cls: string }[] = [
 const ARROW: Record<Move, string> = { up: "↑", down: "↓", left: "←", right: "→" };
 
 function Game() {
+  const { panelsVisible } = useSettings();
   const { level } = Route.useParams() as { level: Level };
   const { openHints, tiers, drawRandom, t, murderer, idx, puzzle, cars, moves, sel, setSel, move, setMove, steps, setSteps, msg, warn, started, hidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, simulating, invisibleBumps, wonStars, coins, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, won, clock, progress, toggleTier, formatTime, loadPuzzle, jumpTo, start, useHint, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, handlePointerDown, handlePointerMove, handlePointerUp } = useStandardGame(level);
 
@@ -120,7 +122,7 @@ function Game() {
 
       <HintSelection open={hints.open} onOpenChange={hints.setOpen} level={level} cars={cars} hidden={hidden} plan={plan} coins={coins} onUse={useHint} />
       <div className="game-grid">
-        <aside className="panel flex flex-col gap-2" style={{ gridArea: "ctrl" }}>
+        {(!started || (panelsVisible || murderer)) && <aside className="panel flex flex-col gap-2" style={{ gridArea: "ctrl" }}>
           {!started ? (
             <Button onClick={start} className="execute start-control whitespace-normal"><Play className="h-4 w-4" /><span>{t("startSolving")}</span></Button>
           ) : (
@@ -162,7 +164,7 @@ function Game() {
             </Button>
           </div>
           )}
-        </aside>
+        </aside>}
 
         <section className="flex min-h-0 flex-col items-center gap-2" style={{ gridArea: "board" }}>
           {murderer && started && !won && !failed && !hints.peek && hidden.size < cars.length && (
@@ -258,7 +260,7 @@ function Game() {
           </div>
         </section>
 
-        <aside className="panel" style={{ gridArea: "cars" }}>
+        {(panelsVisible || murderer) && <aside className="panel" style={{ gridArea: "cars" }}>
           <h2 className="panel-title">{t("cars")}</h2>
           <div className="grid grid-cols-4 gap-2">{standard.map(carBtn)}</div>
           {trucks.length > 0 && (
@@ -267,7 +269,7 @@ function Game() {
               <div className="grid grid-cols-2 gap-2">{trucks.map(carBtn)}</div>
             </>
           )}
-        </aside>
+        </aside>}
       </div>
 
       {won && (

@@ -12,7 +12,7 @@ import { useI18n } from "@/lib/i18n";
 export function useProfile() {
   const { t, lang } = useI18n();
   const [profile, setProfile] = useState<Profile>({ username: "", country: "", avatarId: DEFAULT_AVATAR_ID });
-  const [records, setRecords] = useState({ standardCompleted: 0, dailySolved: 0, wins: 0, losses: 0, coins: 0 });
+  const [records, setRecords] = useState({ standardCompleted: 0, dailySolved: 0, worldRecords: 0, wins: 0, losses: 0, coins: 0 });
   const [username, setUsername] = useState("");
   useEffect(() => {
     const refresh = () => { setProfile(getProfile()); setRecords(getPlayerRecords()); };
@@ -20,6 +20,7 @@ export function useProfile() {
     return storageService.subscribe(refresh);
   }, []);
   function updateUsername(value: string) {
+    // Callers navigate home after a successful save.
     const valid = validateUsername(value);
     if (!valid) { toast.error(t("usernameInvalid")); return false; }
     saveProfile({ ...getProfile(), username: valid }); setUsername(valid); toast.success(t("profileSaved")); return true;

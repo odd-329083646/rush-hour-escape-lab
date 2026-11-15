@@ -1,5 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, Check, Coins, Flag, Grid2X2, CalendarCheck, Trophy, Medal } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft, Check, Coins, Flag, Grid2X2, CalendarCheck, Trophy, Globe, Medal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { SettingsButton } from "@/components/settings-dialog";
@@ -21,9 +21,11 @@ export const Route = createFileRoute("/profile")({
 
 function ProfileScreen() {
   const { t, lang, profile, records, bests, username, setUsername, updateUsername, updateAvatar, updateCountry } = useProfile();
+  const navigate = useNavigate();
   const stats = [
     { label: "standardCompleted" as const, value: records.standardCompleted, icon: Grid2X2 },
     { label: "dailySolved" as const, value: records.dailySolved, icon: CalendarCheck },
+    { label: "worldRecordsBroken" as const, value: records.worldRecords, icon: Globe },
     { label: "raceWins" as const, value: records.wins, icon: Trophy },
     { label: "raceLosses" as const, value: records.losses, icon: Medal },
     { label: "coinBalance" as const, value: records.coins, icon: Coins },
@@ -36,9 +38,9 @@ function ProfileScreen() {
         <SettingsButton />
       </header>
       <div className="profile-content profile-glass">
-        <section className="flex items-center gap-4 border-b border-border pb-4 sm:gap-6" aria-label={t("profile")}>
+        <section className="flex min-w-0 items-center gap-4 border-b border-border pb-4 sm:gap-6" aria-label={t("profile")}>
           <PlayerAvatar avatarId={profile.avatarId} className="profile-avatar-large" />
-          <form className="min-w-0 flex-1" onSubmit={(event) => { event.preventDefault(); updateUsername(username); }}>
+          <form className="min-w-0 flex-1" onSubmit={(event) => { event.preventDefault(); if (updateUsername(username)) void navigate({ to: "/" }); }}>
             <label htmlFor="profile-username" className="mb-2 block text-sm text-muted-foreground">{t("username")}</label>
             <div className="flex gap-2">
               <input id="profile-username" value={username} maxLength={20} onChange={(event) => setUsername(event.target.value)} className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-2 text-foreground" />
@@ -55,9 +57,9 @@ function ProfileScreen() {
         <section aria-labelledby="avatar-title">
           <h2 id="avatar-title" className="mb-3 font-display text-sm font-semibold">{t("avatarPicker")}</h2>
           <div className="grid grid-cols-4 gap-2 sm:grid-cols-8">
-            {AVATARS.map((avatar) => <Button key={avatar.id} variant="ghost" aria-label={t(avatar.label)} title={t(avatar.label)} aria-pressed={profile.avatarId === avatar.id} onClick={() => updateAvatar(avatar.id)} className={`h-auto flex-col gap-2 rounded-lg border py-2 ${profile.avatarId === avatar.id ? "border-primary bg-primary/10" : "border-border"}`}>
+            {AVATARS.map((avatar) => <Button key={avatar.id} variant="ghost" aria-label={t(avatar.label)} title={t(avatar.label)} aria-pressed={profile.avatarId === avatar.id} onClick={() => updateAvatar(avatar.id)} className={`h-auto min-w-0 flex-col gap-2 overflow-hidden rounded-lg border px-1 py-2 ${profile.avatarId === avatar.id ? "border-primary bg-primary/10" : "border-border"}`}>
               <PlayerAvatar avatarId={avatar.id} className="profile-avatar-choice" />
-              <span className="w-full whitespace-normal text-center text-[10px] leading-tight">{t(avatar.label)}</span>
+              <span className="w-full whitespace-normal break-words text-center text-[10px] leading-tight">{t(avatar.label)}</span>
             </Button>)}
           </div>
         </section>

@@ -4,6 +4,13 @@ import { readDailyBest, writeDailyScore } from "@/services/supabaseService";
 export type DailyScore = { date: string; solve_time: number; player_name: string };
 
 const MINE_KEY = "daily_my_solves";
+const RECORDS_KEY = "daily_world_records";
+
+/** Number of daily solves that set a new world record on this device. */
+export function getWorldRecordCount(): number {
+  const n = Number(storageService.getItem(RECORDS_KEY));
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+}
 
 /** הזמן הכי מהיר שנרשם בשרת לחידה של תאריך מסוים */
 export async function getBestTime(date: string): Promise<number | null> {
@@ -30,6 +37,7 @@ export async function submitScore(score: DailyScore): Promise<{ best: number | n
   // שמירה ב-Supabase וב-LocalStorage המקומי
   try { await writeDailyScore(score); } catch { saveMine(score); return { best, isRecord: false }; }
   saveMine(score);
+  if (beaten) storageService.setItem(RECORDS_KEY, String(getWorldRecordCount() + 1));
 
   return { best, isRecord: beaten };
 }

@@ -1,3 +1,4 @@
+import { useSettings } from "@/hooks/useSettings";
 import { useDailyGame } from "@/hooks/useDailyGame";
 import { Link } from "@tanstack/react-router";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CalendarDays, Coins, Home, Lightbulb, Play, RotateCcw, Trophy } from "lucide-react";
@@ -20,6 +21,7 @@ const ARROW: Record<Move, string> = { up: "↑", down: "↓", left: "←", right
 
 export function DailyGame({ date, openCalendar = false }: { date: string; openCalendar?: boolean }) {
   const { t, start, par, cars, moves, setStartedAt, now, setNow, loading, sel, setSel, steps, setSteps, move, setMove, hidden, setHidden, bumps, warn, coins, setCoins, result, hints, boardCars, calOpen, setCalOpen, dragStart, drag, setDrag, failed, reset, elapsed, started, useHint, execute, handlePointerDown, handlePointerMove, handlePointerUp, label } = useDailyGame({ date, openCalendar });
+  const { panelsVisible } = useSettings();
   const carBtn = (c: Car) => (
     <Button variant="ghost" key={c.id} onClick={() => setSel(c.id)} data-active={sel === c.id}
       title={c.name} aria-label={`Select ${c.id} · ${c.name}`} disabled={!started || !!result} className="palette-cell h-auto">
@@ -46,7 +48,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
 
       <HintSelection open={hints.open} onOpenChange={hints.setOpen} level="medium" cars={cars} hidden={hidden} coins={coins} onUse={useHint} />
       <div className="game-grid">
-        <aside className="panel flex flex-col gap-2" style={{ gridArea: "ctrl" }}>
+        {(!started || panelsVisible) && <aside className="panel flex flex-col gap-2" style={{ gridArea: "ctrl" }}>
           {!started ? (
             <Button disabled={loading} onClick={() => { setHidden(pickHidden(cars, "medium")); setStartedAt(Date.now()); setNow(Date.now()); }} className="execute start-control whitespace-normal">
               <Play className="h-4 w-4" /><span>{t("startSolving")}</span>
@@ -88,7 +90,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
               </Button>
             </div>
           )}
-        </aside>
+        </aside>}
 
         <section className="flex min-h-0 flex-col items-center gap-2" style={{ gridArea: "board" }}>
           <div className="board">
@@ -128,14 +130,14 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
           </div>
         </section>
 
-        <aside className="panel" style={{ gridArea: "cars" }}>
+        {panelsVisible && <aside className="panel" style={{ gridArea: "cars" }}>
           <h2 className="panel-title">{t("cars")}</h2>
           <div className="grid grid-cols-4 gap-2">{cars.filter((c) => c.len === 2).map(carBtn)}</div>
           {cars.some((c) => c.len === 3) && <>
             <h2 className="panel-title mt-2">{t("trucks")}</h2>
             <div className="grid grid-cols-2 gap-2">{cars.filter((c) => c.len === 3).map(carBtn)}</div>
           </>}
-        </aside>
+        </aside>}
       </div>
 
       {result && (

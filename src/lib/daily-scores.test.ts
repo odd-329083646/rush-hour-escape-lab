@@ -41,3 +41,9 @@ describe("daily scores", () => {
     expect(isSolvedOn("2026-03-02")).toBe(true);
   });
 });
+
+import { getWorldRecordCount } from "@/engine/daily-scores";
+import { it as itWR, expect as expectWR } from "vitest";
+itWR("world record count reads saved device count and ignores bad values", () => {
+  localStorage.setItem("daily_world_records", "3"); expectWR(getWorldRecordCount()).toBe(3);
+});

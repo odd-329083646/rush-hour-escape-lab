@@ -1,12 +1,12 @@
 import { storageService } from "@/services/storageService";
 import { getSavedProgress, type Level } from "@/lib/puzzles";
 import { AVATARS, DEFAULT_AVATAR_ID } from "@/config/avatars";
-import { getMySolves } from "@/engine/daily-scores";
+import { getMySolves, getWorldRecordCount } from "@/engine/daily-scores";
 import { getCoins } from "@/engine/rewards";
 import { tournamentStats } from "@/engine/tournament-device";
 
 export type Profile = { username: string; country: string; avatarId: string };
-export type PlayerRecords = { standardCompleted: number; dailySolved: number; wins: number; losses: number; coins: number };
+export type PlayerRecords = { standardCompleted: number; dailySolved: number; worldRecords: number; wins: number; losses: number; coins: number };
 const KEY = "rush_hour_profile";
 
 export const COUNTRIES: { code: string; en: string; he: string }[] = [
@@ -78,7 +78,7 @@ export function saveProfile(p: Omit<Profile, "avatarId"> & { avatarId?: string }
 export function getPlayerRecords(): PlayerRecords {
   const standardCompleted = (["easy", "medium", "hard", "murderer"] as Level[]).reduce((total, level) => total + Object.values(getSavedProgress(level)).filter((s) => s?.stars > 0).length, 0);
   const dailySolved = Object.values(getMySolves()).filter((time) => Number.isFinite(time) && time >= 0).length;
-  return { standardCompleted, dailySolved, ...tournamentStats(), coins: getCoins() };
+  return { standardCompleted, dailySolved, worldRecords: getWorldRecordCount(), ...tournamentStats(), coins: getCoins() };
 }
 
 /** Best time (seconds) and fewest moves across all solved puzzles of a level. */

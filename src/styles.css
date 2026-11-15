@@ -323,8 +323,10 @@
 .profile-avatar-large { width: 5.5rem; }
 .profile-avatar-choice { width: 3rem; }
 .profile-page { height: 100dvh; overflow: hidden; }
+.profile-content > * { min-width: 0; }
+.profile-record span { overflow-wrap: anywhere; }
 .profile-content { width: 100%; max-width: 56rem; margin: auto; min-width: 0; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
-.profile-records { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .6rem; }
+.profile-records { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .6rem; }
 .profile-record { border: 1px solid var(--border); border-radius: 8px; background: var(--card); padding: .85rem; min-width: 0; }
 @media (max-width: 639px) {
   .profile-page { gap: .5rem; padding: .75rem; }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronRight, GraduationCap, Keyboard, Move, Settings, X } from "lucide-react";
+import { ChevronRight, GraduationCap, Keyboard, Move, PanelsLeftRight, Settings, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -23,7 +23,7 @@ export function SettingsButton({ className = "" }: { className?: string }) {
 
 function SettingsDialog({ onClose }: { onClose: () => void }) {
   const { t, lang, profile } = useProfile();
-  const { dragEnabled, keyboardEnabled, setDragEnabled, setKeyboardEnabled } = useSettings();
+  const { panelsVisible, setPanelsVisible, dragEnabled, keyboardEnabled, setDragEnabled, setKeyboardEnabled } = useSettings();
   return (
     <div className="fixed inset-0 z-[60] grid place-items-center bg-background/80 p-3 backdrop-blur" onClick={onClose}>
       <div className="panel flex max-h-[90dvh] w-full max-w-md flex-col gap-5 overflow-auto" role="dialog" aria-modal="true" aria-label={t("settings")} dir="ltr" onClick={(event) => event.stopPropagation()}>
@@ -46,6 +46,10 @@ function SettingsDialog({ onClose }: { onClose: () => void }) {
         </section>
         <section className="flex flex-col gap-3 border-t border-border pt-4">
           <h3 className="panel-title mb-0">{t("controls")}</h3>
+          <label className="flex items-center justify-between gap-3 text-sm" htmlFor="panels-visible">
+            <span className="flex items-center gap-2"><PanelsLeftRight className="h-4 w-4 shrink-0 text-muted-foreground" />{t("controlPanels")}</span>
+            <Switch aria-label={t("controlPanels")} id="panels-visible" checked={panelsVisible} onCheckedChange={setPanelsVisible} />
+          </label>
           <label className="flex items-center justify-between gap-3 text-sm" htmlFor="drag-enabled">
             <span className="flex items-center gap-2"><Move className="h-4 w-4 shrink-0 text-muted-foreground" />{t("vehicleDragging")}</span>
             <Switch aria-label={t("vehicleDragging")} id="drag-enabled" checked={dragEnabled} onCheckedChange={setDragEnabled} />

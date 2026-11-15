@@ -47,7 +47,7 @@ describe("profile", () => {
     localStorage.setItem("daily_my_solves", JSON.stringify({ "2026-11-13": 0, "2026-11-14": 42 }));
     localStorage.setItem("rush_hour_tournament_stats", JSON.stringify({ wins: 4, losses: 2 }));
     localStorage.setItem("rush_hour_coins", "140");
-    expect(getPlayerRecords()).toEqual({ standardCompleted: 2, dailySolved: 2, wins: 4, losses: 2, coins: 140 });
+    expect(getPlayerRecords()).toEqual({ standardCompleted: 2, dailySolved: 2, worldRecords: 0, wins: 4, losses: 2, coins: 140 });
   });
 });
 

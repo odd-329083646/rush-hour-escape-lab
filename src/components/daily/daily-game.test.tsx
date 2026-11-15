@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { beforeEach as _be } from "vitest";
 import { DailyGame } from "./daily-game";
 import { pickHidden, getCoins } from "@/lib/puzzles";
 
@@ -25,6 +26,7 @@ async function startGame() {
 }
 
 describe("Daily gameplay controls", () => {
+  _be(() => localStorage.setItem("panelsVisible", "true"));
   it("peeks at original positions for three seconds then restores moved cars and visibility", async () => {
     localStorage.setItem("rush_hour_coins", "100");
     vi.mocked(pickHidden).mockReturnValue(new Set(["Q"]));
