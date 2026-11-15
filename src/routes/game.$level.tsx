@@ -289,7 +289,7 @@ function Game() {
       {/* דיאלוג בחירת השלבים */}
       {levelsOpen && (
         <div className="toy-dialog-overlay fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setLevelsOpen(false)}>
-          <div className="panel flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden p-0" onClick={(e) => e.stopPropagation()}>
+          <div className={`panel level-picker difficulty-${level} flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden p-0`} onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-card px-4 py-3">
               <h2 className="font-display text-xl font-bold">{t("chooseLevel")}</h2>
               <Button variant="ghost" aria-label={t("close")} onClick={() => setLevelsOpen(false)} className="chip"><X className="h-4 w-4" /></Button>
@@ -340,7 +340,7 @@ function Game() {
                               disabled={!unlocked}
                               onClick={() => jumpTo(originalIdx)}
                               data-active={originalIdx === idx}
-                              className="ctrl relative font-display disabled:opacity-40 flex flex-col items-center justify-center p-2 min-h-[4rem]"
+                              className="ctrl level-tile relative font-display disabled:opacity-40 flex flex-col items-center justify-center p-2 min-h-[4rem]"
                             >
                               {!unlocked ? <Lock className="h-4 w-4 text-muted-foreground" /> : tierLevelNum}
                               {done && <CheckCircle2 className="absolute -right-1 -top-1 h-4 w-4 text-primary" />}

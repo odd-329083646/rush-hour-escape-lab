@@ -58,3 +58,8 @@
 - [x] Preserve the logo's natural dimensions and centered placement.
 - [x] Apply the requested board, glass, text, button and dark-overlay colors through shared tokens.
 - [x] Verify phone/tablet/desktop layout, popups and gameplay without changing game rules.
+
+# Visual consistency
+- [x] Restore the complete logo and remove its checkerboard background.
+- [x] Unify asphalt panels, title badges, navigation, profile/settings controls, difficulty tiles and gold stars.
+- [x] Verify desktop/mobile screens and gameplay without changing rules.

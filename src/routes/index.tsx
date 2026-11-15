@@ -1,6 +1,6 @@
 import { useProfile } from "@/hooks/useProfile";
 import { PlayerAvatar } from "@/components/player-avatar";
-import rushHourLogo from "@/assets/rush-hour-logo.png.asset.json";
+import rushHourLogo from "@/assets/rush-hour-logo-clean.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { useMainMenu } from "@/hooks/useMainMenu";
 import { createFileRoute, Link } from "@tanstack/react-router";
