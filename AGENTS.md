@@ -28,3 +28,4 @@
 - Device control preferences live in storageService and useSettings exposes hydration-safe reactive switches; all board hooks gate keyboard and pointer gestures without disabling on-screen controls.
 - Render responsive city artwork once in the root shell using CDN asset pointers; shared CSS tokens and button variants own the toy theme, while vehicle transforms remain exclusively controlled by gameplay gestures.
 - Share full-screen victory presentation through VictoryOverlay and VictoryStars; these components only render existing results and never compute rewards or game outcomes.
+- Inline Nitro's server imports through nitro.config.ts to keep CommonJS helpers and consumers initialized together on hosted direct requests; retain browser route code splitting and native TanStack deep-link handling.

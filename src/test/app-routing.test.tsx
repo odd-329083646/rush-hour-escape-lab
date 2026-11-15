@@ -24,4 +24,23 @@ describe("App routing", () => {
   it("still serves the game flow at /game/$level", () => {
     expect(matchLast("/game/easy")).toBe("/game/$level");
   });
+
+  it.each([
+    ["/", "/"],
+    ["/play", "/play"],
+    ["/profile", "/profile"],
+    ["/competitions", "/competitions"],
+    ["/tutorial", "/tutorial"],
+    ["/daily", "/daily/"],
+    ["/daily/2026-11-14", "/daily/$date"],
+    ["/game/medium", "/game/$level"],
+    ["/game/hard", "/game/$level"],
+    ["/game/murderer", "/game/$level"],
+  ])("resolves the exact route for direct opening of %s", (path, routeId) => {
+    expect(matchLast(path)).toBe(routeId);
+  });
+
+  it("does not treat a missing asset as a game page", () => {
+    expect(matchLast("/missing-image.png")).toBe(rootRouteId);
+  });
 });

@@ -63,3 +63,8 @@
 - [x] Restore the complete logo and remove its checkerboard background.
 - [x] Unify asphalt panels, title badges, navigation, profile/settings controls, difficulty tiles and gold stars.
 - [x] Verify desktop/mobile screens and gameplay without changing rules.
+
+# Direct page loading
+- [x] Diagnose hosted errors on direct links and refreshes without adding hosting rewrite files.
+- [x] Inline server imports to avoid the hosted CommonJS initialization failure; verify config loading, 17 routing tests, and all local pages in new tabs and on refresh.
+- [ ] Verify the updated published pages after the user publishes changes; the live site still serves the previous version.
