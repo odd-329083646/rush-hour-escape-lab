@@ -1,12 +1,14 @@
-// Keep CommonJS initializers (including Radix/React helpers) in the same
-// server module as their consumers. Split dependency chunks fail to initialize
-// on hosted direct requests with `__commonJSMin is not a function`.
+// Bundle the hosted server into a single module.
+// Split dependency chunks (`_libs/*`) form import cycles with app chunks, so
+// shared CommonJS helpers are still undefined when React/Radix initialize
+// (`__commonJSMin is not a function`) and every hosted request returns 500.
+// Nitro merges `rolldownConfig` with highest priority; `output.inlineDynamicImports`
+// is what makes Nitro switch Rolldown to `codeSplitting: false` (a direct
+// `codeSplitting: false` loses to Nitro's own default groups during merging).
 // This affects only the server bundle; browser route splitting is preserved.
 export default {
   inlineDynamicImports: true,
-  // Explicitly disable Vite 8/Rolldown dependency groups as well as lazy imports.
-  // Some hosted build overrides otherwise retain the failing `_libs` chunks.
   rolldownConfig: {
-    output: { codeSplitting: false },
+    output: { inlineDynamicImports: true },
   },
 };
