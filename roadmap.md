@@ -67,9 +67,9 @@
 # Direct page loading
 - [x] Diagnose hosted errors on direct links and refreshes without adding hosting rewrite files.
 - [x] Inline server imports to avoid the hosted CommonJS initialization failure; verify config loading, 17 routing tests, and all local pages in new tabs and on refresh.
-- [ ] Verify the updated published pages after the user publishes changes; the live site still serves the previous version.
+- [ ] Verify published direct pages after deployment; the last live check still returned the CommonJS initialization error.
 
 # Compilation and styling recovery
 - [x] Fix public-asset imports and stylesheet import ordering without changing puzzles or gameplay.
 - [x] Run regression tests and verify styled pages, direct loading and refresh in preview.
-- [ ] Deploy the fixes and verify the published pages and styles.
+- [ ] Deploy the fixes and verify the published pages and styles; publishing requested, but the last live check still returned HTTP 500.
