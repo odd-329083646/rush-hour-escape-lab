@@ -1,3 +1,8 @@
+# Competitions matchmaking update
+- [x] Replace lobby actions with random/friend choices and add a matched-player VS introduction.
+- [x] Enforce a 60-second random search, direct cancellation, and distinct unavailable-room/timeout screens.
+- [x] Add capability-verified friend invitations with app-wide notifications; verify two real guests and responsive layouts.
+
 # Daily gameplay alignment
 - [x] Center car IDs and restore Cars/Trucks selection.
 - [x] Add bounded mouse/touch dragging and keyboard selection/execution.

@@ -567,3 +567,28 @@ main > header:not(.home-title) h1, .mode-screen .home-title h1 { width: fit-cont
 .victory-actions .toy-button { height: auto; min-height: 3.5rem; padding: .8rem 1.5rem; font-size: 1.1rem; border-bottom-width: 5px; }
 .victory-home { background-color: var(--toy-red) !important; color: var(--toy-light) !important; --button-edge: var(--toy-red-edge) !important; }
 .victory-next { background-color: var(--primary) !important; color: var(--primary-foreground) !important; --button-edge: var(--toy-green-edge) !important; }
+
+.race-lobby { min-height: 0; padding: 1rem; }
+.race-lobby > p { text-shadow: var(--toy-text-shadow); }
+.race-lobby-emblem { display: flex; align-items: center; gap: 1rem; }
+.race-lobby-avatar { width: 5rem; border: 3px solid var(--toy-yellow); box-shadow: var(--toy-panel-shadow); }
+.race-versus { position: fixed; inset: 0; z-index: 45; display: grid; place-items: center; padding: 1rem; background: var(--toy-dim); backdrop-filter: blur(12px); }
+.race-versus-lineup { width: min(100%, 64rem); display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 2rem; align-items: center; }
+.race-contender { min-width: 0; text-align: center; animation: toy-pop .4s ease-out both; }
+.race-avatar { width: 10rem; max-width: 100%; border: 5px solid var(--toy-blue); box-shadow: var(--toy-panel-shadow); }
+.race-contender:last-child .race-avatar { border-color: var(--toy-red); }
+.race-contender h2 { margin-top: 1rem; font-size: 2rem; font-weight: 700; overflow-wrap: anywhere; color: var(--toy-light); text-shadow: var(--toy-text-shadow); }
+.race-contender p { margin-top: .5rem; color: var(--toy-yellow); }
+.race-vs-mark { font-family: var(--font-display); font-size: 6rem; font-style: italic; color: var(--toy-yellow); text-shadow: 0 5px 0 var(--toy-red-edge), var(--toy-text-shadow); animation: star-pop .6s ease both; }
+.tournament > header h1 { flex-shrink: 1; text-align: center; }
+@media (max-width: 600px) {
+  .race-versus-lineup { gap: .7rem; }
+  .race-avatar { width: 6rem; }
+  .race-contender h2 { font-size: 1.1rem; }
+  .race-contender p { font-size: .8rem; }
+  .race-vs-mark { font-size: 3rem; }
+  .tournament > header { gap: .35rem; }
+  .tournament > header h1 { font-size: .85rem; padding: .35rem; }
+}
+@media (max-height: 600px) { .race-lobby { gap: .8rem; padding-block: .5rem; } .race-lobby-avatar { width: 3rem; } }
+@media (prefers-reduced-motion: reduce) { .race-contender, .race-vs-mark { animation: none; } }

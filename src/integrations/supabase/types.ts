@@ -38,6 +38,55 @@ export type Database = {
         }
         Relationships: []
       }
+      duel_invitations: {
+        Row: {
+          created_at: string
+          dismissed: boolean
+          id: string
+          match_id: string
+          recipient: string
+          sender: string
+        }
+        Insert: {
+          created_at?: string
+          dismissed?: boolean
+          id?: string
+          match_id: string
+          recipient: string
+          sender: string
+        }
+        Update: {
+          created_at?: string
+          dismissed?: boolean
+          id?: string
+          match_id?: string
+          recipient?: string
+          sender?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "duel_invitations_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "tournament_matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "duel_invitations_recipient_fkey"
+            columns: ["recipient"]
+            isOneToOne: false
+            referencedRelation: "tournament_guests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "duel_invitations_sender_fkey"
+            columns: ["sender"]
+            isOneToOne: false
+            referencedRelation: "tournament_guests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tournament_guests: {
         Row: {
           active_match: string | null
@@ -46,6 +95,7 @@ export type Database = {
           country: string
           created_at: string
           id: string
+          invitation_code: string
           losses: number
           player_records: Json
           token_hash: string
@@ -59,6 +109,7 @@ export type Database = {
           country?: string
           created_at?: string
           id?: string
+          invitation_code?: string
           losses?: number
           player_records?: Json
           token_hash: string
@@ -72,6 +123,7 @@ export type Database = {
           country?: string
           created_at?: string
           id?: string
+          invitation_code?: string
           losses?: number
           player_records?: Json
           token_hash?: string
@@ -93,6 +145,7 @@ export type Database = {
           bot: boolean
           bot_seconds: number
           bot_won: boolean
+          close_reason: string | null
           created_at: string
           id: string
           private: boolean
@@ -117,6 +170,7 @@ export type Database = {
           bot?: boolean
           bot_seconds?: number
           bot_won?: boolean
+          close_reason?: string | null
           created_at?: string
           id?: string
           private?: boolean
@@ -141,6 +195,7 @@ export type Database = {
           bot?: boolean
           bot_seconds?: number
           bot_won?: boolean
+          close_reason?: string | null
           created_at?: string
           id?: string
           private?: boolean
@@ -175,6 +230,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      send_duel_invitation: {
+        Args: { p_guest: string; p_hash: string; p_recipient_code: string }
+        Returns: Json
+      }
       tournament_action: {
         Args: {
           p_action: string

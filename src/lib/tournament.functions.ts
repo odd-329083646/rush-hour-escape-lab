@@ -6,6 +6,12 @@ const avatarSchema = z.string().refine((id) => AVATARS.some((avatar) => avatar.i
 
 const moveSchema = z.object({ id: z.string().min(1).max(3), direction: z.enum(["up", "down", "left", "right"]), steps: z.number().int().min(1).max(4) });
 const credentialSchema = z.object({ id: z.string().uuid(), token: z.string().min(32).max(128) });
+export const duelInvitations = createServerFn({ method: "POST" })
+  .inputValidator((input: unknown) => z.object({ credential: credentialSchema, action: z.enum(["inbox", "send", "dismiss"]), recipientCode: z.string().uuid().optional(), invitationId: z.string().uuid().optional() }).parse(input))
+  .handler(async ({ data }) => {
+    const { duelInvitationAction } = await import("@/services/supabaseService.server");
+    return duelInvitationAction(data);
+  });
 export const registerTournamentGuest = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ username: z.string().trim().min(1).max(20), country: z.string().regex(/^([A-Z]{2})?$/), avatarId: avatarSchema.default("car"), coins: z.number().int().min(0).max(100000) }).parse(input))
   .handler(async ({ data }) => {

@@ -20,6 +20,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { useProfileSync } from "@/hooks/useProfile";
 import portraitCity from "@/assets/toy-city-portrait.jpg.asset.json";
 import landscapeCity from "@/assets/toy-city-landscape.jpg.asset.json";
+import { DuelInvitationsProvider } from "@/hooks/useDuelInvitations";
+import { DuelInvitationNotification } from "@/components/duel-invitation";
 
 function NotFoundComponent() {
   return (
@@ -151,7 +153,10 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <DuelInvitationsProvider>
+        <Outlet />
+        <DuelInvitationNotification />
+      </DuelInvitationsProvider>
       <Toaster />
     </QueryClientProvider>
   );

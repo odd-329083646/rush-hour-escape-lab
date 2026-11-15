@@ -9,6 +9,9 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
+- Guest duel invitations use private player invitation codes and capability-verified inbox reads; app-wide data-free broadcasts plus polling deliver notifications without exposing profiles or tokens.
+- Matchmaking deadlines and the VS/countdown schedule are enforced by the atomic tournament action; client phase helpers only render server timestamps to avoid timing and refund races.
+
 - Both daily routes use the shared DailyGame screen and finalize pointer, keyboard, and button moves through applyMove, keeping collision rules and daily scoring consistent.
 - All UI text comes from src/lib/i18n.ts (useI18n); update document lang with the selected language while keeping document and hook direction LTR to decouple translation from layout geometry.
 - Player profile hooks expose device identity and derived records; a single app-wide background sync coalesces edits through capability-verified guest functions without touching authoritative tournament rewards. Share guest registration between profile sync and races to avoid duplicate identities; avatar configuration supports image URLs with icon fallbacks.

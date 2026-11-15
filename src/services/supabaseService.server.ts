@@ -6,6 +6,42 @@ async function hashToken(token: string) {
   return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+export async function duelInvitationAction(data: { credential: GuestCredential; action: "inbox" | "send" | "dismiss"; recipientCode?: string | undefined; invitationId?: string | undefined }) {
+  const tokenHash = await hashToken(data.credential.token);
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: guest, error } = await supabaseAdmin.from("tournament_guests").select("id,invitation_code").eq("id", data.credential.id).eq("token_hash", tokenHash).single();
+  if (error || !guest) throw new Error("Invalid guest");
+  if (data.action === "send") {
+    if (!data.recipientCode) return { error: "unavailable" };
+    const result = await supabaseAdmin.rpc("send_duel_invitation", { p_guest: guest.id, p_hash: tokenHash, p_recipient_code: data.recipientCode });
+    if (result.error) throw new Error("Invitation unavailable");
+    const response = result.data as { sent?: boolean; topic?: string; error?: string };
+    if (response.sent && response.topic) {
+      const channel = supabaseAdmin.channel(`duel-${response.topic}`);
+      try { await channel.httpSend("refresh", {}); } finally { await supabaseAdmin.removeChannel(channel); }
+    }
+    return { sent: Boolean(response.sent), error: response.error };
+  }
+  if (data.action === "dismiss" && data.invitationId) {
+    const result = await supabaseAdmin.from("duel_invitations").update({ dismissed: true }).eq("id", data.invitationId).eq("recipient", guest.id);
+    if (result.error) throw new Error("Invitation unavailable");
+  }
+  const result = await supabaseAdmin.from("duel_invitations").select("id,sender,match_id").eq("recipient", guest.id).eq("dismissed", false).gte("created_at", new Date(Date.now() - 30_000).toISOString()).order("created_at", { ascending: false }).limit(5);
+  if (result.error) throw new Error("Invitation unavailable");
+  const rows = result.data ?? [];
+  if (!rows.length) return { playerCode: guest.invitation_code, invitations: [] };
+  const [matches, players] = await Promise.all([
+    supabaseAdmin.from("tournament_matches").select("id,room_code,status,created_at").in("id", rows.map(row => row.match_id)).eq("status", "waiting").gte("created_at", new Date(Date.now() - 30_000).toISOString()),
+    supabaseAdmin.from("tournament_guests").select("id,username").in("id", rows.map(row => row.sender)),
+  ]);
+  if (matches.error || players.error) throw new Error("Invitation unavailable");
+  return { playerCode: guest.invitation_code, invitations: rows.flatMap(row => {
+    const match = matches.data?.find(match => match.id === row.match_id);
+    const player = players.data?.find(player => player.id === row.sender);
+    return match?.room_code && player ? [{ id: row.id, name: player.username, code: match.room_code }] : [];
+  }) };
+}
+
 export async function registerGuest(data: { username: string; country: string; avatarId?: string; coins: number }) {
     const token = crypto.randomUUID() + crypto.randomUUID();
     const tokenHash = await hashToken(token);
@@ -77,6 +113,11 @@ export async function performTournamentAction(data: { credential: GuestCredentia
     });
     if (result.error) throw new Error("Tournament unavailable");
     let snapshot = result.data as unknown as RaceSnapshot;
+    if (data.action === "cancel" && snapshot.match?.status === "cancelled") {
+      const cleared = await supabaseAdmin.rpc("tournament_action", { p_guest: verified.data.id, p_hash: tokenHash, p_action: "leave", p_delta: 0 });
+      if (cleared.error) throw new Error("Tournament unavailable");
+      snapshot = cleared.data as unknown as RaceSnapshot;
+    }
     if (snapshot.error && data.action !== "move") {
       const refreshed = await supabaseAdmin.rpc("tournament_action", { p_guest: verified.data.id, p_hash: tokenHash, p_action: "status", p_delta: 0 });
       if (refreshed.error) throw new Error("Tournament unavailable");

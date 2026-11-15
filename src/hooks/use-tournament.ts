@@ -74,7 +74,7 @@ export function useTournament() {
   }, []);
 
   const action = useCallback(
-    async (kind: Action, options?: { code?: string; moves?: { id: string; direction: Move; steps: number }[] }) => {
+    async (kind: Action, options?: { code?: string; moves?: { id: string; direction: Move; steps: number }[] }): Promise<RaceSnapshot | undefined> => {
       if (!credential.current) return;
       if (kind === "status" && queued.current.length > 0) return;
       if (locked.current) {
@@ -109,7 +109,8 @@ export function useTournament() {
             }
             publish(data);
           }
-          if (data.error) toast.error(data.error === "coins" ? t("raceNeedCoins") : t("raceUnavailable"));
+          if (data.error && !(kind === "join" && data.error === "unavailable")) toast.error(data.error === "coins" ? t("raceNeedCoins") : t("raceUnavailable"));
+          return data;
         } else if (result.error) {
           if (kind === "move") {
             queued.current = [];
@@ -139,6 +140,7 @@ export function useTournament() {
           setReady(true);
         }
       }
+      return undefined;
     },
     [invoke, t, te, publish]
   );

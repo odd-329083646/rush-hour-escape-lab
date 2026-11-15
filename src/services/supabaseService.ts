@@ -30,3 +30,7 @@ export function subscribeRace(matchId: string, refresh: () => void, connected: (
     .subscribe((status) => connected(status === "SUBSCRIBED"));
   return () => { void supabase.removeChannel(channel); };
 }
+export function subscribeDuelInvitations(guestId: string, refresh: () => void) {
+  const channel = supabase.channel(`duel-${guestId}`).on("broadcast", { event: "refresh" }, refresh).subscribe();
+  return () => { void supabase.removeChannel(channel); };
+}

@@ -5,6 +5,16 @@ export const ENTRY_FEE = 50;
 export const WIN_REWARD = 90;
 export const ROOM_WAIT_MS = 30_000;
 export const COUNTDOWN_MS = 3_000;
+export const RANDOM_WAIT_MS = 60_000;
+export const VS_MS = 3_000;
+
+export function raceWaitRemaining(match: Pick<RaceMatch, "private" | "created_at">, now: number): number {
+  return Math.max(0, Math.ceil(((match.private ? ROOM_WAIT_MS : RANDOM_WAIT_MS) - now + Date.parse(match.created_at)) / 1000));
+}
+export function raceIntroPhase(startedAt: string | null, now: number): "vs" | "countdown" | "playing" {
+  const start = Date.parse(startedAt ?? "");
+  return now < start - COUNTDOWN_MS ? "vs" : now < start ? "countdown" : "playing";
+}
 
 export type RacePuzzle = { par: number; cars: Car[] };
 export type RaceState = { index: number; moves: number; totalMoves: number; elapsed: number; cars: Car[] };
@@ -19,6 +29,7 @@ export type RaceMatch = {
   b_name: string | null; b_country: string | null; started_at: string | null;
   a_avatar_id?: string; b_avatar_id?: string;
   winner: string | null; created_at: string; updated_at: string;
+  close_reason?: string | null;
 };
 export type RaceSnapshot = { guest: RaceGuest; match: RaceMatch | null; serverNow: string; error?: string };
 

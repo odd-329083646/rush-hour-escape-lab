@@ -3,15 +3,21 @@ import { useI18n } from "@/lib/i18n";
 import { useTournament } from "@/hooks/use-tournament";
 import { getProfile, type Profile } from "@/lib/profile";
 import { getCoins } from "@/lib/puzzles";
-import { ENTRY_FEE } from "@/lib/tournament";
+import { ENTRY_FEE, raceWaitRemaining, raceIntroPhase } from "@/lib/tournament";
 import { toast } from "sonner";
 import { useProfile } from "@/hooks/useProfile";
+import { useDuelInvitations } from "@/hooks/useDuelInvitations";
 
 export function useCompetitions() {
   const { t } = useI18n();
   const { snapshot, ready, busy, connected, clockOffset, action, commitMove } = useTournament();
   const { profile } = useProfile();
   const [joinOpen, setJoinOpen] = useState(false);
+  const [friendOpen, setFriendOpen] = useState(false);
+  const [unavailable, setUnavailable] = useState(false);
+  const [recipientCode, setRecipientCode] = useState("");
+  const [sendingInvite, setSendingInvite] = useState(false);
+  const { inbox, send } = useDuelInvitations();
   const [forfeitOpen, setForfeitOpen] = useState(false);
   const [code, setCode] = useState("");
   const [now, setNow] = useState(() => Date.now());
@@ -51,9 +57,7 @@ export function useCompetitions() {
 
   const waitRemaining = useMemo(() => {
     if (!match?.created_at) return 0;
-    if (!match.private) return 0;
-    const limit = 30000;
-    return Math.max(0, Math.ceil((limit - serverNow + Date.parse(match.created_at)) / 1000));
+    return raceWaitRemaining(match, serverNow);
   }, [match?.created_at, match?.private, serverNow]);
 
   const winner = match?.winner === guestId;
@@ -63,21 +67,33 @@ export function useCompetitions() {
   }, [match?.started_at, match?.updated_at]);
 
   const begin = useCallback(
-    (kind: "random" | "create" | "join", room?: string) => {
+    async (kind: "random" | "create" | "join", room?: string) => {
       const currentCoins = getCoins();
       if (currentCoins < ENTRY_FEE) {
         toast.error(t("raceNeedCoins"));
         return;
       }
-      void action(kind, room ? { code: room } : undefined);
+      setUnavailable(false);
+      setFriendOpen(false);
+      const result = await action(kind, room ? { code: room } : undefined);
+      if (kind === "join" && result?.error === "unavailable") setUnavailable(true);
     },
     [action, t]
   );
 
   const dismiss = useCallback(async () => {
+    setUnavailable(false);
     await action("leave");
     setCoins(getCoins()); // עדכון המטבעות לאחר סיום המשחק
   }, [action]);
+
+  const sendInvite = async () => {
+    setSendingInvite(true);
+    const sent = await send(recipientCode);
+    setSendingInvite(false);
+    if (sent) { toast.success(t("raceInviteSent")); setRecipientCode(""); }
+    else toast.error(t("raceInviteUnavailable"));
+  };
 
   return {
     t,
@@ -90,6 +106,15 @@ export function useCompetitions() {
     profile,
     joinOpen,
     setJoinOpen,
+    friendOpen,
+    setFriendOpen,
+    unavailable,
+    recipientCode,
+    setRecipientCode,
+    sendingInvite,
+    sendInvite,
+    playerCode: inbox.playerCode,
+    phase: raceIntroPhase(match?.started_at ?? null, serverNow),
     forfeitOpen,
     setForfeitOpen,
     code,

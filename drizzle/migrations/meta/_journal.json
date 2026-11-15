@@ -36,6 +36,13 @@
       "when": 1794692890803,
       "tag": "0004_guest_player_profile_avatars",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794774142078,
+      "tag": "0005_duel_invitations_and_search_deadlines",
+      "breakpoints": true
     }
   ]
 }

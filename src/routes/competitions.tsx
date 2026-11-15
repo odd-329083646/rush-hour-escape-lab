@@ -1,5 +1,6 @@
 import { useCompetitions } from "@/hooks/useCompetitions";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
 import { Coins, Copy, DoorOpen, Home, LoaderCircle, Shuffle, Trophy, Users, Wifi } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -12,8 +13,13 @@ import { toast } from "sonner";
 import { CoinsBadge } from "@/components/coins-badge";
 import { VictoryStars } from "@/components/victory-overlay";
 import { PlayerAvatar } from "@/components/player-avatar";
+import { RaceVersus } from "@/components/race-versus";
 
 export const Route = createFileRoute("/competitions")({
+  validateSearch: (search: Record<string, unknown>): { room?: string } => {
+    const room = typeof search['room'] === "string" ? normalizeRoomCode(search['room']) : null;
+    return room ? { room } : {};
+  },
   head: () => ({
     meta: [
       { title: "Live 1v1 Tournament - Rush Hour Vanishing Cars" },
@@ -64,7 +70,19 @@ function Competitions() {
     begin,
     commit,
     dismiss,
+    friendOpen, setFriendOpen, unavailable, recipientCode, setRecipientCode,
+    sendingInvite, sendInvite, playerCode, phase,
   } = useCompetitions();
+  const navigate = useNavigate();
+  const { room } = Route.useSearch();
+  const joinedRoom = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!room || !ready || busy || joinedRoom.current === room) return;
+    joinedRoom.current = room;
+    void begin("join", room);
+    void navigate({ to: "/competitions", search: {}, replace: true });
+  }, [room, ready, busy, begin, navigate]);
+  const backHome = async () => { await dismiss(); void navigate({ to: "/" }); };
 
   return (
     <main className="tournament lot-bg flex h-dvh flex-col gap-3 overflow-hidden px-3 py-3" dir="ltr">
@@ -140,7 +158,11 @@ function Competitions() {
             <Wifi className="h-3 w-3" />
             {connected ? t("raceLive") : t("raceReconnecting")}
           </p>
-          {countdown >= 0 && serverNow < start + 700 && (
+          {phase === "vs" && <RaceVersus players={[
+            { name: match.a_name, country: match.a_country, avatarId: match.a_avatar_id },
+            { name: match.b_name ?? "", country: match.b_country ?? "", avatarId: match.b_avatar_id },
+          ]} />}
+          {phase !== "vs" && countdown >= 0 && serverNow < start + 700 && (
             <div className="fixed inset-0 z-40 grid place-items-center bg-background/80 backdrop-blur-sm">
               <span className="font-display text-6xl font-bold text-primary">
                 {countdown > 0 ? countdown : t("raceGo")}
@@ -149,8 +171,8 @@ function Competitions() {
           )}
         </>
       ) : !match ? (
-        <section className="mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center gap-6">
-          <Trophy className="h-14 w-14 text-primary" />
+        <section className="race-lobby mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center gap-6">
+          <div className="race-lobby-emblem"><PlayerAvatar avatarId={profile.avatarId} className="race-lobby-avatar" /><Trophy className="h-10 w-10 text-toy-yellow" /></div>
           <p className="text-center font-display text-xl">{t("raceDescription")}</p>
           <div className="flex gap-5 text-sm">
             <span className="flex items-center gap-2 text-muted-foreground">
@@ -167,24 +189,15 @@ function Competitions() {
               <Shuffle className="h-5 w-5" />
               {t("raceRandom")}
             </Button>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-3">
               <Button
                 variant="outline"
                 className="h-auto whitespace-normal py-4"
                 disabled={!ready || busy}
-                onClick={() => begin("create")}
+                onClick={() => setFriendOpen(true)}
               >
                 <Users className="h-4 w-4 shrink-0" />
-                {t("raceCreate")}
-              </Button>
-              <Button
-                variant="outline"
-                className="h-auto whitespace-normal py-4"
-                disabled={!ready || busy}
-                onClick={() => setJoinOpen(true)}
-              >
-                <DoorOpen className="h-4 w-4 shrink-0" />
-                {t("raceJoin")}
+                {t("raceFriend")}
               </Button>
             </div>
           </div>
@@ -197,7 +210,7 @@ function Competitions() {
         </section>
       ) : null}
 
-      <Dialog open={match?.status === "waiting" || match?.status === "finished" || match?.status === "cancelled"}>
+      <Dialog open={unavailable || match?.status === "waiting" || match?.status === "finished" || match?.status === "cancelled"}>
         <DialogContent
           className={`w-[calc(100%-2rem)] rounded-lg bg-card text-center [&>button:last-child]:hidden ${match?.status === "finished" && winner ? "victory-banner" : ""}`}
           onEscapeKeyDown={(event) => event.preventDefault()}
@@ -209,7 +222,7 @@ function Competitions() {
               <DialogTitle className="font-display text-xl">
                 {t(match.private ? "raceWaiting" : "raceSearching")}
               </DialogTitle>
-              {match.private && <DialogDescription>{t("raceWaitRemaining", { n: waitRemaining })}</DialogDescription>}
+              <DialogDescription>{t("raceWaitRemaining", { n: waitRemaining })}</DialogDescription>
               {match.room_code && (
                 <div className="flex items-center justify-center gap-2">
                   <strong className="font-display text-4xl text-primary">
@@ -233,6 +246,11 @@ function Competitions() {
                   </Button>
                 </div>
               )}
+              {match.private && <form className="flex flex-col gap-2" onSubmit={event => { event.preventDefault(); void sendInvite(); }}>
+                <label className="text-sm" htmlFor="recipient-code">{t("raceRecipientCode")}</label>
+                <input id="recipient-code" value={recipientCode} onChange={event => setRecipientCode(event.target.value)} className="min-w-0 rounded-md border border-input bg-background p-3 text-sm" />
+                <Button type="submit" disabled={sendingInvite || !recipientCode.trim()}>{t("raceSendInvite")}</Button>
+              </form>}
               <Button
                 variant="outline"
                 disabled={busy}
@@ -278,21 +296,13 @@ function Competitions() {
                 >
                   {t("playAgain")}
                 </Button>
-                <Button
-  variant="outline"
-  disabled={busy}
-  onClick={async () => {
-    await dismiss();
-  }}
->
-  <Link to="/">{t("backHome")}</Link>
-</Button>
+                <Button variant="outline" disabled={busy} onClick={() => { void backHome(); }}>{t("backHome")}</Button>
               </div>
             </>
           ) : (
             <>
-              <DialogTitle>{t("raceRoomExpired")}</DialogTitle>
-              <DialogDescription>{t("raceUnavailable")}</DialogDescription>
+              <DialogTitle>{t(unavailable ? "raceUnavailable" : match?.private ? "racePrivateExpired" : "raceTimeout")}</DialogTitle>
+              <DialogDescription>{t(unavailable ? "raceCoinsSafe" : match?.private ? "raceRefund" : "raceTimeoutBody")}</DialogDescription>
               <Button
                 className="execute"
                 disabled={busy}
@@ -302,8 +312,22 @@ function Competitions() {
               >
                 {t("tryAgain")}
               </Button>
+              <Button variant="outline" disabled={busy} onClick={() => { void backHome(); }}>{t("backHome")}</Button>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={friendOpen} onOpenChange={setFriendOpen}>
+        <DialogContent className="text-center">
+          <DialogTitle>{t("raceFriend")}</DialogTitle>
+          <DialogDescription>{t("raceEntry")}</DialogDescription>
+          <Button className="h-auto whitespace-normal py-4" onClick={() => { setFriendOpen(false); setJoinOpen(true); }}><DoorOpen className="h-5 w-5" />{t("raceEnterCode")}</Button>
+          <Button variant="outline" className="h-auto whitespace-normal py-4" disabled={busy} onClick={() => { void begin("create"); }}><Users className="h-5 w-5" />{t("raceInviteFriend")}</Button>
+          <div className="min-w-0 border-t border-border pt-3">
+            <p className="mb-2 text-sm text-muted-foreground">{t("racePlayerCode")}</p>
+            <div className="flex min-w-0 items-center gap-2"><code className="min-w-0 flex-1 break-all text-sm">{playerCode}</code><Button variant="ghost" size="icon" aria-label={t("raceCopy")} onClick={() => { void navigator.clipboard.writeText(playerCode).then(() => toast.success(t("raceCopied"))).catch(() => toast.error(t("raceConnectionError"))); }}><Copy className="h-4 w-4" /></Button></div>
+          </div>
         </DialogContent>
       </Dialog>
 
