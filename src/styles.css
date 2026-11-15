@@ -42,7 +42,7 @@
   --color-sidebar-primary: var(--sidebar-primary);
   --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
   --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent-foreground: var(--sidebar-sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 }
@@ -468,13 +468,13 @@ body { isolation: isolate; }
 .toy-button.palette-cell { background-color: oklch(0.28 0.025 255); color: var(--toy-light); --button-edge: oklch(0.16 0.02 255); }
 .toy-button.palette-cell[data-active="true"] { background-color: var(--primary); color: var(--primary-foreground); --button-edge: var(--toy-green-edge); }
 
-/* פאנלים צדדיים נשארים חצי-שקופים עם טשטוש זכוכית */
+/* פאנלים צדדיים חצי-שקופים (רואים דרכם את רקע העיר בצורה ברורה) */
 .game-grid .panel {
   border-radius: 1.25rem;
-  background: var(--card);
+  background: oklch(0.22 0.03 255 / 0.52);
   border-color: var(--border);
   box-shadow: var(--toy-panel-shadow);
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(10px);
   overflow: auto; min-height: 0;
 }
 .game-grid aside.panel { position: relative; }
@@ -502,7 +502,7 @@ body { isolation: isolate; }
 .level-picker .level-tile[data-active="true"] { outline: 3px solid var(--toy-light); outline-offset: 2px; }
 .level-picker .level-tile .text-muted-foreground { color: inherit; }
 
-/* לוח חניון אטום וללא מסגרות צהובות בצדדים */
+/* לוח חניון אטום לחלוטין וללא מסגרות צהובות בצדדים */
 .board {
   background-color: var(--toy-board) !important;
   backdrop-filter: none !important;
@@ -543,7 +543,7 @@ main > header:not(.home-title) h1, .mode-screen .home-title h1 { width: fit-cont
 .entry-race { background-color: var(--toy-purple); --button-edge: var(--toy-purple-edge) !important; }
 .mode-entry { color: var(--toy-light); }
 .mode-easy { color: var(--primary-foreground); background-color: var(--primary); --button-edge: var(--toy-green-edge) !important; }
-.mode-medium { background-color: var(--toy-yellow); color: var(--toy-ink); --button-edge: var(--toy-yellow-edge) !important; }
+.mode-medium { background-color: var(--toy-yellow); color: var(--toy-yellow-ink) !important; --button-edge: var(--toy-yellow-edge) !important; }
 .mode-hard { background-color: var(--toy-red); --button-edge: var(--toy-red-edge) !important; }
 .mode-murderer { background-color: var(--toy-purple); --button-edge: var(--toy-purple-edge) !important; }
 .home-entry .menu-icon { color: inherit; background: var(--toy-highlight); border: 1px solid var(--toy-highlight); width: 2.6rem; height: 2.6rem; border-radius: .9rem; flex-shrink: 0; }
