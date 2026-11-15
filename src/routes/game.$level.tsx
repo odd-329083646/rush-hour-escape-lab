@@ -203,7 +203,7 @@ function Game() {
                 </Button>
               ))}
               {failed && (
-                <div className="win flex-col gap-2 text-center" style={{ backgroundColor: 'oklch(0.16 0.01 260 / 0.95)' }}>
+                <div className="win flex-col gap-2 text-center">
                   <X className="h-12 w-12 text-destructive" />
                   <span className="text-3xl text-destructive">{t("oops")}</span>
                   <span className="text-base text-muted-foreground">
@@ -288,7 +288,7 @@ function Game() {
 
       {/* דיאלוג בחירת השלבים */}
       {levelsOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4" onClick={() => setLevelsOpen(false)}>
+        <div className="toy-dialog-overlay fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setLevelsOpen(false)}>
           <div className="panel flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden p-0" onClick={(e) => e.stopPropagation()}>
             <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-card px-4 py-3">
               <h2 className="font-display text-xl font-bold">{t("chooseLevel")}</h2>

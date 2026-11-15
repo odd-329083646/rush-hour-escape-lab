@@ -53,3 +53,8 @@
 - [x] Add the uploaded logo and replace light panels/header bars with floating controls and indigo glass.
 - [x] Restyle asphalt boards, difficulty colors, and full-screen golden victory celebrations.
 - [x] Verify mobile/tablet/desktop screens and preserved gameplay interactions.
+
+# Exact palette and logo proportions
+- [x] Preserve the logo's natural dimensions and centered placement.
+- [x] Apply the requested board, glass, text, button and dark-overlay colors through shared tokens.
+- [x] Verify phone/tablet/desktop layout, popups and gameplay without changing game rules.

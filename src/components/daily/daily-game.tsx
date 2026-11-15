@@ -173,7 +173,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
         </VictoryOverlay>
       )}
       {failed && (
-        <div className="fixed inset-0 z-40 grid place-items-center bg-background/80 p-4 backdrop-blur">
+        <div className="toy-dialog-overlay fixed inset-0 z-40 grid place-items-center p-4">
           <div className="panel max-w-sm text-center" role="dialog" aria-label="Game over">
             <h2 className="font-display text-2xl font-bold">{t("gameOver")}</h2>
             <p className="mt-2 text-muted-foreground">{t("bumped3Daily")}</p>

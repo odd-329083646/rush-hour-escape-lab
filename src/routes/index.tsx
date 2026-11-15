@@ -80,7 +80,7 @@ function Index() {
         </p>
         <h1 className="home-logo-title">
           <span className="sr-only">Rush Hour</span>
-          <img className="home-logo" src={rushHourLogo.url} alt="" fetchPriority="high" />
+          <img className="home-logo w-auto object-contain" src={rushHourLogo.url} alt="" fetchPriority="high" />
         </h1>
         <p className="home-edition mt-1 font-display text-base font-semibold sm:text-xl">
           {t("edition")}
