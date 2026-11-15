@@ -10,6 +10,7 @@ import { fmtTime } from "@/lib/daily-scores";
 import { formatRoomCode, normalizeRoomCode } from "@/lib/tournament";
 import { toast } from "sonner";
 import { CoinsBadge } from "@/components/coins-badge";
+import { VictoryStars } from "@/components/victory-overlay";
 import { PlayerAvatar } from "@/components/player-avatar";
 
 export const Route = createFileRoute("/competitions")({
@@ -198,7 +199,7 @@ function Competitions() {
 
       <Dialog open={match?.status === "waiting" || match?.status === "finished" || match?.status === "cancelled"}>
         <DialogContent
-          className="w-[calc(100%-2rem)] rounded-lg bg-card text-center [&>button:last-child]:hidden"
+          className={`w-[calc(100%-2rem)] rounded-lg bg-card text-center [&>button:last-child]:hidden ${match?.status === "finished" && winner ? "victory-banner" : ""}`}
           onEscapeKeyDown={(event) => event.preventDefault()}
           onPointerDownOutside={(event) => event.preventDefault()}
         >
@@ -244,7 +245,7 @@ function Competitions() {
             </>
           ) : match?.status === "finished" ? (
             <>
-              <Trophy className="mx-auto h-12 w-12 text-primary" />
+              {winner ? <VictoryStars /> : <Trophy className="mx-auto h-12 w-12 text-primary" />}
               <DialogTitle className="font-display text-2xl">{t(winner ? "raceWon" : "raceLost")}</DialogTitle>
               <DialogDescription>{t(winner ? "raceReward" : "raceNoReward")}</DialogDescription>
               <div className="grid grid-cols-2 divide-x divide-border border-y border-border py-4 text-sm">

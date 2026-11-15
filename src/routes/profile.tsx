@@ -35,7 +35,7 @@ function ProfileScreen() {
         <h1 className="font-display text-lg font-bold sm:text-xl">{t("profile")}</h1>
         <SettingsButton />
       </header>
-      <div className="profile-content">
+      <div className="profile-content profile-glass">
         <section className="flex items-center gap-4 border-b border-border pb-4 sm:gap-6" aria-label={t("profile")}>
           <PlayerAvatar avatarId={profile.avatarId} className="profile-avatar-large" />
           <form className="min-w-0 flex-1" onSubmit={(event) => { event.preventDefault(); updateUsername(username); }}>

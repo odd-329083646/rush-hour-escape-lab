@@ -5,6 +5,7 @@ import { LEVELS, IS_OFFLINE_MODE, TIERS, type Car, type Level, type Move } from 
 import { Button } from "@/components/ui/button";
 import { SettingsButton } from "@/components/settings-dialog";
 import { HintSelection } from "@/components/hint-selection";
+import { VictoryOverlay } from "@/components/victory-overlay";
 import { CoinsBadge } from "@/components/coins-badge";
 import { useEffect, useRef } from "react";
 
@@ -201,36 +202,6 @@ function Game() {
                   {c.id}
                 </Button>
               ))}
-              {won && (
-                <div className="win flex-col gap-2 text-center">
-                  <Trophy className="h-12 w-12 text-yellow-500 animate-bounce" />
-                  <span className="text-3xl font-bold">{t("victory")}</span>
-                  
-                  <div className="flex justify-center gap-1 my-1">
-                    {[1, 2, 3].map((s) => (
-                      <Star 
-                        key={s} 
-                        className={`h-8 w-8 ${s <= wonStars ? "fill-yellow-400 text-yellow-400" : "text-gray-600"}`} 
-                      />
-                    ))}
-                  </div>
-
-                  {isLast && <span className="text-base text-muted-foreground">{t("allDone")}</span>}
-                  <div className="flex flex-col items-center text-base text-muted-foreground">
-                    <span>{t("statMoves", { n: moves })}</span>
-                    <span>{t("statTime", { t: clock })}</span>
-                    <span>{t("statPar", { n: puzzle.par })}</span>
-                  </div>
-                  <div className="mt-3 flex gap-2">
-                    {!isLast ? (
-                       <Button variant="ghost" onClick={() => jumpTo(idx + 1)} className="chip">{t("nextLevel")}</Button>
-                    ) : (
-                       <Button variant="ghost" onClick={() => loadPuzzle(idx)} className="chip">{t("playAgain")}</Button>
-                    )}
-                    <Link to="/" className="chip"><Home className="h-4 w-4" /> {t("home")}</Link>
-                  </div>
-                </div>
-              )}
               {failed && (
                 <div className="win flex-col gap-2 text-center" style={{ backgroundColor: 'oklch(0.16 0.01 260 / 0.95)' }}>
                   <X className="h-12 w-12 text-destructive" />
@@ -258,7 +229,8 @@ function Game() {
                 /* 💡 הגבלת גובה מקסימלית למובייל (max-h) + גלילה פנימית קבועה */
                 <ol className="flex min-h-0 max-h-[35vh] sm:max-h-[50vh] flex-1 flex-col gap-2 overflow-y-auto pr-1">
                   {plan.map((p, i) => {
-                    const c = cars.find((x) => x.id === p.id)!;
+                    const c = cars.find((x) => x.id === p.id);
+                    if (!c) return null;
                     return (
                       <li key={i} className="flex items-center gap-3 rounded-lg border bg-background px-3 py-2 text-sm">
                         <span className="w-6 font-display text-muted-foreground">{i + 1}.</span>
@@ -279,7 +251,7 @@ function Game() {
               </div>
             </div>
           )}
-          <div className="flex w-full shrink-0 items-center justify-between gap-3 rounded-xl border bg-card px-3 py-1.5 text-sm text-muted-foreground" style={{ width: "var(--board)" }}>
+          <div className="game-stats flex w-full shrink-0 items-center justify-between gap-3 text-sm text-muted-foreground" style={{ width: "var(--board)" }}>
             <span>{t("movesLabel")}: <span className="font-display text-foreground">{murderer && !won ? plan.length : moves}</span></span>
             <span className="min-w-0 flex-1 truncate text-center">{msg}</span>
             <span className="flex items-center gap-1"><Timer className="h-4 w-4" /><span className="font-display text-foreground">{clock}</span></span>
@@ -297,6 +269,22 @@ function Game() {
           )}
         </aside>
       </div>
+
+      {won && (
+        <VictoryOverlay label={t("victory")} stars={wonStars}>
+          <h2 className="font-display">{t("victory")}</h2>
+          {isLast && <p className="mt-2">{t("allDone")}</p>}
+          <div className="mt-3 flex flex-col items-center gap-1 text-lg">
+            <span>{t("statMoves", { n: moves })}</span>
+            <span>{t("statTime", { t: clock })}</span>
+            <span>{t("statPar", { n: puzzle.par })}</span>
+          </div>
+          <div className="victory-actions">
+            <Button className="victory-next" onClick={() => isLast ? loadPuzzle(idx) : jumpTo(idx + 1)}>{t(isLast ? "playAgain" : "nextLevel")}</Button>
+            <Button asChild variant="secondary" className="victory-home"><Link to="/"><Home />{t("home")}</Link></Button>
+          </div>
+        </VictoryOverlay>
+      )}
 
       {/* דיאלוג בחירת השלבים */}
       {levelsOpen && (

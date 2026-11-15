@@ -48,3 +48,8 @@
 - [x] Use the uploaded backgrounds at the requested screen-width breakpoint.
 - [x] Restyle Home and shared controls/panels without changing gameplay.
 - [x] Verify mobile, tablet, desktop, Hebrew, and game navigation.
+
+# Vibrant toy UI
+- [x] Add the uploaded logo and replace light panels/header bars with floating controls and indigo glass.
+- [x] Restyle asphalt boards, difficulty colors, and full-screen golden victory celebrations.
+- [x] Verify mobile/tablet/desktop screens and preserved gameplay interactions.

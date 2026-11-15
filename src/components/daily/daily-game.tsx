@@ -4,6 +4,7 @@ import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CalendarDays, Coins, Home, L
 import { Button } from "@/components/ui/button";
 import { SettingsButton } from "@/components/settings-dialog";
 import { HintSelection } from "@/components/hint-selection";
+import { VictoryOverlay } from "@/components/victory-overlay";
 import { CoinsBadge } from "@/components/coins-badge";
 import { DailyCalendar } from "./daily-calendar";
 import { getCoins, pickHidden, type Car, type Move } from "@/lib/puzzles";
@@ -120,7 +121,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
               >{c.id}</Button>
             ))}
           </div>
-          <div className="flex w-full items-center justify-between gap-3 text-sm" style={{ maxWidth: "var(--board)" }}>
+          <div className="game-stats flex w-full items-center justify-between gap-3 text-sm" style={{ maxWidth: "var(--board)" }}>
             <span>{t("movesLabel")} <b className="font-display">{moves}</b> <span className="text-muted-foreground">/ {t("par", { n: par })}</span></span>
             <span className="font-display">{fmtTime(elapsed)}</span>
             <span>{t("bumps")} <b className="font-display">{bumps}</b></span>
@@ -138,9 +139,9 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
       </div>
 
       {result && (
-        <div className="fixed inset-0 z-40 grid place-items-center bg-background/80 p-4 backdrop-blur">
-          <div className="panel max-w-sm text-center" role="dialog" aria-label="Result">
-            <Trophy className="mx-auto mb-2 h-10 w-10 text-primary" />
+        <VictoryOverlay label={t("solved")}>
+          <div>
+
             <h2 className="font-display text-2xl font-bold">
               {result.isRecord ? t("newRecord") : t("solved")}
             </h2>
@@ -163,13 +164,13 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
               )}
             </div>
 
-            <div className="mt-4 flex flex-wrap justify-center gap-2">
-              <Button variant="ghost" className="chip" onClick={() => reset(start)}>{t("playAgain")}</Button>
+            <div className="victory-actions">
+              <Button variant="ghost" className="victory-next" onClick={() => reset(start)}>{t("playAgain")} </Button>
               <Button variant="ghost" className="chip" onClick={() => setCalOpen(true)}><CalendarDays className="h-4 w-4" /> {t("calendar")}</Button>
-              <Button asChild variant="ghost" className="chip"><Link to="/"><Home className="h-4 w-4" /> {t("home")}</Link></Button>
+              <Button asChild variant="secondary" className="victory-home"><Link to="/"><Home className="h-4 w-4" /> {t("home")}</Link></Button>
             </div>
           </div>
-        </div>
+        </VictoryOverlay>
       )}
       {failed && (
         <div className="fixed inset-0 z-40 grid place-items-center bg-background/80 p-4 backdrop-blur">

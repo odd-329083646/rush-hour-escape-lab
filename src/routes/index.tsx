@@ -1,5 +1,6 @@
 import { useProfile } from "@/hooks/useProfile";
 import { PlayerAvatar } from "@/components/player-avatar";
+import rushHourLogo from "@/assets/rush-hour-logo.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { useMainMenu } from "@/hooks/useMainMenu";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -77,8 +78,9 @@ function Index() {
         <p className="home-eyebrow font-display text-xs font-semibold sm:text-sm">
           {t("parkingPuzzle")}
         </p>
-        <h1 className="font-display text-5xl font-bold sm:text-6xl lg:text-7xl">
-          Rush Hour
+        <h1 className="home-logo-title">
+          <span className="sr-only">Rush Hour</span>
+          <img className="home-logo" src={rushHourLogo.url} alt="" fetchPriority="high" />
         </h1>
         <p className="home-edition mt-1 font-display text-base font-semibold sm:text-xl">
           {t("edition")}
