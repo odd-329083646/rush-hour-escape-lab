@@ -344,7 +344,8 @@ function Game() {
                               data-active={originalIdx === idx}
                               className="ctrl level-tile relative font-display disabled:opacity-40 flex flex-col items-center justify-center p-2 min-h-[4rem]"
                             >
-                              {!unlocked ? <Lock className="h-4 w-4 text-muted-foreground" /> : tierLevelNum}
+                              {tierLevelNum}
+                              {!unlocked && <Lock className="h-3 w-3 text-muted-foreground" />}
                               {done && <CheckCircle2 className="absolute -right-1 -top-1 h-4 w-4 text-primary" />}
                               
                               {unlocked && starCount > 0 && (

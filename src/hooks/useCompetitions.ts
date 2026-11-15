@@ -10,7 +10,7 @@ import { useDuelInvitations } from "@/hooks/useDuelInvitations";
 
 export function useCompetitions() {
   const { t } = useI18n();
-  const { snapshot, ready, busy, connected, clockOffset, action, commitMove } = useTournament();
+  const { snapshot, ready, busy, connected, clockOffset, action, commitMove } = useTournament({ resetResultsOnEntry: true });
   const { profile } = useProfile();
   const [joinOpen, setJoinOpen] = useState(false);
   const [friendOpen, setFriendOpen] = useState(false);

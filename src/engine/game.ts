@@ -361,9 +361,9 @@ export function getPuzzlesForTier(
   return allPuzzles
     .map((p, originalIdx) => ({ puzzle: p, originalIdx }))
     .filter(({ puzzle }) => puzzle.par >= tier.minPar && puzzle.par <= tier.maxPar)
-    .map((item, index) => ({
+    .map((item) => ({
       ...item,
-      tierLevelNum: index + 1,
+      tierLevelNum: item.originalIdx + 1,
     }));
 }
 

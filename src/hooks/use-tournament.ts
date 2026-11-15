@@ -11,7 +11,7 @@ import { advanceRace, resolveRacePuzzles, type GuestCredential, type RaceSnapsho
 
 type Action = "status" | "random" | "create" | "join" | "cancel" | "move" | "forfeit" | "leave";
 
-export function useTournament() {
+export function useTournament({ resetResultsOnEntry = false }: { resetResultsOnEntry?: boolean } = {}) {
   const register = useServerFn(registerTournamentGuest);
   const invoke = useServerFn(tournamentAction);
   const { t, te } = useI18n();
@@ -30,6 +30,8 @@ export function useTournament() {
   const recovering = useRef(false);
   // Match id the player has finished locally; slower server snapshots may not revert it to playing.
   const localWin = useRef<string | null>(null);
+  const entrySnapshotReceived = useRef(false);
+  const dismissedResult = useRef<string | null>(null);
 
   const publish = useCallback((data: RaceSnapshot) => {
     authoritative.current = data;
@@ -69,9 +71,18 @@ export function useTournament() {
     // Once the server settles the match (or it is gone), its result is authoritative again.
     if (won && data.match?.id !== won) localWin.current = null;
     else if (won && data.match?.status !== "playing") localWin.current = null;
+    // Only dismiss a result already present on entry, never one earned during this visit.
+    // Keep syncing the authoritative guest wallet/stats; polling must not reopen the old dialog.
+    if (!entrySnapshotReceived.current) {
+      entrySnapshotReceived.current = true;
+      if (resetResultsOnEntry && (match?.status === "finished" || match?.status === "cancelled")) {
+        dismissedResult.current = match.id;
+      }
+    }
+    if (visible.match?.id === dismissedResult.current) visible = { ...visible, match: null };
     optimistic.current = visible;
     if (alive.current) setSnapshot(visible);
-  }, []);
+  }, [resetResultsOnEntry]);
 
   const action = useCallback(
     async (kind: Action, options?: { code?: string; moves?: { id: string; direction: Move; steps: number }[] }): Promise<RaceSnapshot | undefined> => {

@@ -1,3 +1,7 @@
+# Lobby results and global level numbering
+- [x] Hide stale competition results on lobby entry without resetting achievements; verified with a real expired friend room and repeat polling tests.
+- [x] Number stages continuously across tiers; verified all 246 stage labels in the browser and 52 regression tests.
+
 # Competitions matchmaking update
 - [x] Replace lobby actions with random/friend choices and add a matched-player VS introduction.
 - [x] Enforce a 60-second random search, direct cancellation, and distinct unavailable-room/timeout screens.

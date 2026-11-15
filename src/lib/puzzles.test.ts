@@ -6,6 +6,8 @@ import {
   minSolution,
   pickHidden,
   runPlan,
+  getPuzzlesForTier,
+  TIERS,
   type Car,
 } from "./puzzles";
 
@@ -18,6 +20,16 @@ const FIXTURE: Car[] = [
   { id: "Q", name: "Blue Truck", color: "var(--car-blue)", row: 3, col: 5, len: 3, dir: "v" },
   { id: "P", name: "Orange Truck", color: "var(--car-orange)", row: 3, col: 0, len: 3, dir: "h" },
 ];
+
+it("continues global stage numbers across tier boundaries and keeps catalogue indices", () => {
+  const puzzles = [5, 9, 10, 14, 15].map((par) => ({ par, cars: FIXTURE }));
+  const items = TIERS.flatMap((tier) => getPuzzlesForTier(tier, puzzles));
+  expect(items.map((item) => item.tierLevelNum)).toEqual([1, 2, 3, 4, 5]);
+  expect(items.map((item) => item.originalIdx)).toEqual([0, 1, 2, 3, 4]);
+  const secondTier = TIERS[1];
+  if (!secondTier) throw new Error("Missing second tier");
+  expect(getPuzzlesForTier(secondTier, puzzles).map((item) => item.tierLevelNum)).toEqual([3, 4]);
+});
 
 describe("applyMove", () => {
   it("blocks moves across orientation", () => {
