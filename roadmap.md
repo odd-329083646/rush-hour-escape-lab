@@ -2,6 +2,9 @@
 - [x] Hide stale competition results on lobby entry without resetting achievements; verified with a real expired friend room and repeat polling tests.
 - [x] Number stages continuously across tiers; verified all 246 stage labels in the browser and 52 regression tests.
 
+# Red-car winning exit
+- [x] Restore the visible red-car escape before victory covers the board, including daily games and hidden-car modes; verified desktop Easy and mobile Hard/Murderer solves, next-level reset, and 27 regression tests.
+
 # Competitions matchmaking update
 - [x] Replace lobby actions with random/friend choices and add a matched-player VS introduction.
 - [x] Enforce a 60-second random search, direct cancellation, and distinct unavailable-room/timeout screens.

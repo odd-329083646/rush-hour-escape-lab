@@ -1,5 +1,6 @@
 import { useSettings } from "@/hooks/useSettings";
 import { useStandardGame } from "@/hooks/useStandardGame";
+import { useExitAnimation } from "@/hooks/useExitAnimation";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CheckCircle2, ChevronDown, ChevronUp, Eye, Home, Layers, Lightbulb, Lock, Play, Plus, RotateCcw, Send, Star, Timer, Trash2, Trophy, WifiOff, Shuffle, X } from "lucide-react";
 import { LEVELS, IS_OFFLINE_MODE, TIERS, type Car, type Level, type Move } from "@/lib/puzzles";
@@ -41,7 +42,8 @@ const ARROW: Record<Move, string> = { up: "↑", down: "↓", left: "←", right
 function Game() {
   const { panelsVisible } = useSettings();
   const { level } = Route.useParams() as { level: Level };
-  const { openHints, tiers, drawRandom, t, murderer, idx, puzzle, cars, moves, sel, setSel, move, setMove, steps, setSteps, msg, warn, started, hidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, simulating, invisibleBumps, wonStars, coins, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, won, clock, progress, toggleTier, formatTime, loadPuzzle, jumpTo, start, useHint, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, handlePointerDown, handlePointerMove, handlePointerUp } = useStandardGame(level);
+  const { openHints, tiers, drawRandom, t, murderer, idx, puzzle, cars, moves, sel, setSel, move, setMove, steps, setSteps, msg, warn, started, hidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, simulating, invisibleBumps, wonStars, coins, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, won, wonAt, clock, progress, toggleTier, formatTime, loadPuzzle, jumpTo, start, useHint, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, handlePointerDown, handlePointerMove, handlePointerUp } = useStandardGame(level);
+  const victoryReady = useExitAnimation(wonAt);
 
   // רפרנס לגלילה אוטומטית לסוף רשימת המהלכים בשלב רוצח
   const planEndRef = useRef<HTMLDivElement | null>(null);
@@ -177,7 +179,7 @@ function Game() {
             <div className="board">
               {warn && <div key={warn.key} className="warn" role="alert">{warn.text}</div>}
               {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" style={{ gridRow: Math.floor(i / 6) + 1, gridColumn: (i % 6) + 1 }} />)}
-              <div className="exit" />
+              <div className="exit" data-escaping={won} />
               {boardCars.map((c) => (
                 <Button variant="ghost"
                   key={c.id}
@@ -188,7 +190,7 @@ function Game() {
                   onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
                   data-shake={sel === c.id && !!warn}
                   data-selected={sel === c.id}
-                  data-hidden={hidden.has(c.id) && !boardRevealed}
+                  data-hidden={hidden.has(c.id) && !boardRevealed && !(won && c.id === "X")}
                   data-escaping={won && c.id === "X"}
                   aria-label={hidden.has(c.id) && !boardRevealed ? t("hiddenCar") : c.name}
                   className="car h-auto min-w-0 touch-none select-none p-0 hover:bg-transparent"
@@ -272,7 +274,7 @@ function Game() {
         </aside>}
       </div>
 
-      {won && (
+      {won && victoryReady && (
         <VictoryOverlay label={t("victory")} stars={wonStars}>
           <h2 className="font-display">{t("victory")}</h2>
           {isLast && <p className="mt-2">{t("allDone")}</p>}

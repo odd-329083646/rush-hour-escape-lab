@@ -1,5 +1,6 @@
 import { useSettings } from "@/hooks/useSettings";
 import { useDailyGame } from "@/hooks/useDailyGame";
+import { useExitAnimation } from "@/hooks/useExitAnimation";
 import { Link } from "@tanstack/react-router";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CalendarDays, Coins, Home, Lightbulb, Play, RotateCcw, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,8 @@ const DIRS: { m: Move; Icon: typeof ArrowUp; cls: string }[] = [
 const ARROW: Record<Move, string> = { up: "↑", down: "↓", left: "←", right: "→" };
 
 export function DailyGame({ date, openCalendar = false }: { date: string; openCalendar?: boolean }) {
-  const { t, start, par, cars, moves, setStartedAt, now, setNow, loading, sel, setSel, steps, setSteps, move, setMove, hidden, setHidden, bumps, warn, coins, setCoins, result, hints, boardCars, calOpen, setCalOpen, dragStart, drag, setDrag, failed, reset, elapsed, started, useHint, execute, handlePointerDown, handlePointerMove, handlePointerUp, label } = useDailyGame({ date, openCalendar });
+  const { t, start, par, cars, moves, setStartedAt, now, setNow, wonAt, loading, sel, setSel, steps, setSteps, move, setMove, hidden, setHidden, bumps, warn, coins, setCoins, result, hints, boardCars, calOpen, setCalOpen, dragStart, drag, setDrag, failed, reset, elapsed, started, useHint, execute, handlePointerDown, handlePointerMove, handlePointerUp, label } = useDailyGame({ date, openCalendar });
+  const victoryReady = useExitAnimation(wonAt);
   const { panelsVisible } = useSettings();
   const carBtn = (c: Car) => (
     <Button variant="ghost" key={c.id} onClick={() => setSel(c.id)} data-active={sel === c.id}
@@ -96,7 +98,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
           <div className="board">
             {warn && <div className="warn" role="alert">{warn}</div>}
             {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" style={{ gridRow: Math.floor(i / 6) + 1, gridColumn: (i % 6) + 1 }} />)}
-            <div className="exit" />
+            <div className="exit" data-escaping={wonAt !== null} />
             {boardCars.map((c) => (
               <Button variant="ghost"
                 key={c.id}
@@ -108,8 +110,8 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
                 onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
                 onLostPointerCapture={() => { dragStart.current = null; setDrag(null); }}
                 data-selected={sel === c.id}
-                data-hidden={hidden.has(c.id) && !hints.peek}
-                data-escaping={!!result && c.id === "X"}
+                data-hidden={hidden.has(c.id) && !hints.peek && !(wonAt !== null && c.id === "X")}
+                data-escaping={wonAt !== null && c.id === "X"}
                 aria-label={hidden.has(c.id) && !hints.peek ? t("hiddenCar") : c.name}
                 className="car h-auto min-w-0 touch-none select-none p-0 hover:bg-transparent"
                 style={{
@@ -140,7 +142,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
         </aside>}
       </div>
 
-      {result && (
+      {result && victoryReady && (
         <VictoryOverlay label={t("solved")}>
           <div>
 

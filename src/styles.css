@@ -286,8 +286,21 @@
   .solving-controls { animation: none; }
 }
 
-@keyframes car-escape { 0% { transform: translateX(0); opacity: 1 } 100% { transform: translateX(calc(var(--board, 480px) * 0.6)); opacity: 0 } }
+@keyframes car-escape {
+  0% { transform: translateX(0); opacity: 1; }
+  60% { opacity: 1; }
+  100% { transform: translateX(calc(var(--board, 480px) * 0.6)); opacity: 0; }
+}
 .car[data-escaping="true"] { animation: car-escape .7s cubic-bezier(.5,0,.75,0) forwards; pointer-events: none; z-index: 6; }
+.exit[data-escaping="true"] { animation: exit-glow .7s ease-out forwards; }
+@keyframes exit-glow {
+  0%, 100% { box-shadow: none; }
+  40% { background: var(--toy-gold); box-shadow: 0 0 12px 4px var(--toy-gold); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .car[data-escaping="true"] { animation: none; opacity: 0; }
+  .exit[data-escaping="true"] { animation: none; }
+}
 @keyframes win-in { from { opacity: 0 } to { opacity: 1 } }
 .win { opacity: 0; animation: win-in .35s ease .65s forwards; }
 
