@@ -1,3 +1,6 @@
+import { useProfile } from "@/hooks/useProfile";
+import { PlayerAvatar } from "@/components/player-avatar";
+import { Button } from "@/components/ui/button";
 import { useMainMenu } from "@/hooks/useMainMenu";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useI18n, type TKey } from "@/lib/i18n";
@@ -60,11 +63,13 @@ const ENTRIES: Entry[] = [
 
 function Index() {
   const { dailySolved, t } = useMainMenu();
+  const { profile } = useProfile();
   return (
     <main className="lot-bg relative flex min-h-dvh flex-col items-center justify-center gap-4 px-4 py-4 sm:gap-8 sm:px-5 sm:py-10">
       {/* סרגל עליון: תג מטבעות והגדרות */}
       <div className="absolute end-3 top-3 flex items-center gap-2">
         <CoinsBadge />
+        <Button asChild variant="ghost" size="icon" className="h-9 w-9 rounded-full p-0" aria-label={t("profile")} title={t("profile")}><Link to="/profile"><PlayerAvatar avatarId={profile.avatarId} className="h-9 w-9" /></Link></Button>
         <SettingsButton />
       </div>
 

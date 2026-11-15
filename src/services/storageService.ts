@@ -60,3 +60,12 @@ export function initializeStorage() {
     listeners.forEach((listener) => listener());
   });
 }
+export type ControlSetting = "dragEnabled" | "keyboardEnabled";
+
+/** Missing or invalid device settings retain the ON default. */
+export function getControlSetting(key: ControlSetting): boolean {
+  return storageService.getItem(key) !== "false";
+}
+export function setControlSetting(key: ControlSetting, enabled: boolean) {
+  storageService.setItem(key, String(enabled));
+}

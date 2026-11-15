@@ -335,6 +335,7 @@
 .avatar-shield { background: var(--avatar-shield); }
 .avatar-crown { background: var(--avatar-crown); }
 .avatar-flag { background: var(--avatar-flag); }
+.settings-avatar { width: 3rem; height: 3rem; }
 .profile-avatar-large { width: 5.5rem; }
 .profile-avatar-choice { width: 3rem; }
 .profile-page { height: 100dvh; overflow: hidden; }
@@ -342,14 +343,20 @@
 .profile-records { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .6rem; }
 .profile-record { border: 1px solid var(--border); border-radius: 8px; background: var(--card); padding: .85rem; min-width: 0; }
 @media (max-width: 639px) {
-  .profile-content { gap: 1.25rem; }
-  .profile-records { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .profile-record:last-child { grid-column: span 2; }
+  .profile-content { gap: .75rem; }
+  .profile-record strong { font-size: 1.25rem; }
+  .profile-record span { line-height: 1.25; }
+  .profile-records { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .profile-record:last-child { grid-column: auto; }
   .profile-avatar-large { width: 4rem; }
   .profile-record { padding: .65rem; }
 }
 @media (max-height: 650px) and (orientation: landscape) {
-  .profile-content { gap: .8rem; }
+  .profile-content { gap: .8rem 1.5rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .profile-content > section:nth-child(2) { grid-column: 1; grid-row: 2; }
+  .profile-content > section:nth-child(3) { grid-column: 2; grid-row: 1; }
+  .profile-records { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .profile-record { padding: .45rem; }
   .profile-avatar-large { width: 4rem; }
   .profile-avatar-choice { width: 2.5rem; }
 }

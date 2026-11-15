@@ -1,3 +1,4 @@
+import { useSettings } from "@/hooks/useSettings";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { applyMove, isSolved, runPlan, type Car, type Move } from "@/lib/puzzles";
 import { setLang, translate, useI18n, type Lang, type TKey } from "@/lib/i18n";
@@ -8,6 +9,7 @@ export type Lesson = { title: TKey; body: TKey; cars: Car[]; hidden?: string[]; 
 
 
 export function useTutorialLesson({ lesson, onNext }: { lesson: Lesson; onNext: () => void }) {
+  const { dragEnabled, keyboardEnabled } = useSettings();
   const { t, te, lang } = useI18n();
   const { cars, setCars, commitMove } = useGameEngine(lesson.cars);
   const [sel, setSel] = useState<string | null>(null);
@@ -18,6 +20,9 @@ export function useTutorialLesson({ lesson, onNext }: { lesson: Lesson; onNext: 
   const [msg, setMsg] = useState<string | null>(null);
   const dragStart = useRef<{ id: string; pointerId: number; x: number; y: number; pitch: number; min: number; max: number } | null>(null);
   const [drag, setDrag] = useState<{ id: string; offset: number } | null>(null);
+  useEffect(() => {
+    if (!dragEnabled) { dragStart.current = null; setDrag(null); }
+  }, [dragEnabled]);
   const done = isSolved(cars);
   const hidden = new Set(started && !done ? lesson.hidden ?? [] : []);
 
@@ -39,7 +44,7 @@ export function useTutorialLesson({ lesson, onNext }: { lesson: Lesson; onNext: 
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.altKey || event.ctrlKey || event.metaKey || done) return;
+      if (!keyboardEnabled || event.altKey || event.ctrlKey || event.metaKey || done) return;
       if (event.target instanceof HTMLElement && event.target.closest("input, textarea, select, [role=dialog]")) return;
       const id = event.code.startsWith("Key") ? event.code.slice(3) : event.key.toUpperCase();
       if (cars.some((car) => car.id === id)) { setSel(id); return; }
@@ -56,10 +61,10 @@ export function useTutorialLesson({ lesson, onNext }: { lesson: Lesson; onNext: 
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [cars, sel, steps, move, started, done, plan, lang]);
+  }, [cars, sel, steps, move, started, done, plan, lang, keyboardEnabled]);
 
   const handlePointerDown = (car: Car, event: PointerEvent<HTMLButtonElement>) => {
-    if (done || !started || event.button !== 0) return;
+    if (!dragEnabled || done || !started || event.button !== 0) return;
     setSel(car.id);
     const target = event.currentTarget;
     const board = target.parentElement;
@@ -75,13 +80,13 @@ export function useTutorialLesson({ lesson, onNext }: { lesson: Lesson; onNext: 
   };
   const handlePointerMove = (car: Car, event: PointerEvent<HTMLButtonElement>) => {
     const current = dragStart.current;
-    if (!current || current.id !== car.id || current.pointerId !== event.pointerId) return;
+    if (!dragEnabled || !current || current.id !== car.id || current.pointerId !== event.pointerId) return;
     const raw = car.dir === "h" ? event.clientX - current.x : event.clientY - current.y;
     setDrag({ id: car.id, offset: Math.max(current.min, Math.min(current.max, raw)) });
   };
   const handlePointerUp = (car: Car, event: PointerEvent<HTMLButtonElement>) => {
     const current = dragStart.current;
-    if (!current || current.id !== car.id || current.pointerId !== event.pointerId) return;
+    if (!dragEnabled || !current || current.id !== car.id || current.pointerId !== event.pointerId) return;
     dragStart.current = null; setDrag(null);
     if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
     const raw = car.dir === "h" ? event.clientX - current.x : event.clientY - current.y;

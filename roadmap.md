@@ -38,3 +38,8 @@
 - [x] Add Settings navigation, bilingual profile page, and modular racing avatars.
 - [x] Persist validated profile edits and derived records locally; sync guest profiles in the background.
 - [x] Show both players' avatars in races; test validation, records, persistence, and two-guest sync.
+
+# Settings redesign
+- [x] Simplify Settings and add the Home avatar shortcut.
+- [x] Move country editing and difficulty records to Profile.
+- [x] Persist reactive drag/keyboard switches across all boards; test and verify.

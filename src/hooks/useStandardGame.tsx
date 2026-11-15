@@ -1,3 +1,4 @@
+import { useSettings } from "@/hooks/useSettings";
 import { generatePuzzle, findNextMove } from "@/services/puzzleAnalysisService";
 import { useRewardSystem } from "./useRewardSystem";
 import { storageService } from "@/services/storageService";
@@ -14,6 +15,7 @@ const ARROW: Record<Move, string> = { up: "↑", down: "↓", left: "←", right
 type Planned = { id: string; move: Move; steps: number };
 
 export function useStandardGame(level: Level) {
+  const { dragEnabled, keyboardEnabled } = useSettings();
   const { t, te, lang } = useI18n();
   const rewards = useRewardSystem();
   const startedRef = useRef(false);
@@ -255,7 +257,7 @@ export function useStandardGame(level: Level) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.altKey || e.ctrlKey || e.metaKey || simulating || hints.open || hints.peek) return;
+      if (!keyboardEnabled || e.altKey || e.ctrlKey || e.metaKey || simulating || hints.open || hints.peek) return;
       if (e.target instanceof HTMLElement && e.target.closest("input, textarea, select, [role=dialog]")) return;
 
       let char = e.key.toUpperCase();
@@ -301,15 +303,18 @@ export function useStandardGame(level: Level) {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [cars, sel, move, steps, started, murderer, plan, simulating, invisibleBumps, hints.open, hints.peek, hidden, boardRevealed]);
+  }, [cars, sel, move, steps, started, murderer, plan, simulating, invisibleBumps, hints.open, hints.peek, hidden, boardRevealed, keyboardEnabled]);
 
   const dragStart = useRef<{ id: string; x: number; y: number; pitch: number; min: number; max: number } | null>(null);
   const [drag, setDrag] = useState<{ id: string; offset: number } | null>(null);
+  useEffect(() => {
+    if (!dragEnabled) { dragStart.current = null; setDrag(null); }
+  }, [dragEnabled]);
 
   const freeRange = (car: Car) => movementRange(cars, car);
 
   const handlePointerDown = (c: Car, e: React.PointerEvent) => {
-    if (won || failed || simulating || (murderer && started) || hints.open || hints.peek) return;
+    if (!dragEnabled || won || failed || simulating || (murderer && started) || hints.open || hints.peek) return;
     try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); } catch (err) {}
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const gap = 6;
@@ -320,7 +325,7 @@ export function useStandardGame(level: Level) {
   };
 
   const handlePointerMove = (c: Car, e: React.PointerEvent) => {
-    if (simulating || hints.peek) return;
+    if (!dragEnabled || simulating || hints.peek) return;
     const d = dragStart.current;
     if (!d || d.id !== c.id) return;
     const raw = c.dir === "h" ? e.clientX - d.x : e.clientY - d.y;
@@ -329,7 +334,7 @@ export function useStandardGame(level: Level) {
   };
 
   const handlePointerUp = (c: Car, e: React.PointerEvent) => {
-    if (simulating || hints.peek) return;
+    if (!dragEnabled || simulating || hints.peek) return;
     try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch (err) {}
     const d = dragStart.current;
     dragStart.current = null;

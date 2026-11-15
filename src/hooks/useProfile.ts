@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { AVATARS, DEFAULT_AVATAR_ID } from "@/config/avatars";
-import { getProfile, getPlayerRecords, saveProfile, validateUsername, type Profile } from "@/engine/profile";
+import { getProfile, getPlayerRecords, saveProfile, validateUsername, levelBests, COUNTRIES, type Profile } from "@/engine/profile";
 import { storageService } from "@/services/storageService";
 import { ensureGuestCredential } from "@/services/supabaseService";
 import { registerTournamentGuest, syncTournamentProfile } from "@/lib/tournament.functions";
+import { LEVELS, type Level } from "@/engine/game";
 import { useI18n } from "@/lib/i18n";
 
 export function useProfile() {
@@ -27,7 +28,12 @@ export function useProfile() {
     if (!AVATARS.some((avatar) => avatar.id === avatarId)) return;
     saveProfile({ ...getProfile(), avatarId });
   }
-  return { t, lang, profile, records, username, setUsername, updateUsername, updateAvatar };
+  function updateCountry(country: string) {
+    if (country !== "" && !COUNTRIES.some((item) => item.code === country)) return;
+    saveProfile({ ...getProfile(), country });
+  }
+  const bests = (Object.keys(LEVELS) as Level[]).map((level) => ({ level, ...levelBests(level) }));
+  return { t, lang, profile, records, bests, username, setUsername, updateUsername, updateAvatar, updateCountry };
 }
 
 /** One app-wide subscription coalesces edits; durable device state is the retry source. */

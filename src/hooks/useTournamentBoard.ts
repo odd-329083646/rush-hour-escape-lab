@@ -1,3 +1,4 @@
+import { useSettings } from "@/hooks/useSettings";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { applyMove, type Car, type Move } from "@/lib/puzzles";
 import { useI18n } from "@/lib/i18n";
@@ -5,6 +6,7 @@ import type { RaceState } from "@/lib/tournament";
 import { movementRange } from "@/hooks/useGameEngine";
 
 export function useTournamentBoard({ state, blocked, onMove }: { state: RaceState; blocked: boolean; onMove: (id: string, direction: Move, steps: number) => void }) {
+  const { dragEnabled, keyboardEnabled } = useSettings();
   const { t } = useI18n();
   const [selected, setSelected] = useState<string | null>(null);
   const [direction, setDirection] = useState<Move | null>(null);
@@ -12,8 +14,11 @@ export function useTournamentBoard({ state, blocked, onMove }: { state: RaceStat
   const dragStart = useRef<{ id: string; pointerId: number; x: number; y: number; pitch: number; min: number; max: number } | null>(null);
   const [drag, setDrag] = useState<{ id: string; offset: number } | null>(null);
   useEffect(() => {
+    if (!dragEnabled) { dragStart.current = null; setDrag(null); }
+  }, [dragEnabled]);
+  useEffect(() => {
     function keyboard(event: KeyboardEvent) {
-      if (blocked || event.altKey || event.ctrlKey || event.metaKey) return;
+      if (!keyboardEnabled || blocked || event.altKey || event.ctrlKey || event.metaKey) return;
       if (event.target instanceof HTMLElement && event.target.closest("input, textarea, select, [role=dialog]")) return;
       const id = event.code.startsWith("Key") ? event.code.slice(3) : event.key.toUpperCase();
       if (state.cars.some((car) => car.id === id)) { setSelected(id); return; }
@@ -25,9 +30,9 @@ export function useTournamentBoard({ state, blocked, onMove }: { state: RaceStat
     }
     window.addEventListener("keydown", keyboard);
     return () => window.removeEventListener("keydown", keyboard);
-  }, [state, blocked, selected, direction, steps, onMove]);
+  }, [state, blocked, selected, direction, steps, onMove, keyboardEnabled]);
   const down = (car: Car, event: PointerEvent<HTMLButtonElement>) => {
-    if (blocked || event.button !== 0) return;
+    if (!dragEnabled || blocked || event.button !== 0) return;
     setSelected(car.id);
     const board = event.currentTarget.parentElement;
     const cell = board?.querySelector(".cell");
@@ -40,7 +45,7 @@ export function useTournamentBoard({ state, blocked, onMove }: { state: RaceStat
   };
   const offset = (car: Car, event: PointerEvent<HTMLButtonElement>) => {
     const start = dragStart.current;
-    if (!start || start.id !== car.id || start.pointerId !== event.pointerId) return null;
+    if (!dragEnabled || !start || start.id !== car.id || start.pointerId !== event.pointerId) return null;
     const raw = car.dir === "h" ? event.clientX - start.x : event.clientY - start.y;
     return { start, pixels: Math.max(start.min, Math.min(start.max, raw)) };
   };
@@ -48,7 +53,7 @@ export function useTournamentBoard({ state, blocked, onMove }: { state: RaceStat
     const result = offset(car, event);
     dragStart.current = null; setDrag(null);
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-    if (!result || blocked) return;
+    if (!dragEnabled || !result || blocked) return;
     const cells = Math.round(result.pixels / result.start.pitch);
     if (cells) onMove(car.id, car.dir === "h" ? cells > 0 ? "right" : "left" : cells > 0 ? "down" : "up", Math.abs(cells));
   };

@@ -1,3 +1,4 @@
+import { useSettings } from "@/hooks/useSettings";
 import { findNextMove } from "@/services/puzzleAnalysisService";
 import { useRewardSystem } from "./useRewardSystem";
 import { storageService } from "@/services/storageService";
@@ -13,6 +14,7 @@ import { useGameEngine, movementRange, blockerOf as findBlocker } from "@/hooks/
 const ARROW: Record<Move, string> = { up: "↑", down: "↓", left: "←", right: "→" };
 
 export function useDailyGame({ date, openCalendar = false }: { date: string; openCalendar?: boolean }) {
+  const { dragEnabled, keyboardEnabled } = useSettings();
   const { t, te, lang } = useI18n();
   const [start, setStart] = useState<Car[]>([]);
   const [par, setPar] = useState(0);
@@ -36,6 +38,9 @@ export function useDailyGame({ date, openCalendar = false }: { date: string; ope
   const [calOpen, setCalOpen] = useState(openCalendar);
   const dragStart = useRef<{ id: string; pointerId: number; x: number; y: number; pitch: number; min: number; max: number } | null>(null);
   const [drag, setDrag] = useState<{ id: string; offset: number } | null>(null);
+  useEffect(() => {
+    if (!dragEnabled) { dragStart.current = null; setDrag(null); }
+  }, [dragEnabled]);
   const submitting = useRef(false);
   const failed = bumps >= 3 && !result;
 
@@ -136,7 +141,7 @@ export function useDailyGame({ date, openCalendar = false }: { date: string; ope
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target;
-      if (e.altKey || e.ctrlKey || e.metaKey || e.repeat || hints.open || hints.peek || calOpen || result || failed || !started || wonAt !== null) return;
+      if (!keyboardEnabled || e.altKey || e.ctrlKey || e.metaKey || e.repeat || hints.open || hints.peek || calOpen || result || failed || !started || wonAt !== null) return;
       if (target instanceof HTMLElement && (target.isContentEditable || target.closest("input, textarea, select, [role='dialog']"))) return;
       const char = e.code.startsWith("Key") ? e.code.slice(3) : e.key.toUpperCase();
       if (cars.some((c) => c.id === char)) { e.preventDefault(); setSel(char); return; }
@@ -151,10 +156,10 @@ export function useDailyGame({ date, openCalendar = false }: { date: string; ope
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [cars, calOpen, result, failed, started, move, go, flash, hints.open, hints.peek]);
+  }, [cars, calOpen, result, failed, started, move, go, flash, hints.open, hints.peek, keyboardEnabled]);
 
   const handlePointerDown = (c: Car, e: PointerEvent<HTMLButtonElement>) => {
-    if (!started || result || failed || hints.open || hints.peek || calOpen || wonAt !== null || !e.isPrimary || e.button !== 0 || dragStart.current) return;
+    if (!dragEnabled || !started || result || failed || hints.open || hints.peek || calOpen || wonAt !== null || !e.isPrimary || e.button !== 0 || dragStart.current) return;
     const board = e.currentTarget.parentElement;
     const cell = board?.querySelector(".cell");
     if (!board || !cell) return;
@@ -168,14 +173,14 @@ export function useDailyGame({ date, openCalendar = false }: { date: string; ope
 
   const handlePointerMove = (c: Car, e: PointerEvent<HTMLButtonElement>) => {
     const d = dragStart.current;
-    if (!d || d.id !== c.id || d.pointerId !== e.pointerId) return;
+    if (!dragEnabled || !d || d.id !== c.id || d.pointerId !== e.pointerId) return;
     const raw = c.dir === "h" ? e.clientX - d.x : e.clientY - d.y;
     setDrag({ id: c.id, offset: Math.max(d.min, Math.min(d.max, raw)) });
   };
 
   const handlePointerUp = (c: Car, e: PointerEvent<HTMLButtonElement>) => {
     const d = dragStart.current;
-    if (!d || d.id !== c.id || d.pointerId !== e.pointerId) return;
+    if (!dragEnabled || !d || d.id !== c.id || d.pointerId !== e.pointerId) return;
     dragStart.current = null; setDrag(null);
     if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
     const raw = c.dir === "h" ? e.clientX - d.x : e.clientY - d.y;

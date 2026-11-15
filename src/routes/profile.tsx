@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { SettingsButton } from "@/components/settings-dialog";
 import { AVATARS } from "@/config/avatars";
-import { flag } from "@/lib/profile";
+import { fmtTime } from "@/lib/daily-scores";
+import { COUNTRIES, flag } from "@/lib/profile";
 import { useProfile } from "@/hooks/useProfile";
 
 export const Route = createFileRoute("/profile")({
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/profile")({
 });
 
 function ProfileScreen() {
-  const { t, profile, records, username, setUsername, updateUsername, updateAvatar } = useProfile();
+  const { t, lang, profile, records, bests, username, setUsername, updateUsername, updateAvatar, updateCountry } = useProfile();
   const stats = [
     { label: "standardCompleted" as const, value: records.standardCompleted, icon: Grid2X2 },
     { label: "dailySolved" as const, value: records.dailySolved, icon: CalendarCheck },
@@ -43,7 +44,12 @@ function ProfileScreen() {
               <input id="profile-username" value={username} maxLength={20} onChange={(event) => setUsername(event.target.value)} className="min-w-0 flex-1 rounded-md border border-input bg-background px-3 py-2 text-foreground" />
               <Button type="submit" className="execute"><Check className="h-4 w-4" />{t("save")}</Button>
             </div>
-            <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground"><Flag className="h-3 w-3" />{profile.country ? flag(profile.country) : "—"}{profile.country}</p>
+            <label className="mt-2 flex items-center gap-2 text-sm text-muted-foreground" htmlFor="profile-country"><Flag className="h-3 w-3 shrink-0" />{t("country")}
+              <select aria-label={t("country")} id="profile-country" value={profile.country} onChange={(event) => updateCountry(event.target.value)} className="min-w-0 flex-1 rounded-md border border-input bg-background px-2 py-1 text-foreground">
+                <option value="">—</option>
+                {COUNTRIES.map((country) => <option key={country.code} value={country.code}>{flag(country.code)} {lang === "he" ? country.he : country.en}</option>)}
+              </select>
+            </label>
           </form>
         </section>
         <section aria-labelledby="avatar-title">
@@ -62,6 +68,13 @@ function ProfileScreen() {
             <strong className="block font-display text-2xl tabular-nums">{value}</strong>
             <span className="mt-1 block text-xs leading-relaxed text-muted-foreground">{t(label)}</span>
           </div>)}</div>
+        </section>
+        <section aria-labelledby="bests-title">
+          <h2 id="bests-title" className="mb-2 font-display text-sm font-semibold">{t("stats")}</h2>
+          <table className="w-full text-sm">
+            <thead className="text-xs text-muted-foreground"><tr><th aria-label={t("chooseMode")} /><th className="pb-2 font-normal">{t("bestTime")}</th><th className="pb-2 font-normal">{t("minMoves")}</th></tr></thead>
+            <tbody>{bests.map(({ level, bestTime, bestMoves }) => <tr key={level} className="border-t border-border"><th className="py-1.5 text-left font-medium">{t(`level.${level}`)}</th><td className="text-center font-display tabular-nums">{bestTime === null ? t("noSolves") : fmtTime(bestTime)}</td><td className="text-center font-display tabular-nums">{bestMoves ?? t("noSolves")}</td></tr>)}</tbody>
+          </table>
         </section>
       </div>
     </main>
