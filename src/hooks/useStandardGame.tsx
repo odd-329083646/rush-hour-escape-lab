@@ -40,7 +40,8 @@ export function useStandardGame(level: Level) {
 
   const [plan, setPlan] = useState<Planned[]>([]);
   const [levelsOpen, setLevelsOpen] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [failReason, setFailReason] = useState<"bumps" | "moves" | "plan" | null>(null);
+const failed = failReason !== null;
   const [simulating, setSimulating] = useState(false);
   const [invisibleBumps, setInvisibleBumps] = useState(0);
   const [wonStars, setWonStars] = useState(3);
@@ -81,7 +82,7 @@ export function useStandardGame(level: Level) {
     setSel(null); setMove(null); setSteps(1); setMoves(0);
     setMsg(t("msgStudy"));
     setWarn(null); setStarted(false); setHidden(new Set());
-    setStartedAt(null); setWonAt(null); setPlan([]); setFailed(false); setSimulating(false);
+    setStartedAt(null); setWonAt(null); setPlan([]); setFailReason(null); setSimulating(false);
     setInvisibleBumps(0);
     setWonStars(3);
     setCoinsState(getCoins());
@@ -134,7 +135,7 @@ export function useStandardGame(level: Level) {
     if (isSolved(updatedCars)) {
       markWon(nextMoves);
     } else if (nextMoves > puzzle.par + 6) {
-      setFailed(true);
+      setFailReason(null);
     } else {
       setMsg(t("msgMoved"));
     }
@@ -204,7 +205,7 @@ export function useStandardGame(level: Level) {
       const newBumps = invisibleBumps + 1;
       setInvisibleBumps(newBumps);
       if (newBumps >= 3) {
-        setFailed(true);
+        setFailReason("bumps");
       } else {
         flash(t("invisibleBump", { n: newBumps }));
       }
@@ -239,7 +240,7 @@ export function useStandardGame(level: Level) {
         setCars(currentStepCars.map((c) => ({ ...c })));
         await new Promise((res) => setTimeout(res, 500));
         setSimulating(false);
-        setFailed(true);
+        setFailReason("plan");
         return;
       }
       
@@ -253,7 +254,7 @@ export function useStandardGame(level: Level) {
       // בדיקה אם חרג ממכסת המהלכים המותרת בלי לפתור
       if (!isSolved(currentStepCars) && i + 1 > puzzle.par + 6) {
         setSimulating(false);
-        setFailed(true);
+        setFailReason("moves");
         return;
       }
     }
@@ -262,7 +263,7 @@ export function useStandardGame(level: Level) {
       markWon(plan.length);
     } else {
       await new Promise((res) => setTimeout(res, 400));
-      setFailed(true);
+      setFailReason("plan");
     }
     setSimulating(false);
   };
@@ -375,7 +376,7 @@ export function useStandardGame(level: Level) {
         const newBumps = invisibleBumps + 1;
         setInvisibleBumps(newBumps);
         if (newBumps >= 3) {
-          setFailed(true);
+          setFailReason("bumps");
           return;
         } else {
           flash(t("invisibleBump", { n: newBumps }));
@@ -411,5 +412,5 @@ export function useStandardGame(level: Level) {
     void generatePuzzle().then((next) => { setCars(next.cars); setInitialCars(next.cars); setMsg(t("randomDrawn")); }).catch(() => flash(t("noHint")));
   };
 
-  return { openHints, tiers, drawRandom, t, te, lang, murderer, idxKey, maxKey, puzzles, setPuzzles, idx, setIdx, maxSolved, setMaxSolved, puzzle, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, initialCars, setInitialCars, sel, setSel, move, setMove, steps, setSteps, msg, setMsg, warn, setWarn, started, setStarted, hidden, setHidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, setFailed, simulating, setSimulating, invisibleBumps, setInvisibleBumps, wonStars, setWonStars, coins, setCoinsState, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, setCollapsedTiers, won, elapsed, clock, progress, toggleTier, formatTime, loadPuzzle, markWon, jumpTo, start, flash, useHint, checkInvisibleBump, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, freeRange, handlePointerDown, handlePointerMove, handlePointerUp };
+  return { openHints, tiers, drawRandom, t, te, lang, murderer, idxKey, maxKey, puzzles, setPuzzles, idx, setIdx, maxSolved, setMaxSolved, puzzle, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, initialCars, setInitialCars, sel, setSel, move, setMove, steps, setSteps, msg, setMsg, warn, setWarn, started, setStarted, hidden, setHidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, setFailed, simulating, setSimulating, invisibleBumps, setInvisibleBumps, wonStars, setWonStars, coins, setCoinsState, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, setCollapsedTiers, won, elapsed, clock, progress, toggleTier, formatTime, loadPuzzle, markWon, jumpTo, start, flash, useHint, checkInvisibleBump, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, freeRange, handlePointerDown, handlePointerMove, handlePointerUp, failReason };
 }
