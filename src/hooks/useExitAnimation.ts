@@ -12,7 +12,7 @@ export function useExitAnimation(isSolved: boolean) {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const timer = window.setTimeout(() => setHasExited(true), reducedMotion ? 0 : 750);
     return () => window.clearTimeout(timer);
-  }, [isAtMaxPosition]);
+  }, [isSolved]);
 
   return hasExited;
 }
