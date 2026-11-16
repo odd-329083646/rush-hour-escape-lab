@@ -75,10 +75,6 @@ export function isValidPuzzle(p: unknown): p is PuzzleRaw {
   );
 }
 
-/** 
- * מחולל שלבים אקראיים בזמן אמת בעזרת ה-BFS. 
- * מציב מכוניות באופן אקראי ומאמת שהשלב פתיר ומאתגר (par >= minPar).
- */
 export function generateRandomPuzzleOnTheFly(minPar: number = 7): { par: number; cars: Car[] } {
   const availableIds = Object.keys(CAR_DEFAULTS).filter((id) => id !== "X");
 
@@ -89,7 +85,7 @@ export function generateRandomPuzzleOnTheFly(minPar: number = 7): { par: number;
     const canPlace = (r: number, c: number, len: number, dir: Dir) => {
       if (dir === "h" && c + len > 6) return false;
       if (dir === "v" && r + len > 6) return false;
-      if (dir === "h" && r === 2) return false; // מונע חסימה רוחבית ישירה בשורת היציאה
+      if (dir === "h" && r === 2) return false;
       for (let i = 0; i < len; i++) {
         const key = dir === "h" ? `${r},${c + i}` : `${r + i},${c}`;
         if (occupied.has(key)) return false;
@@ -105,11 +101,9 @@ export function generateRandomPuzzleOnTheFly(minPar: number = 7): { par: number;
       }
     };
 
-    // 1. המכונית האדומה X בשורה 2
     const xCol = Math.floor(Math.random() * 3);
     place("X", 2, xCol, "h", 2);
 
-    // 2. הגרלת 6-9 מכוניות נוספות
     const shuffled = [...availableIds].sort(() => Math.random() - 0.5);
     const numCars = Math.floor(Math.random() * 4) + 6;
 
@@ -128,7 +122,6 @@ export function generateRandomPuzzleOnTheFly(minPar: number = 7): { par: number;
       }
     }
 
-    // 3. אימות בעזרת ה-BFS
     const par = minSolution(cars);
     if (par >= minPar) {
       return { par, cars };
@@ -156,7 +149,6 @@ export function runPlan(cars: Car[], plan: { id: string; move: Move; steps: numb
 }
 
 export function getRandomPuzzle(rand: () => number = Math.random): { par: number; cars: Car[] } {
-  // אם במצב אופליין - מייצר שלב חדש לגמרי בכל פעם שמבקשים
   if (IS_OFFLINE_MODE) {
     return generateRandomPuzzleOnTheFly(7);
   }
@@ -168,15 +160,9 @@ export function cells(c: Car): [number, number][] {
   return Array.from({ length: c.len }, (_, i) => (c.dir === "h" ? [c.row, c.col + i] : [c.row + i, c.col]));
 }
 
-/** בודק האם המכונית האדומה הגיעה למיקום המקסימלי (קצה הלוח ליציאה) */
-export function isRedCarAtMax(cars: Car[]): boolean {
+export function isSolved(cars: Car[]): boolean {
   const x = cars.find((c) => c.id === "X");
   return !!x && x.row === 2 && x.col + x.len - 1 >= 5;
-}
-
-/** המשחק פתור אם המכונית האדומה הגיעה למיקום המקסימלי */
-export function isSolved(cars: Car[]): boolean {
-  return isRedCarAtMax(cars);
 }
 
 export function applyMove(cars: Car[], id: string, move: Move, steps: number): { cars: Car[]; error?: string } {
@@ -211,7 +197,6 @@ export function applyMove(cars: Car[], id: string, move: Move, steps: number): {
   return { cars: cars.map((c) => (c.id === id ? { ...c, row, col } : c)) };
 }
 
-/** Breadth-first search; returns the minimum number of slides to solve, or -1. */
 export function minSolution(start: Car[]): number {
   const key = (cs: Car[]) => cs.map((c) => `${c.row}${c.col}`).join("");
   const seen = new Set([key(start)]);
@@ -242,44 +227,27 @@ export function pickHidden(cars: Car[], level: Level, rand: () => number = Math.
   return new Set(pool.slice(0, Math.ceil(pool.length / 2)));
 }
 
-/** Today's date as YYYY-MM-DD in the player's local time zone. */
 export function todayKey(d: Date = new Date()): string {
   const p = (n: number) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
-/** Loads the daily puzzle for a date from /daily_puzzles.json; random fallback on any error. */
-// ==========================================
-// ניהול כוכבים, התקדמות ומטבעות
-// ==========================================
-
 export interface LevelStats {
-  stars: number; // 1, 2 או 3 כוכבים
-  bestTime: number; // זמן בשניות
-  bestMoves: number; // מספר מהלכים הכי טוב
+  stars: number;
+  bestTime: number;
+  bestMoves: number;
 }
 
-/**
- * מחשב כמה כוכבים מגיעים לשחקן לפי מספר המהלכים וההתנגשויות
- */
 export function calculateStars(moves: number, par: number, bumps: number = 0): number {
   if (bumps > 0) {
-    // כל התנגשות מורידה כוכב
     if (bumps >= 2) return 1;
     if (moves <= par + 2) return 2;
     return 1;
   }
-  if (moves <= par) return 3; // פתרון במינימום מהלכים = 3 כוכבים
-  if (moves <= par + 3) return 2; // סטייה קלה = 2 כוכבים
+  if (moves <= par) return 3;
+  if (moves <= par + 3) return 2;
   return 1;
 }
-
-/**
- * טוען את נתוני ההתקדמות (כוכבים וזמנים) לרמה מסוימת מ-localStorage
- */
-// ==========================================
-// מנוע רמזים (Hint Engine - BFS)
-// ==========================================
 
 export interface HintResult {
   id: string;
@@ -287,9 +255,6 @@ export interface HintResult {
   steps: number;
 }
 
-/**
- * מוצא את המהלך הבא הטוב ביותר מהמצב הנוכחי של הלוח בעזרת BFS
- */
 export function getNextBestMove(startCars: Car[]): HintResult | null {
   if (isSolved(startCars)) return null;
 
@@ -332,10 +297,6 @@ export function getNextBestMove(startCars: Car[]): HintResult | null {
   return null;
 }
 
-// ==========================================
-// חלוקת שלבים ל-Tiers (קושי לפי מהלכים - שלבים קיימים בלבד)
-// ==========================================
-
 export interface TierConfig {
   id: string;
   heTitle: string;
@@ -357,9 +318,6 @@ export const TIERS: TierConfig[] = [
   { id: "tier_10", heTitle: "רמה 10 (50+ מהלכים)", minPar: 50, maxPar: 60, requiredSolvesToNext: 4 },
 ];
 
-/**
- * מחזיר רק את רשימת השלבים הקיימים במאגר השייכים לרמה מסוימת
- */
 export function getPuzzlesForTier(
   tier: TierConfig,
   allPuzzles: { par: number; cars: Car[] }[]
@@ -373,9 +331,6 @@ export function getPuzzlesForTier(
     }));
 }
 
-/**
- * מחזיר כמה שלבים נפתרו בקטגוריה מסוימת מתוך השלבים הקיימים בה
- */
 export function getSolvesCountInTier(
   tier: TierConfig,
   puzzles: { par: number; cars: Car[] }[],
@@ -391,9 +346,6 @@ export function getSolvesCountInTier(
   return count;
 }
 
-/**
- * בודק אם קטגוריה מסוימת פתוחה למשחק
- */
 export function isTierUnlocked(
   tierIdx: number,
   puzzles: { par: number; cars: Car[] }[],
