@@ -42,9 +42,9 @@ const ARROW: Record<Move, string> = { up: "↑", down: "↓", left: "←", right
 function Game() {
   const { panelsVisible } = useSettings();
   const { level } = Route.useParams() as { level: Level };
-  const { openHints, tiers, drawRandom, t, murderer, idx, puzzle, cars, moves, sel, setSel, move, setMove, steps, setSteps, msg, warn, started, hidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, simulating, invisibleBumps, wonStars, coins, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, won, wonAt, clock, progress, toggleTier, formatTime, loadPuzzle, jumpTo, start, useHint, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, handlePointerDown, handlePointerMove, handlePointerUp } = useStandardGame(level);
-  const victoryReady = useExitAnimation(wonAt);
-
+  const { openHints, tiers, drawRandom, t, murderer, idx, puzzle, cars, moves, sel, setSel, move, setMove, steps, setSteps, msg, warn, started, hidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, simulating, invisibleBumps, wonStars, coins, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, won, wonAt, clock, progress, toggleTier, formatTime, loadPuzzle, jumpTo, start, useHint, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, handlePointerDown, handlePointerMove, handlePointerUp, redCarAtMax } = useStandardGame(level); // <-- הוספנו את redCarAtMax לכאן!
+  const victoryReady = useExitAnimation(redCarAtMax);
+  
   // רפרנס לגלילה אוטומטית לסוף רשימת המהלכים בשלב רוצח
   const planEndRef = useRef<HTMLDivElement | null>(null);
 
