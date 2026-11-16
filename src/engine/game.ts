@@ -168,15 +168,15 @@ export function cells(c: Car): [number, number][] {
   return Array.from({ length: c.len }, (_, i) => (c.dir === "h" ? [c.row, c.col + i] : [c.row + i, c.col]));
 }
 
-export function isSolved(cars: Car[]): boolean {
-  const x = cars.find((c) => c.id === "X");
-  return !!x && x.row === 2 && x.col + x.len - 1 >= 5;
-}
-
 /** בודק האם המכונית האדומה הגיעה למיקום המקסימלי (קצה הלוח ליציאה) */
 export function isRedCarAtMax(cars: Car[]): boolean {
   const x = cars.find((c) => c.id === "X");
   return !!x && x.row === 2 && x.col + x.len - 1 >= 5;
+}
+
+/** המשחק פתור אם המכונית האדומה הגיעה למיקום המקסימלי */
+export function isSolved(cars: Car[]): boolean {
+  return isRedCarAtMax(cars);
 }
 
 export function applyMove(cars: Car[], id: string, move: Move, steps: number): { cars: Car[]; error?: string } {
