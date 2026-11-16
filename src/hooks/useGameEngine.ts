@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { applyMove, isSolved, cells, type Car, type Move } from "@/engine/game";
+import { applyMove, isSolved, isRedCarAtMax, cells, type Car, type Move } from "@/engine/game"; // <-- הוספנו לפה את isRedCarAtMax
 
 export function movementRange(cars: Car[], car: Car, plan = false) {
   const position = car.dir === "h" ? car.col : car.row;
@@ -9,6 +9,7 @@ export function movementRange(cars: Car[], car: Car, plan = false) {
   while (fwd < 6 - position - car.len && !applyMove(cars, car.id, car.dir === "h" ? "right" : "down", fwd + 1).error) fwd++;
   return { back, fwd };
 }
+
 export function blockerOf(cars: Car[], car: Car, move: Move, steps: number) {
   if ((car.dir === "h") !== (move === "left" || move === "right")) return undefined;
   const d = move === "right" || move === "down" ? 1 : -1;
@@ -31,20 +32,39 @@ export function useGameEngine(initialCars: Car[] = []) {
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [now, setNow] = useState(0);
   const [wonAt, setWonAt] = useState<number | null>(null);
+  
   const setCars: typeof updateCars = (value) => {
     current.current = typeof value === "function" ? value(current.current) : value;
     updateCars(current.current);
   };
+
   const commitMove = (id: string, move: Move, steps: number) => {
     const result = applyMove(current.current, id, move, steps);
     if (!result.error) { setCars(result.cars); setMoves((count) => count + 1); }
     return result;
   };
+
   useEffect(() => {
     if (startedAt === null || wonAt !== null) return;
     setNow(Date.now());
     const timer = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(timer);
   }, [startedAt, wonAt]);
-  return { cars, currentCars: current, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, solved: isSolved(cars) };
+
+  return { 
+    cars, 
+    currentCars: current, 
+    setCars, 
+    moves, 
+    setMoves, 
+    startedAt, 
+    setStartedAt, 
+    now, 
+    setNow, 
+    wonAt, 
+    setWonAt, 
+    commitMove, 
+    solved: isSolved(cars),
+    redCarAtMax: isRedCarAtMax(cars) // <-- הוספנו את זה לכאן כדי שה-UI יוכל לקרוא לזה!
+  };
 }
