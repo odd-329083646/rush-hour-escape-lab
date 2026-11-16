@@ -7,6 +7,7 @@ import { useI18n } from "@/lib/i18n";
 import { useHints } from "@/hooks/use-hints";
 import { HINT_COSTS, hintAvailable, peekBoardCars, type HintType } from "@/lib/hints";
 import { addCoins, applyMove, cells, getCoins, getDailyPuzzleAsync, getNextBestMove, isSolved, pickHidden, type Car, type Move } from "@/lib/puzzles";
+import { isOutOfMoves } from "@/engine/game";
 import { fmtTime, isSolvedOn, submitScore } from "@/lib/daily-scores";
 
 import { useGameEngine, movementRange, blockerOf as findBlocker } from "@/hooks/useGameEngine";
@@ -25,8 +26,6 @@ export function useDailyGame({ date, openCalendar = false }: { date: string; ope
   const [move, setMove] = useState<Move | null>(null);
   const [hidden, setHidden] = useState<Set<string>>(new Set());
 
-
-
   const [bumps, setBumps] = useState(0);
   const [warn, setWarn] = useState<string | null>(null);
   const rewards = useRewardSystem();
@@ -42,7 +41,17 @@ export function useDailyGame({ date, openCalendar = false }: { date: string; ope
     if (!dragEnabled) { dragStart.current = null; setDrag(null); }
   }, [dragEnabled]);
   const submitting = useRef(false);
-  const failed = bumps >= 3 && !result;
+
+  const failReason: "bumps" | "moves" | null =
+    result || wonAt !== null
+      ? null
+      : bumps >= 3
+      ? "bumps"
+      : isOutOfMoves(moves, par)
+      ? "moves"
+      : null;
+
+  const failed = failReason !== null;
 
   const reset = (cs: Car[]) => {
     hints.reset();
@@ -198,5 +207,5 @@ export function useDailyGame({ date, openCalendar = false }: { date: string; ope
 
   const label = new Date(`${date}T12:00:00`).toLocaleDateString(lang === "he" ? "he-IL" : "en-GB", { day: "numeric", month: "long", year: "numeric" });
 
-  return { t, te, lang, start, setStart, par, setPar, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, loading, setLoading, sel, setSel, steps, setSteps, move, setMove, hidden, setHidden, bumps, setBumps, warn, setWarn, coins, setCoins, result, setResult, hints, boardCars, calOpen, setCalOpen, dragStart, drag, setDrag, submitting, failed, reset, elapsed, started, flash, useHint, blockerOf, go, execute, handlePointerDown, handlePointerMove, handlePointerUp, label };
+  return { t, te, lang, start, setStart, par, setPar, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, loading, setLoading, sel, setSel, steps, setSteps, move, setMove, hidden, setHidden, bumps, setBumps, warn, setWarn, coins, setCoins, result, setResult, hints, boardCars, calOpen, setCalOpen, dragStart, drag, setDrag, submitting, failed, failReason, reset, elapsed, started, flash, useHint, blockerOf, go, execute, handlePointerDown, handlePointerMove, handlePointerUp, label };
 }
