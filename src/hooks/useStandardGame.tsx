@@ -41,7 +41,7 @@ export function useStandardGame(level: Level) {
   const [plan, setPlan] = useState<Planned[]>([]);
   const [levelsOpen, setLevelsOpen] = useState(false);
   const [failReason, setFailReason] = useState<"bumps" | "moves" | "plan" | null>(null);
-const failed = failReason !== null;
+  const failed = failReason !== null;
   const [simulating, setSimulating] = useState(false);
   const [invisibleBumps, setInvisibleBumps] = useState(0);
   const [wonStars, setWonStars] = useState(3);
@@ -135,7 +135,7 @@ const failed = failReason !== null;
     if (isSolved(updatedCars)) {
       markWon(nextMoves);
     } else if (nextMoves > puzzle.par + 6) {
-      setFailReason(null);
+      setFailReason("moves");
     } else {
       setMsg(t("msgMoved"));
     }
@@ -218,13 +218,12 @@ const failed = failReason !== null;
     evaluateBoardAfterMove(r.cars, moves + 1);
   };
 
-  // 💡 הפונקציה המעודכנת והנקייה (ללא כפילויות)
   const submitPlan = async () => {
     if (simulating || hints.peek) return;
     if (!plan.length) return flash(t("needPlan"));
     
     setSimulating(true);
-    setHidden(new Set()); // חשיפת המכוניות בסימולציה
+    setHidden(new Set());
     setMsg(t("msgSimulating"));
 
     let currentStepCars = puzzle.cars.map((c) => ({ ...c }));
@@ -236,7 +235,6 @@ const failed = failReason !== null;
       const r = applyMove(currentStepCars, p.id, p.move, p.steps);
       
       if (r.error) {
-        // מציג את הרכב נתקע, מחכה חצי שנייה ורק אז מציג כישלון
         setCars(currentStepCars.map((c) => ({ ...c })));
         await new Promise((res) => setTimeout(res, 500));
         setSimulating(false);
@@ -245,13 +243,11 @@ const failed = failReason !== null;
       }
       
       currentStepCars = r.cars;
-      // העתק עמוק של המכוניות כדי להכריח את React לרנדר את ה-DOM
       setCars(currentStepCars.map((c) => ({ ...c })));
       setMoves(i + 1);
       
       await new Promise((res) => setTimeout(res, 400));
 
-      // בדיקה אם חרג ממכסת המהלכים המותרת בלי לפתור
       if (!isSolved(currentStepCars) && i + 1 > puzzle.par + 6) {
         setSimulating(false);
         setFailReason("moves");
@@ -412,5 +408,5 @@ const failed = failReason !== null;
     void generatePuzzle().then((next) => { setCars(next.cars); setInitialCars(next.cars); setMsg(t("randomDrawn")); }).catch(() => flash(t("noHint")));
   };
 
-  return { openHints, tiers, drawRandom, t, te, lang, murderer, idxKey, maxKey, puzzles, setPuzzles, idx, setIdx, maxSolved, setMaxSolved, puzzle, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, initialCars, setInitialCars, sel, setSel, move, setMove, steps, setSteps, msg, setMsg, warn, setWarn, started, setStarted, hidden, setHidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, setFailed, simulating, setSimulating, invisibleBumps, setInvisibleBumps, wonStars, setWonStars, coins, setCoinsState, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, setCollapsedTiers, won, elapsed, clock, progress, toggleTier, formatTime, loadPuzzle, markWon, jumpTo, start, flash, useHint, checkInvisibleBump, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, freeRange, handlePointerDown, handlePointerMove, handlePointerUp, failReason };
+  return { openHints, tiers, drawRandom, t, te, lang, murderer, idxKey, maxKey, puzzles, setPuzzles, idx, setIdx, maxSolved, setMaxSolved, puzzle, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, initialCars, setInitialCars, sel, setSel, move, setMove, steps, setSteps, msg, setMsg, warn, setWarn, started, setStarted, hidden, setHidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, failReason, setFailReason, simulating, setSimulating, invisibleBumps, setInvisibleBumps, wonStars, setWonStars, coins, setCoinsState, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, setCollapsedTiers, won, elapsed, clock, progress, toggleTier, formatTime, loadPuzzle, markWon, jumpTo, start, flash, useHint, checkInvisibleBump, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, freeRange, handlePointerDown, handlePointerMove, handlePointerUp };
 }
