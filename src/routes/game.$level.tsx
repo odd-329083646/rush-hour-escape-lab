@@ -42,9 +42,9 @@ const ARROW: Record<Move, string> = { up: "↑", down: "↓", left: "←", right
 function Game() {
   const { panelsVisible } = useSettings();
   const { level } = Route.useParams() as { level: Level };
-  const { openHints, tiers, drawRandom, t, murderer, idx, puzzle, cars, moves, sel, setSel, move, setMove, steps, setSteps, msg, warn, started, hidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, simulating, invisibleBumps, wonStars, coins, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, won, wonAt, clock, progress, toggleTier, formatTime, loadPuzzle, jumpTo, start, useHint, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, handlePointerDown, handlePointerMove, handlePointerUp } = useStandardGame(level); // <-- הוספנו את redCarAtMax לכאן!
+  const { openHints, tiers, drawRandom, t, murderer, idx, puzzle, cars, moves, sel, setSel, move, setMove, steps, setSteps, msg, warn, started, hidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, simulating, invisibleBumps, wonStars, coins, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, won, wonAt, clock, progress, toggleTier, formatTime, loadPuzzle, jumpTo, start, useHint, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, handlePointerDown, handlePointerMove, handlePointerUp } = useStandardGame(level);
   const victoryReady = useExitAnimation(wonAt);
-  
+
   // רפרנס לגלילה אוטומטית לסוף רשימת המהלכים בשלב רוצח
   const planEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -230,7 +230,6 @@ function Game() {
               {plan.length === 0 ? (
                 <p className="py-10 text-center text-sm text-muted-foreground">{t("planEmpty")}</p>
               ) : (
-                /* 💡 הגבלת גובה מקסימלית למובייל (max-h) + גלילה פנימית קבועה */
                 <ol className="flex min-h-0 max-h-[35vh] sm:max-h-[50vh] flex-1 flex-col gap-2 overflow-y-auto pr-1">
                   {plan.map((p, i) => {
                     const c = cars.find((x) => x.id === p.id);
@@ -245,7 +244,6 @@ function Game() {
                       </li>
                     );
                   })}
-                  {/* 💡 נקודת עוגן לגלילה אוטומטית בכל מהלך חדש */}
                   <div ref={planEndRef} />
                 </ol>
               )}
@@ -290,7 +288,6 @@ function Game() {
         </VictoryOverlay>
       )}
 
-      {/* דיאלוג בחירת השלבים */}
       {levelsOpen && (
         <div className="toy-dialog-overlay fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setLevelsOpen(false)}>
           <div className={`panel level-picker difficulty-${level} flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden p-0`} onClick={(e) => e.stopPropagation()}>
