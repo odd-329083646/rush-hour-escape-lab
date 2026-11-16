@@ -1,18 +1,12 @@
-import { useEffect, useState } from "react";
-
-/** Give the red car time to animate out when reaching the maximum position. */
-export function useExitAnimation(isSolved: boolean) {
-  const [hasExited, setHasExited] = useState(false);
+export function useExitAnimation(completedAt: number | null) {
+  const [finishedAt, setFinishedAt] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!isSolved) {
-      setHasExited(false);
-      return;
-    }
+    if (completedAt === null) return;
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const timer = window.setTimeout(() => setHasExited(true), reducedMotion ? 0 : 750);
+    const timer = window.setTimeout(() => setFinishedAt(completedAt), reducedMotion ? 0 : 750);
     return () => window.clearTimeout(timer);
-  }, [isSolved]);
+  }, [completedAt]);
 
-  return hasExited;
+  return completedAt !== null && finishedAt === completedAt;
 }
