@@ -21,7 +21,7 @@ const DIRS: { m: Move; Icon: typeof ArrowUp; cls: string }[] = [
 const ARROW: Record<Move, string> = { up: "↑", down: "↓", left: "←", right: "→" };
 
 export function DailyGame({ date, openCalendar = false }: { date: string; openCalendar?: boolean }) {
-  const { t, start, par, cars, moves, setStartedAt, now, setNow, wonAt, loading, sel, setSel, steps, setSteps, move, setMove, hidden, setHidden, bumps, warn, coins, setCoins, result, hints, boardCars, calOpen, setCalOpen, dragStart, drag, setDrag, failed, reset, elapsed, started, useHint, execute, handlePointerDown, handlePointerMove, handlePointerUp, label } = useDailyGame({ date, openCalendar });
+  const { t, start, par, cars, moves, setStartedAt, now, setNow, wonAt, loading, sel, setSel, steps, setSteps, move, setMove, hidden, setHidden, bumps, warn, coins, setCoins, result, hints, boardCars, calOpen, setCalOpen, dragStart, drag, setDrag, failed, failReason, reset, elapsed, started, useHint, execute, handlePointerDown, handlePointerMove, handlePointerUp, label } = useDailyGame({ date, openCalendar });
   const victoryReady = useExitAnimation(wonAt);
   const { panelsVisible } = useSettings();
   const carBtn = (c: Car) => (
@@ -180,7 +180,9 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
         <div className="toy-dialog-overlay fixed inset-0 z-40 grid place-items-center p-4">
           <div className="panel max-w-sm text-center" role="dialog" aria-label="Game over">
             <h2 className="font-display text-2xl font-bold">{t("gameOver")}</h2>
-            <p className="mt-2 text-muted-foreground">{t("bumped3Daily")}</p>
+            <p className="mt-2 text-muted-foreground">
+              {failReason === "moves" ? t("tooManyMoves") : t("bumped3Daily")}
+            </p>
             <div className="mt-4 flex flex-wrap justify-center gap-2">
               <Button variant="ghost" className="chip" onClick={() => reset(start)}><RotateCcw className="h-4 w-4" /> {t("tryAgain")}</Button>
               <Button asChild variant="ghost" className="chip"><Link to="/"><Home className="h-4 w-4" /> {t("home")}</Link></Button>
