@@ -1,3 +1,6 @@
+import { useEffect, useState } from "react";
+
+/** Give the completed board time to animate before covering it with results. */
 export function useExitAnimation(completedAt: number | null) {
   const [finishedAt, setFinishedAt] = useState<number | null>(null);
 
