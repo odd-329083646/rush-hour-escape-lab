@@ -239,6 +239,8 @@ export interface LevelStats {
 }
 
 export function calculateStars(moves: number, par: number, bumps: number = 0): number {
+  if (moves > par + 6) return 0; // קודם כל בודקים אם חרג ממכסת המהלכים
+
   if (bumps > 0) {
     if (bumps >= 2) return 1;
     if (moves <= par + 2) return 2;
