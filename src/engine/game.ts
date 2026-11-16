@@ -165,6 +165,10 @@ export function isSolved(cars: Car[]): boolean {
   return !!x && x.row === 2 && x.col + x.len - 1 >= 5;
 }
 
+export function isOutOfMoves(moves: number, par: number): boolean {
+  return par > 0 && moves > par + 6;
+}
+
 export function applyMove(cars: Car[], id: string, move: Move, steps: number): { cars: Car[]; error?: string } {
   if (!Number.isInteger(steps) || steps < 1 || steps > 4) return { cars, error: "Invalid move" };
   const car = cars.find((c) => c.id === id);
