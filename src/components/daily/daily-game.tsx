@@ -2,7 +2,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { useDailyGame } from "@/hooks/useDailyGame";
 import { useExitAnimation } from "@/hooks/useExitAnimation";
 import { Link } from "@tanstack/react-router";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CalendarDays, Coins, Home, Lightbulb, Play, RotateCcw, Trophy } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CalendarDays, Coins, Home, Lightbulb, Play, RotateCcw, Trophy, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SettingsButton } from "@/components/settings-dialog";
 import { HintSelection } from "@/components/hint-selection";
@@ -124,6 +124,20 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
                 }}
               >{c.id}</Button>
             ))}
+            {failed && (
+              <div className="win flex-col gap-2 text-center">
+                <X className="h-12 w-12 text-destructive" />
+                <span className="text-3xl text-destructive">{t("oops")}</span>
+                <span className="text-base text-muted-foreground">
+                  {failReason === "moves" ? t("tooManyMoves") : t("bumped3Daily")}
+                </span>
+                <div className="mt-3 flex gap-2">
+                  <Button variant="ghost" onClick={() => reset(start)} className="chip">
+                    <RotateCcw className="h-4 w-4" /> {t("tryAgain")}
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
           <div className="game-stats flex w-full items-center justify-between gap-3 text-sm" style={{ maxWidth: "var(--board)" }}>
             <span>{t("movesLabel")} <b className="font-display">{moves}</b> <span className="text-muted-foreground">/ {t("par", { n: par })}</span></span>
@@ -175,20 +189,6 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
             </div>
           </div>
         </VictoryOverlay>
-      )}
-      {failed && (
-        <div className="toy-dialog-overlay fixed inset-0 z-40 grid place-items-center p-4">
-          <div className="panel max-w-sm text-center" role="dialog" aria-label="Game over">
-            <h2 className="font-display text-2xl font-bold">{t("gameOver")}</h2>
-            <p className="mt-2 text-muted-foreground">
-              {failReason === "moves" ? t("tooManyMoves") : t("bumped3Daily")}
-            </p>
-            <div className="mt-4 flex flex-wrap justify-center gap-2">
-              <Button variant="ghost" className="chip" onClick={() => reset(start)}><RotateCcw className="h-4 w-4" /> {t("tryAgain")}</Button>
-              <Button asChild variant="ghost" className="chip"><Link to="/"><Home className="h-4 w-4" /> {t("home")}</Link></Button>
-            </div>
-          </div>
-        </div>
       )}
       <DailyCalendar open={calOpen} onClose={() => setCalOpen(false)} current={date} />
     </main>
