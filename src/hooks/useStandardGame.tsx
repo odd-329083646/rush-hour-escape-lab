@@ -129,6 +129,17 @@ export function useStandardGame(level: Level) {
     }
   };
 
+  // פונקציית עזר לבדיקת מצב הלוח מיד לאחר ביצוע מהלך חוקי
+  const evaluateBoardAfterMove = (updatedCars: Car[], nextMoves: number) => {
+    if (isSolved(updatedCars)) {
+      markWon(nextMoves);
+    } else if (nextMoves > puzzle.par + 6) {
+      setFailed(true);
+    } else {
+      setMsg(t("msgMoved"));
+    }
+  };
+
   const jumpTo = (i: number) => {
     storageService.setItem(idxKey, String(i));
     loadPuzzle(i);
@@ -203,7 +214,7 @@ export function useStandardGame(level: Level) {
     const r = commitMove(sel, move, steps);
     if (r.error) return flash(te(r.error));
     setWarn(null);
-    if (isSolved(r.cars)) markWon(moves + 1); else setMsg(t("msgMoved"));
+    evaluateBoardAfterMove(r.cars, moves + 1);
   };
 
   // 💡 הפונקציה המעודכנת והנקייה (ללא כפילויות)
@@ -238,6 +249,13 @@ export function useStandardGame(level: Level) {
       setMoves(i + 1);
       
       await new Promise((res) => setTimeout(res, 400));
+
+      // בדיקה אם חרג ממכסת המהלכים המותרת בלי לפתור
+      if (!isSolved(currentStepCars) && i + 1 > puzzle.par + 6) {
+        setSimulating(false);
+        setFailed(true);
+        return;
+      }
     }
 
     if (isSolved(currentStepCars)) {
@@ -379,7 +397,7 @@ export function useStandardGame(level: Level) {
     const r = commitMove(c.id, moveDir, calculatedSteps);
     if (r.error) return flash(te(r.error));
     setWarn(null);
-    if (isSolved(r.cars)) markWon(moves + 1); else setMsg(t("msgMoved"));
+    evaluateBoardAfterMove(r.cars, moves + 1);
   };
 
   const tiers = TIERS.map((tier, tierIdx) => ({
