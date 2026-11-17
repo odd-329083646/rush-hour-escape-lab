@@ -81,4 +81,4 @@ function Game() {
         </div>
       )}
 
-      <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2 overflow
+     <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2 overflow-x-auto">
