@@ -2,11 +2,11 @@ import { useSettings } from "@/hooks/useSettings";
 import { useDailyGame } from "@/hooks/useDailyGame";
 import { useExitAnimation } from "@/hooks/useExitAnimation";
 import { Link } from "@tanstack/react-router";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CalendarDays, Coins, Home, Lightbulb, Play, RotateCcw, Trophy, X } from "lucide-react";
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CalendarDays, Coins, Home, Lightbulb, Play, RotateCcw, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SettingsButton } from "@/components/settings-dialog";
 import { HintSelection } from "@/components/hint-selection";
-import { VictoryOverlay } from "@/components/victory-overlay";
+import { VictoryOverlay, FailureOverlay } from "@/components/victory-overlay";
 import { CoinsBadge } from "@/components/coins-badge";
 import { DailyCalendar } from "./daily-calendar";
 import { getCoins, pickHidden, type Car, type Move } from "@/lib/puzzles";
@@ -39,7 +39,6 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
         <h1 className="min-w-0 truncate font-display text-sm font-bold md:text-xl">{t("daily")} <span className="text-muted-foreground">· {label}</span></h1>
         
         <div className="flex shrink-0 items-center gap-2">
-          {/* מאזן מטבעות מבוסס CoinsBadge */}
           <CoinsBadge />
 
           <Button variant="ghost" className="chip px-2 sm:px-3.5" onClick={() => setCalOpen(true)} aria-label={t("calendar")}><CalendarDays className="h-4 w-4" /><span className="hidden sm:inline">{t("calendar")}</span></Button>
@@ -64,7 +63,6 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
                     <Button variant="ghost" key={m} aria-label={m} data-active={move === m} onClick={() => setMove(m)} className={`ctrl ${cls}`}><Icon className="h-5 w-5" /></Button>
                   ))}
 
-                  {/* כפתור רמז במרכז החיצים (שורה 2, עמודה 2) */}
                   <Button
                     onClick={() => { setCoins(getCoins()); hints.setOpen(true); }}
                     variant="outline"
@@ -85,7 +83,6 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
                 </div>
               </div>
 
-              {/* כפתור בצע */}
               <Button onClick={execute} disabled={!started || !!result || failed} className="execute mt-1">
                 <Play className="h-4 w-4 shrink-0" />
                 <span>{t("execute")}</span>
@@ -124,20 +121,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
                 }}
               >{c.id}</Button>
             ))}
-            {failed && (
-              <div className="win flex-col gap-2 text-center">
-                <X className="h-12 w-12 text-destructive" />
-                <span className="text-3xl text-destructive">{t("oops")}</span>
-                <span className="text-base text-muted-foreground">
-                  {failReason === "moves" ? t("tooManyMoves") : t("bumped3Daily")}
-                </span>
-                <div className="mt-3 flex gap-2">
-                  <Button variant="ghost" onClick={() => reset(start)} className="chip">
-                    <RotateCcw className="h-4 w-4" /> {t("tryAgain")}
-                  </Button>
-                </div>
-              </div>
-            )}
+            <FailureOverlay reason={failReason} onRetry={() => reset(start)} isDaily />
           </div>
           <div className="game-stats flex w-full items-center justify-between gap-3 text-sm" style={{ maxWidth: "var(--board)" }}>
             <span>{t("movesLabel")} <b className="font-display">{moves}</b> <span className="text-muted-foreground">/ {t("par", { n: par })}</span></span>
@@ -159,7 +143,6 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
       {result && victoryReady && (
         <VictoryOverlay label={t("solved")}>
           <div>
-
             <h2 className="font-display text-2xl font-bold">
               {result.isRecord ? t("newRecord") : t("solved")}
             </h2>
@@ -170,7 +153,6 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
             </div>
             {!result.isRecord && <p className="mt-1 text-sm">{t("yourVsBest", { time: fmtTime(result.time), best: result.best != null ? fmtTime(result.best) : "—" })}</p>}
             
-            {/* פירוט המטבעות שהורווחו */}
             <div className="mt-3 flex justify-center">
               {result.coinsEarned > 0 ? (
                 <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-sm font-bold text-amber-400">
