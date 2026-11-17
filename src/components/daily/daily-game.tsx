@@ -11,6 +11,7 @@ import { CoinsBadge } from "@/components/coins-badge";
 import { DailyCalendar } from "./daily-calendar";
 import { getCoins, pickHidden, type Car, type Move } from "@/lib/puzzles";
 import { fmtTime } from "@/lib/daily-scores";
+import { GameBoard } from "@/components/game-board";
 
 const DIRS: { m: Move; Icon: typeof ArrowUp; cls: string }[] = [
   { m: "up", Icon: ArrowUp, cls: "col-start-2 row-start-1" },
@@ -92,37 +93,23 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
         </aside>}
 
         <section className="flex min-h-0 flex-col items-center gap-2" style={{ gridArea: "board" }}>
-          <div className="board">
-            {warn && <div className="warn" role="alert">{warn}</div>}
-            {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" style={{ gridRow: Math.floor(i / 6) + 1, gridColumn: (i % 6) + 1 }} />)}
-            <div className="exit" data-escaping={wonAt !== null} />
-            {boardCars.map((c) => (
-              <Button variant="ghost"
-                key={c.id}
-                draggable={false}
-                onClick={() => started && !result && setSel(c.id)}
-                onPointerDown={(e) => handlePointerDown(c, e)}
-                onPointerMove={(e) => handlePointerMove(c, e)}
-                onPointerUp={(e) => handlePointerUp(c, e)}
-                onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
-                onLostPointerCapture={() => { dragStart.current = null; setDrag(null); }}
-                data-selected={sel === c.id}
-                data-hidden={hidden.has(c.id) && !hints.peek && !(wonAt !== null && c.id === "X")}
-                data-escaping={wonAt !== null && c.id === "X"}
-                aria-label={hidden.has(c.id) && !hints.peek ? t("hiddenCar") : c.name}
-                className="car h-auto min-w-0 touch-none select-none p-0 hover:bg-transparent"
-                style={{
-                  background: c.color,
-                  gridRow: `${c.row + 1} / span ${c.dir === "v" ? c.len : 1}`,
-                  gridColumn: `${c.col + 1} / span ${c.dir === "h" ? c.len : 1}`,
-                  transform: drag?.id === c.id ? (c.dir === "h" ? `translate(${drag.offset}px, 0)` : `translate(0, ${drag.offset}px)`) : undefined,
-                  transition: drag?.id === c.id ? "none" : undefined,
-                  zIndex: drag?.id === c.id ? 5 : undefined,
-                }}
-              >{c.id}</Button>
-            ))}
-            <FailureOverlay reason={failReason} onRetry={() => reset(start)} isDaily />
-          </div>
+          <GameBoard
+  cars={boardCars}
+  selectedId={sel}
+  hiddenIds={hidden}
+  revealed={hints.peek}
+  won={wonAt !== null}
+  warn={warn}
+  drag={drag}
+  getCarLabel={(c, isHidden) => (isHidden ? t("hiddenCar") : c.name)}
+  onCarClick={(c) => { if (started && !result) setSel(c.id); }}
+  onPointerDown={handlePointerDown}
+  onPointerMove={handlePointerMove}
+  onPointerUp={handlePointerUp}
+  onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
+>
+  <FailureOverlay reason={failReason} onRetry={() => reset(start)} isDaily />
+</GameBoard>
           <div className="game-stats flex w-full items-center justify-between gap-3 text-sm" style={{ maxWidth: "var(--board)" }}>
             <span>{t("movesLabel")} <b className="font-display">{moves}</b> <span className="text-muted-foreground">/ {t("par", { n: par })}</span></span>
             <span className="font-display">{fmtTime(elapsed)}</span>

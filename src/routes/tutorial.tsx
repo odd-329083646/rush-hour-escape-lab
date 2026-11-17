@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { type Car, type Move } from "@/lib/puzzles";
 import { translate } from "@/lib/i18n";
 import { CoinsBadge } from "@/components/coins-badge";
+import { GameBoard } from "@/components/game-board";
 
 export const Route = createFileRoute("/tutorial")({
   head: () => ({
@@ -103,19 +104,18 @@ function LessonView({ lesson, onNext }: { lesson: Lesson; onNext: () => void }) 
           )}
         </aside>
         <section className="flex min-h-0 flex-col items-center gap-2" style={{ gridArea: "board" }}>
-          <div className="board">
-            {Array.from({ length: 36 }).map((_, i) => <div key={i} className="cell" style={{ gridRow: Math.floor(i / 6) + 1, gridColumn: (i % 6) + 1 }} />)}
-            <div className="exit" />
-            {cars.map((car) => (
-              <Button key={car.id} variant="ghost" draggable={false} onClick={() => setSel(car.id)}
-                onPointerDown={(event) => handlePointerDown(car, event)} onPointerMove={(event) => handlePointerMove(car, event)} onPointerUp={(event) => handlePointerUp(car, event)}
-                onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
-                data-selected={sel === car.id} data-hidden={hidden.has(car.id)} aria-label={t("selectCar", { id: car.id })}
-                className="car h-auto min-w-0 touch-none select-none p-0 hover:bg-transparent"
-                style={{ background: car.color, gridRow: `${car.row + 1} / span ${car.dir === "v" ? car.len : 1}`, gridColumn: `${car.col + 1} / span ${car.dir === "h" ? car.len : 1}`, transform: drag?.id === car.id ? (car.dir === "h" ? `translate(${drag.offset}px, 0)` : `translate(0, ${drag.offset}px)`) : undefined, transition: drag?.id === car.id ? "none" : undefined, zIndex: drag?.id === car.id ? 5 : undefined }}
-              >{car.id}</Button>
-            ))}
-          </div>
+          <GameBoard
+  cars={cars}
+  selectedId={sel}
+  hiddenIds={hidden}
+  drag={drag}
+  getCarLabel={(car) => t("selectCar", { id: car.id })}
+  onCarClick={(car) => setSel(car.id)}
+  onPointerDown={handlePointerDown}
+  onPointerMove={handlePointerMove}
+  onPointerUp={handlePointerUp}
+  onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
+/>
           {msg && <p role="alert" className="text-center text-sm text-destructive">{msg}</p>}
         </section>
         <aside className="panel flex flex-col gap-2" style={{ gridArea: "cars" }}>

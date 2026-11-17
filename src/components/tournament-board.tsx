@@ -3,6 +3,7 @@ import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { type Car, type Move } from "@/lib/puzzles";
 import type { RaceState } from "@/lib/tournament";
+import { GameBoard } from "@/components/game-board";
 
 const directions: { move: Move; Icon: typeof ArrowUp; position: string }[] = [
   { move: "up", Icon: ArrowUp, position: "col-start-2 row-start-1" },
@@ -21,11 +22,21 @@ export function TournamentBoard({ state, blocked, onMove }: { state: RaceState; 
       <div className="grid grid-cols-4 gap-2">{[1, 2, 3, 4].map((n) => <Button key={n} variant="ghost" className="ctrl px-0" data-active={steps === n} disabled={blocked} onClick={() => setSteps(n)}>{n}</Button>)}</div>
     </aside>
     <section className="flex min-h-0 flex-col items-center gap-2 [grid-area:board]">
-      <div className="board">
-        {Array.from({ length: 36 }, (_, i) => <div key={i} className="cell" style={{ gridRow: Math.floor(i / 6) + 1, gridColumn: i % 6 + 1 }} />)}
-        <div className="exit" />
-        {state.cars.map((car) => <Button key={car.id} variant="ghost" draggable={false} disabled={blocked} className="car h-auto min-w-0 touch-none select-none p-0 hover:bg-transparent" aria-label={t("selectCar", { id: car.id })} data-selected={selected === car.id} onClick={() => setSelected(car.id)} onPointerDown={(event) => down(car, event)} onPointerMove={(event) => { const result = offset(car, event); if (result) setDrag({ id: car.id, offset: result.pixels }); }} onPointerUp={(event) => up(car, event)} onPointerCancel={() => { dragStart.current = null; setDrag(null); }} style={{ background: car.color, gridRow: `${car.row + 1} / span ${car.dir === "v" ? car.len : 1}`, gridColumn: `${car.col + 1} / span ${car.dir === "h" ? car.len : 1}`, transform: drag?.id === car.id ? car.dir === "h" ? `translate(${drag.offset}px,0)` : `translate(0,${drag.offset}px)` : undefined, transition: drag?.id === car.id ? "none" : undefined }}>{car.id}</Button>)}
-      </div>
+      <GameBoard
+  cars={state.cars}
+  selectedId={selected}
+  disabled={blocked}
+  drag={drag}
+  getCarLabel={(car) => t("selectCar", { id: car.id })}
+  onCarClick={(car) => setSelected(car.id)}
+  onPointerDown={down}
+  onPointerMove={(car, event) => {
+    const result = offset(car, event);
+    if (result) setDrag({ id: car.id, offset: result.pixels });
+  }}
+  onPointerUp={up}
+  onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
+/>
     </section>
     <aside className="panel flex flex-col gap-2 [grid-area:cars]">
       <h2 className="panel-title">{t("cars")}</h2><div className="grid grid-cols-4 gap-2">{state.cars.filter((car) => car.len === 2).map(palette)}</div>
