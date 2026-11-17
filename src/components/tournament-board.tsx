@@ -23,20 +23,20 @@ export function TournamentBoard({ state, blocked, onMove }: { state: RaceState; 
     </aside>
     <section className="flex min-h-0 flex-col items-center gap-2 [grid-area:board]">
       <GameBoard
-  cars={state.cars}
-  selectedId={selected}
-  disabled={blocked}
-  drag={drag}
-  getCarLabel={(car) => t("selectCar", { id: car.id })}
-  onCarClick={(car) => setSelected(car.id)}
-  onPointerDown={down}
-  onPointerMove={(car, event) => {
-    const result = offset(car, event);
-    if (result) setDrag({ id: car.id, offset: result.pixels });
-  }}
-  onPointerUp={up}
-  onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
-/>
+        cars={state.cars}
+        selectedId={selected}
+        disabled={blocked}
+        drag={drag}
+        getCarLabel={(car) => t("selectCar", { id: car.id })}
+        onCarClick={(car) => setSelected(car.id)}
+        onPointerDown={down}
+        onPointerMove={(car, event) => {
+          const result = offset(car, event);
+          if (result) setDrag({ id: car.id, offset: result.pixels });
+        }}
+        onPointerUp={up}
+        onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
+      />
     </section>
     <aside className="panel flex flex-col gap-2 [grid-area:cars]">
       <h2 className="panel-title">{t("cars")}</h2><div className="grid grid-cols-4 gap-2">{state.cars.filter((car) => car.len === 2).map(palette)}</div>

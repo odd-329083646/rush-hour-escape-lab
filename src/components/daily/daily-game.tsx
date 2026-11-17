@@ -38,7 +38,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
       <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2">
         <Button asChild variant="ghost" className="chip px-2 sm:px-3.5"><Link to="/" aria-label={t("backHome")}><Home className="h-4 w-4" /><span className="hidden sm:inline">{t("backHome")}</span></Link></Button>
         <h1 className="min-w-0 truncate font-display text-sm font-bold md:text-xl">{t("daily")} <span className="text-muted-foreground">· {label}</span></h1>
-        
+
         <div className="flex shrink-0 items-center gap-2">
           <CoinsBadge />
 
@@ -94,22 +94,22 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
 
         <section className="flex min-h-0 flex-col items-center gap-2" style={{ gridArea: "board" }}>
           <GameBoard
-  cars={boardCars}
-  selectedId={sel}
-  hiddenIds={hidden}
-  revealed={hints.peek}
-  won={wonAt !== null}
-  warn={warn}
-  drag={drag}
-  getCarLabel={(c, isHidden) => (isHidden ? t("hiddenCar") : c.name)}
-  onCarClick={(c) => { if (started && !result) setSel(c.id); }}
-  onPointerDown={handlePointerDown}
-  onPointerMove={handlePointerMove}
-  onPointerUp={handlePointerUp}
-  onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
->
-  <FailureOverlay reason={failReason} onRetry={() => reset(start)} isDaily />
-</GameBoard>
+            cars={boardCars}
+            selectedId={sel}
+            hiddenIds={hidden}
+            revealed={hints.peek}
+            won={wonAt !== null}
+            warn={warn}
+            drag={drag}
+            getCarLabel={(c, isHidden) => (isHidden ? t("hiddenCar") : c.name)}
+            onCarClick={(c) => { if (started && !result) setSel(c.id); }}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
+          >
+            <FailureOverlay reason={failReason} onRetry={() => reset(start)} isDaily />
+          </GameBoard>
           <div className="game-stats flex w-full items-center justify-between gap-3 text-sm" style={{ maxWidth: "var(--board)" }}>
             <span>{t("movesLabel")} <b className="font-display">{moves}</b> <span className="text-muted-foreground">/ {t("par", { n: par })}</span></span>
             <span className="font-display">{fmtTime(elapsed)}</span>
@@ -139,7 +139,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
               <span>{t("statPar", { n: par })}</span>
             </div>
             {!result.isRecord && <p className="mt-1 text-sm">{t("yourVsBest", { time: fmtTime(result.time), best: result.best != null ? fmtTime(result.best) : "—" })}</p>}
-            
+
             <div className="mt-3 flex justify-center">
               {result.coinsEarned > 0 ? (
                 <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-sm font-bold text-amber-400">

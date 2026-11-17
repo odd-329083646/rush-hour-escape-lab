@@ -40,7 +40,7 @@ export function Tutorial() {
           </Link>
         </Button>
         <h1 className="font-display text-xl font-bold">{t("tutorial")}</h1>
-        
+
         {/* קבוצה ימנית: תג מטבעות ומספר שיעור */}
         <div className="flex items-center gap-2">
           <CoinsBadge />
@@ -105,17 +105,17 @@ function LessonView({ lesson, onNext }: { lesson: Lesson; onNext: () => void }) 
         </aside>
         <section className="flex min-h-0 flex-col items-center gap-2" style={{ gridArea: "board" }}>
           <GameBoard
-  cars={cars}
-  selectedId={sel}
-  hiddenIds={hidden}
-  drag={drag}
-  getCarLabel={(car) => t("selectCar", { id: car.id })}
-  onCarClick={(car) => setSel(car.id)}
-  onPointerDown={handlePointerDown}
-  onPointerMove={handlePointerMove}
-  onPointerUp={handlePointerUp}
-  onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
-/>
+            cars={cars}
+            selectedId={sel}
+            hiddenIds={hidden}
+            drag={drag}
+            getCarLabel={(car) => t("selectCar", { id: car.id })}
+            onCarClick={(car) => setSel(car.id)}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
+          />
           {msg && <p role="alert" className="text-center text-sm text-destructive">{msg}</p>}
         </section>
         <aside className="panel flex flex-col gap-2" style={{ gridArea: "cars" }}>

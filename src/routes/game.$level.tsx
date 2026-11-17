@@ -106,7 +106,7 @@ function Game() {
         <h1 className="min-w-0 truncate font-display text-sm font-bold md:text-xl">
           {t(`level.${level}`)} <span className="text-muted-foreground">· {t("level", { n: idx + 1 })}</span>
         </h1>
-        
+
         {/* קבוצת כפתורי שליטה ימינית - מטבעות, שלבים, איפוס והגדרות */}
         <div className="flex shrink-0 items-center gap-2">
           <CoinsBadge />
@@ -129,43 +129,43 @@ function Game() {
           {!started ? (
             <Button onClick={start} className="execute start-control whitespace-normal"><Play className="h-4 w-4" /><span>{t("startSolving")}</span></Button>
           ) : (
-          <div className="solving-controls flex flex-col gap-2">
-            <div>
-              <h2 className="panel-title">{t("direction")}</h2>
-              <div className="grid grid-cols-3 grid-rows-3 gap-2">
-                {DIRS.map(({ m, Icon, cls }) => (
-                   <Button variant="ghost" key={m} aria-label={m} title={m} onClick={() => setMove(m)} data-active={move === m} className={`ctrl ${cls}`} disabled={simulating}>
-                    <Icon className="h-5 w-5" />
-                   </Button>
-                ))}
+            <div className="solving-controls flex flex-col gap-2">
+              <div>
+                <h2 className="panel-title">{t("direction")}</h2>
+                <div className="grid grid-cols-3 grid-rows-3 gap-2">
+                  {DIRS.map(({ m, Icon, cls }) => (
+                    <Button variant="ghost" key={m} aria-label={m} title={m} onClick={() => setMove(m)} data-active={move === m} className={`ctrl ${cls}`} disabled={simulating}>
+                      <Icon className="h-5 w-5" />
+                    </Button>
+                  ))}
 
-                {/* כפתור רמז במרכז החיצים */}
-                <Button
-                  onClick={openHints}
-                  variant="outline"
-                  disabled={simulating || won || failed || hints.peek}
-                  title={t("hintMenu")} aria-label={t("hintMenu")}
-                  className="ctrl col-start-2 row-start-2 border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 font-bold p-0 flex flex-col items-center justify-center gap-0.5"
-                >
-                  <Lightbulb className="h-4 w-4 fill-amber-500 shrink-0" />
-                </Button>
+                  {/* כפתור רמז במרכז החיצים */}
+                  <Button
+                    onClick={openHints}
+                    variant="outline"
+                    disabled={simulating || won || failed || hints.peek}
+                    title={t("hintMenu")} aria-label={t("hintMenu")}
+                    className="ctrl col-start-2 row-start-2 border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 font-bold p-0 flex flex-col items-center justify-center gap-0.5"
+                  >
+                    <Lightbulb className="h-4 w-4 fill-amber-500 shrink-0" />
+                  </Button>
+                </div>
               </div>
-            </div>
 
-            <div>
-              <h2 className="panel-title">{t("steps")}</h2>
-              <div className="grid grid-cols-4 gap-2">
-                {[1, 2, 3, 4].map((n) => (
-                   <Button variant="ghost" key={n} onClick={() => setSteps(n)} data-active={steps === n} className="ctrl px-0 font-display" disabled={simulating}>{n}</Button>
-                ))}
+              <div>
+                <h2 className="panel-title">{t("steps")}</h2>
+                <div className="grid grid-cols-4 gap-2">
+                  {[1, 2, 3, 4].map((n) => (
+                    <Button variant="ghost" key={n} onClick={() => setSteps(n)} data-active={steps === n} className="ctrl px-0 font-display" disabled={simulating}>{n}</Button>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            <Button onClick={execute} disabled={won || simulating} className="execute mt-1">
-              {murderer ? <Plus className="h-4 w-4 shrink-0" /> : <Play className="h-4 w-4 shrink-0" />}
-              <span>{murderer ? t("addMove") : t("execute")}</span>
-            </Button>
-          </div>
+              <Button onClick={execute} disabled={won || simulating} className="execute mt-1">
+                {murderer ? <Plus className="h-4 w-4 shrink-0" /> : <Play className="h-4 w-4 shrink-0" />}
+                <span>{murderer ? t("addMove") : t("execute")}</span>
+              </Button>
+            </div>
           )}
         </aside>}
 
@@ -178,23 +178,23 @@ function Game() {
           )}
           {showBoard ? (
             <GameBoard
-  cars={boardCars}
-  selectedId={sel}
-  hiddenIds={hidden}
-  revealed={boardRevealed}
-  won={won}
-  warn={warn}
-  drag={drag}
-  getCarLabel={(c, isHidden) => (isHidden ? t("hiddenCar") : c.name)}
-  onPointerDown={handlePointerDown}
-  onPointerMove={handlePointerMove}
-  onPointerUp={handlePointerUp}
-  onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
->
-  {failed && (
-    <FailureOverlay reason={failReason} onRetry={() => loadPuzzle(idx)} />
-  )}
-</GameBoard>
+              cars={boardCars}
+              selectedId={sel}
+              hiddenIds={hidden}
+              revealed={boardRevealed}
+              won={won}
+              warn={warn}
+              drag={drag}
+              getCarLabel={(c, isHidden) => (isHidden ? t("hiddenCar") : c.name)}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
+            >
+              {failed && (
+                <FailureOverlay reason={failReason} onRetry={() => loadPuzzle(idx)} />
+              )}
+            </GameBoard>
           ) : (
             <div className="panel relative flex w-full flex-col gap-2 self-start" style={{ width: "var(--board)", maxHeight: "var(--board)" }}>
               {warn && <div key={warn.key} className="warn" role="alert">{warn.text}</div>}
@@ -318,7 +318,7 @@ function Game() {
                               {tierLevelNum}
                               {!unlocked && <Lock className="h-3 w-3 text-muted-foreground" />}
                               {done && <CheckCircle2 className="absolute -right-1 -top-1 h-4 w-4 text-primary" />}
-                              
+
                               {unlocked && starCount > 0 && (
                                 <div className="flex gap-0.5 mt-1">
                                   {[1, 2, 3].map((s) => (
