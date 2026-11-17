@@ -2,130 +2,156 @@ import { useSettings } from "@/hooks/useSettings";
 import { useDailyGame } from "@/hooks/useDailyGame";
 import { useExitAnimation } from "@/hooks/useExitAnimation";
 import { Link } from "@tanstack/react-router";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, CalendarDays, Coins, Home, Lightbulb, Play, RotateCcw, Trophy } from "lucide-react";
+import { CalendarDays, Coins, Home, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SettingsButton } from "@/components/settings-dialog";
 import { HintSelection } from "@/components/hint-selection";
 import { VictoryOverlay, FailureOverlay } from "@/components/victory-overlay";
 import { CoinsBadge } from "@/components/coins-badge";
+import { GameArena } from "@/components/game-board";
 import { DailyCalendar } from "./daily-calendar";
-import { getCoins, pickHidden, type Car, type Move } from "@/lib/puzzles";
+import { getCoins, pickHidden } from "@/lib/puzzles";
 import { fmtTime } from "@/lib/daily-scores";
-import { GameBoard } from "@/components/game-board";
-
-const DIRS: { m: Move; Icon: typeof ArrowUp; cls: string }[] = [
-  { m: "up", Icon: ArrowUp, cls: "col-start-2 row-start-1" },
-  { m: "left", Icon: ArrowLeft, cls: "col-start-1 row-start-2" },
-  { m: "right", Icon: ArrowRight, cls: "col-start-3 row-start-2" },
-  { m: "down", Icon: ArrowDown, cls: "col-start-2 row-start-3" },
-];
-const ARROW: Record<Move, string> = { up: "↑", down: "↓", left: "←", right: "→" };
 
 export function DailyGame({ date, openCalendar = false }: { date: string; openCalendar?: boolean }) {
-  const { t, start, par, cars, moves, setStartedAt, now, setNow, wonAt, loading, sel, setSel, steps, setSteps, move, setMove, hidden, setHidden, bumps, warn, coins, setCoins, result, hints, boardCars, calOpen, setCalOpen, dragStart, drag, setDrag, failed, failReason, reset, elapsed, started, useHint, execute, handlePointerDown, handlePointerMove, handlePointerUp, label } = useDailyGame({ date, openCalendar });
+  const {
+    t,
+    start,
+    par,
+    cars,
+    moves,
+    setStartedAt,
+    setNow,
+    wonAt,
+    loading,
+    sel,
+    setSel,
+    steps,
+    setSteps,
+    move,
+    setMove,
+    hidden,
+    setHidden,
+    bumps,
+    warn,
+    coins,
+    setCoins,
+    result,
+    hints,
+    boardCars,
+    calOpen,
+    setCalOpen,
+    dragStart,
+    drag,
+    setDrag,
+    failed,
+    failReason,
+    reset,
+    elapsed,
+    started,
+    useHint,
+    execute,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    label,
+  } = useDailyGame({ date, openCalendar });
+
   const victoryReady = useExitAnimation(wonAt);
   const { panelsVisible } = useSettings();
-  const carBtn = (c: Car) => (
-    <Button variant="ghost" key={c.id} onClick={() => setSel(c.id)} data-active={sel === c.id}
-      title={c.name} aria-label={`Select ${c.id} · ${c.name}`} disabled={!started || !!result} className="palette-cell h-auto">
-      <span className={`h-3 rounded-sm ${c.len === 3 ? "w-10" : "w-6"}`} style={{ background: c.color }} />
-      <span className="text-xs">{c.id} {c.dir === "h" ? "↔" : "↕"}</span>
-    </Button>
-  );
 
   return (
     <main className="lot-bg flex h-dvh flex-col gap-2 overflow-hidden px-2 py-2 sm:px-4">
       <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2">
-        <Button asChild variant="ghost" className="chip px-2 sm:px-3.5"><Link to="/" aria-label={t("backHome")}><Home className="h-4 w-4" /><span className="hidden sm:inline">{t("backHome")}</span></Link></Button>
-        <h1 className="min-w-0 truncate font-display text-sm font-bold md:text-xl">{t("daily")} <span className="text-muted-foreground">· {label}</span></h1>
+        <Button asChild variant="ghost" className="chip px-2 sm:px-3.5">
+          <Link to="/" aria-label={t("backHome")}>
+            <Home className="h-4 w-4" />
+            <span className="hidden sm:inline">{t("backHome")}</span>
+          </Link>
+        </Button>
+        <h1 className="min-w-0 truncate font-display text-sm font-bold md:text-xl">
+          {t("daily")} <span className="text-muted-foreground">· {label}</span>
+        </h1>
 
         <div className="flex shrink-0 items-center gap-2">
           <CoinsBadge />
 
-          <Button variant="ghost" className="chip px-2 sm:px-3.5" onClick={() => setCalOpen(true)} aria-label={t("calendar")}><CalendarDays className="h-4 w-4" /><span className="hidden sm:inline">{t("calendar")}</span></Button>
-          <Button variant="ghost" className="chip px-2 sm:px-3.5" onClick={() => reset(start)} aria-label={t("reset")}><RotateCcw className="h-4 w-4" /><span className="hidden sm:inline">{t("reset")}</span></Button>
+          <Button variant="ghost" className="chip px-2 sm:px-3.5" onClick={() => setCalOpen(true)} aria-label={t("calendar")}>
+            <CalendarDays className="h-4 w-4" />
+            <span className="hidden sm:inline">{t("calendar")}</span>
+          </Button>
+          <Button variant="ghost" className="chip px-2 sm:px-3.5" onClick={() => reset(start)} aria-label={t("reset")}>
+            <RotateCcw className="h-4 w-4" />
+            <span className="hidden sm:inline">{t("reset")}</span>
+          </Button>
           <SettingsButton />
         </div>
       </header>
 
       <HintSelection open={hints.open} onOpenChange={hints.setOpen} level="medium" cars={cars} hidden={hidden} coins={coins} onUse={useHint} />
-      <div className="game-grid">
-        {(!started || panelsVisible) && <aside className="panel flex flex-col gap-2" style={{ gridArea: "ctrl" }}>
-          {!started ? (
-            <Button disabled={loading} onClick={() => { setHidden(pickHidden(cars, "medium")); setStartedAt(Date.now()); setNow(Date.now()); }} className="execute start-control whitespace-normal">
-              <Play className="h-4 w-4" /><span>{t("startSolving")}</span>
-            </Button>
-          ) : (
-            <div className="solving-controls flex flex-col gap-2">
-              <div>
-                <h2 className="panel-title">{t("direction")}</h2>
-                <div className="grid grid-cols-3 grid-rows-3 gap-2">
-                  {DIRS.map(({ m, Icon, cls }) => (
-                    <Button variant="ghost" key={m} aria-label={m} data-active={move === m} onClick={() => setMove(m)} className={`ctrl ${cls}`}><Icon className="h-5 w-5" /></Button>
-                  ))}
 
-                  <Button
-                    onClick={() => { setCoins(getCoins()); hints.setOpen(true); }}
-                    variant="outline"
-                    disabled={!started || !!result || failed || hints.peek}
-                    title={t("hintMenu")} aria-label={t("hintMenu")}
-                    className="ctrl col-start-2 row-start-2 border-amber-500/40 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 font-bold p-0 flex flex-col items-center justify-center gap-0.5"
-                  >
-                    <Lightbulb className="h-4 w-4 fill-amber-500 shrink-0" />
-                  </Button>
-                </div>
-              </div>
-              <div>
-                <h2 className="panel-title">{t("steps")}</h2>
-                <div className="grid grid-cols-4 gap-2">
-                  {[1, 2, 3, 4].map((n) => (
-                    <Button variant="ghost" key={n} onClick={() => setSteps(n)} data-active={steps === n} className="ctrl px-0 font-display">{n}</Button>
-                  ))}
-                </div>
-              </div>
-
-              <Button onClick={execute} disabled={!started || !!result || failed} className="execute mt-1">
-                <Play className="h-4 w-4 shrink-0" />
-                <span>{t("execute")}</span>
-              </Button>
-            </div>
-          )}
-        </aside>}
-
-        <section className="flex min-h-0 flex-col items-center gap-2" style={{ gridArea: "board" }}>
-          <GameBoard
-            cars={boardCars}
-            selectedId={sel}
-            hiddenIds={hidden}
-            revealed={hints.peek}
-            won={wonAt !== null}
-            warn={warn}
-            drag={drag}
-            getCarLabel={(c, isHidden) => (isHidden ? t("hiddenCar") : c.name)}
-            onCarClick={(c) => { if (started && !result) setSel(c.id); }}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            onPointerCancel={() => { dragStart.current = null; setDrag(null); }}
-          >
-            <FailureOverlay reason={failReason} onRetry={() => reset(start)} isDaily />
-          </GameBoard>
+      <GameArena
+        t={t}
+        showControlsPanel={!started || panelsVisible}
+        showCarsPanel={panelsVisible}
+        controls={{
+          started,
+          startDisabled: loading,
+          onStart: () => {
+            setHidden(pickHidden(cars, "medium"));
+            setStartedAt(Date.now());
+            setNow(Date.now());
+          },
+          move,
+          onMoveChange: setMove,
+          steps,
+          onStepsChange: setSteps,
+          showHint: true,
+          hintDisabled: !started || !!result || failed || hints.peek,
+          onHintClick: () => {
+            setCoins(getCoins());
+            hints.setOpen(true);
+          },
+          executeDisabled: !started || !!result || failed,
+          onExecute: execute,
+        }}
+        board={{
+          cars: boardCars,
+          selectedId: sel,
+          hiddenIds: hidden,
+          revealed: hints.peek,
+          won: wonAt !== null,
+          warn,
+          drag,
+          getCarLabel: (c, isHidden) => (isHidden ? t("hiddenCar") : c.name),
+          onCarClick: (c) => {
+            if (started && !result) setSel(c.id);
+          },
+          onPointerDown: handlePointerDown,
+          onPointerMove: handlePointerMove,
+          onPointerUp: handlePointerUp,
+          onPointerCancel: () => {
+            dragStart.current = null;
+            setDrag(null);
+          },
+          children: <FailureOverlay reason={failReason} onRetry={() => reset(start)} isDaily />,
+        }}
+        boardFooter={
           <div className="game-stats flex w-full items-center justify-between gap-3 text-sm" style={{ maxWidth: "var(--board)" }}>
-            <span>{t("movesLabel")} <b className="font-display">{moves}</b> <span className="text-muted-foreground">/ {t("par", { n: par })}</span></span>
+            <span>
+              {t("movesLabel")} <b className="font-display">{moves}</b>{" "}
+              <span className="text-muted-foreground">/ {t("par", { n: par })}</span>
+            </span>
             <span className="font-display">{fmtTime(elapsed)}</span>
-            <span>{t("bumps")} <b className="font-display">{bumps}</b></span>
+            <span>
+              {t("bumps")} <b className="font-display">{bumps}</b>
+            </span>
           </div>
-        </section>
-
-        {panelsVisible && <aside className="panel" style={{ gridArea: "cars" }}>
-          <h2 className="panel-title">{t("cars")}</h2>
-          <div className="grid grid-cols-4 gap-2">{cars.filter((c) => c.len === 2).map(carBtn)}</div>
-          {cars.some((c) => c.len === 3) && <>
-            <h2 className="panel-title mt-2">{t("trucks")}</h2>
-            <div className="grid grid-cols-2 gap-2">{cars.filter((c) => c.len === 3).map(carBtn)}</div>
-          </>}
-        </aside>}
-      </div>
+        }
+        paletteCars={cars}
+        paletteDisabled={!started || !!result}
+        onSelectCar={setSel}
+      />
 
       {result && victoryReady && (
         <VictoryOverlay label={t("solved")}>
@@ -138,13 +164,19 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
               <span>{t("statTime", { t: fmtTime(result.time) })}</span>
               <span>{t("statPar", { n: par })}</span>
             </div>
-            {!result.isRecord && <p className="mt-1 text-sm">{t("yourVsBest", { time: fmtTime(result.time), best: result.best != null ? fmtTime(result.best) : "—" })}</p>}
+            {!result.isRecord && (
+              <p className="mt-1 text-sm">
+                {t("yourVsBest", { time: fmtTime(result.time), best: result.best != null ? fmtTime(result.best) : "—" })}
+              </p>
+            )}
 
             <div className="mt-3 flex justify-center">
               {result.coinsEarned > 0 ? (
                 <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-sm font-bold text-amber-400">
                   <Coins className="h-4 w-4 fill-amber-400" />
-                  <span>{t("coinsEarned", { n: result.coinsEarned })} {result.isRecord ? t("recordBonus") : ""}</span>
+                  <span>
+                    {t("coinsEarned", { n: result.coinsEarned })} {result.isRecord ? t("recordBonus") : ""}
+                  </span>
                 </div>
               ) : (
                 <span className="text-xs text-muted-foreground">{t("replayNoCoins")}</span>
@@ -152,9 +184,17 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
             </div>
 
             <div className="victory-actions">
-              <Button variant="ghost" className="victory-next" onClick={() => reset(start)}>{t("playAgain")} </Button>
-              <Button variant="ghost" className="chip" onClick={() => setCalOpen(true)}><CalendarDays className="h-4 w-4" /> {t("calendar")}</Button>
-              <Button asChild variant="secondary" className="victory-home"><Link to="/"><Home className="h-4 w-4" /> {t("home")}</Link></Button>
+              <Button variant="ghost" className="victory-next" onClick={() => reset(start)}>
+                {t("playAgain")}
+              </Button>
+              <Button variant="ghost" className="chip" onClick={() => setCalOpen(true)}>
+                <CalendarDays className="h-4 w-4" /> {t("calendar")}
+              </Button>
+              <Button asChild variant="secondary" className="victory-home">
+                <Link to="/">
+                  <Home className="h-4 w-4" /> {t("home")}
+                </Link>
+              </Button>
             </div>
           </div>
         </VictoryOverlay>
