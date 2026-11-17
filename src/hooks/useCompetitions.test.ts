@@ -3,7 +3,7 @@ import { afterEach, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ action: vi.fn() }));
 vi.mock("@/hooks/use-tournament", () => ({ useTournament: () => ({ snapshot: null, ready: true, busy: false, action: mocks.action, commitMove: vi.fn(), clockOffset: 0 }) }));
 vi.mock("@/hooks/useProfile", () => ({ useProfile: () => ({ profile: { username: "Guest", country: "IL", avatarId: "car" } }) }));
-vi.mock("@/hooks/useDuelInvitations", () => ({ useDuelInvitations: () => ({ inbox: { playerCode: "", invitations: [] }, send: vi.fn() }) }));
+vi.mock("@/hooks/useDuelInvitations", () => ({ useDuelInvitations: () => ({ inbox: { playerCode: "", invitations: [] }, send: vi.fn(), accept: vi.fn(), dismiss: vi.fn() }) }));
 vi.mock("@/lib/puzzles", () => ({ getCoins: () => 100 }));
 import { useCompetitions } from "./useCompetitions";
 afterEach(() => { cleanup(); mocks.action.mockReset(); });

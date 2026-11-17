@@ -43,6 +43,13 @@
       "when": 1794774142078,
       "tag": "0005_duel_invitations_and_search_deadlines",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794927607370,
+      "tag": "0006_duel_invitations_by_username_and_responses",
+      "breakpoints": true
     }
   ]
 }

@@ -89,10 +89,10 @@ export function useCompetitions() {
 
   const sendInvite = async () => {
     setSendingInvite(true);
-    const sent = await send(recipientCode);
+    const result = await send(recipientCode);
     setSendingInvite(false);
-    if (sent) { toast.success(t("raceInviteSent")); setRecipientCode(""); }
-    else toast.error(t("raceInviteUnavailable"));
+    if (result.sent) { toast.success(t("raceInviteSent")); setRecipientCode(""); }
+    else toast.error(t(result.error === "not_found" ? "raceInviteNotFound" : result.error === "ambiguous" ? "raceInviteAmbiguous" : "raceInviteUnavailable"));
   };
 
   return {

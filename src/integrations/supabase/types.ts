@@ -45,7 +45,10 @@ export type Database = {
           id: string
           match_id: string
           recipient: string
+          responded_at: string | null
           sender: string
+          sender_seen: boolean
+          status: string
         }
         Insert: {
           created_at?: string
@@ -53,7 +56,10 @@ export type Database = {
           id?: string
           match_id: string
           recipient: string
+          responded_at?: string | null
           sender: string
+          sender_seen?: boolean
+          status?: string
         }
         Update: {
           created_at?: string
@@ -61,7 +67,10 @@ export type Database = {
           id?: string
           match_id?: string
           recipient?: string
+          responded_at?: string | null
           sender?: string
+          sender_seen?: boolean
+          status?: string
         }
         Relationships: [
           {
@@ -232,6 +241,10 @@ export type Database = {
     Functions: {
       send_duel_invitation: {
         Args: { p_guest: string; p_hash: string; p_recipient_code: string }
+        Returns: Json
+      }
+      send_duel_invitation_to: {
+        Args: { p_guest: string; p_hash: string; p_recipient: string }
         Returns: Json
       }
       tournament_action: {

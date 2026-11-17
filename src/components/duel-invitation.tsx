@@ -7,7 +7,7 @@ import { useI18n } from "@/lib/i18n";
 import { formatRoomCode } from "@/engine/tournament";
 
 export function DuelInvitationNotification() {
-  const { inbox, dismiss } = useDuelInvitations();
+  const { inbox, dismiss, accept } = useDuelInvitations();
   const { t } = useI18n();
   const navigate = useNavigate();
   const invitation = inbox.invitations[0];
@@ -18,7 +18,7 @@ export function DuelInvitationNotification() {
       <DialogDescription>{invitation && t("raceInvitationBody", { name: invitation.name, code: formatRoomCode(invitation.code) })}</DialogDescription>
       <Button className="execute" onClick={() => {
         if (!invitation) return;
-        void dismiss(invitation.id);
+        void accept(invitation.id);
         void navigate({ to: "/competitions", search: { room: invitation.code } });
       }}>{t("raceJoin")}</Button>
       <Button variant="outline" onClick={() => { if (invitation) void dismiss(invitation.id); }}>{t("raceDecline")}</Button>
