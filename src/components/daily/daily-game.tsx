@@ -150,6 +150,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
         }
         paletteCars={cars}
         paletteDisabled={!started || !!result}
+        getPaletteCarLabel={(c) => `Select ${c.id} · ${c.name}`}
         onSelectCar={setSel}
       />
 

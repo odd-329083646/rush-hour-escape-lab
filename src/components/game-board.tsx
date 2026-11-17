@@ -251,6 +251,7 @@ export interface CarPaletteProps {
   cars: Car[];
   selectedId?: string | null | undefined;
   disabled?: boolean | undefined;
+  getPaletteCarLabel?: ((car: Car) => string) | undefined;
   onSelect: (id: string) => void;
   children?: ReactNode;
 }
@@ -260,6 +261,7 @@ export function CarPalette({
   cars,
   selectedId,
   disabled = false,
+  getPaletteCarLabel,
   onSelect,
   children,
 }: CarPaletteProps) {
@@ -273,7 +275,7 @@ export function CarPalette({
       onClick={() => onSelect(c.id)}
       data-active={selectedId === c.id}
       title={c.name}
-      aria-label={t("selectCar", { id: c.id })}
+      aria-label={getPaletteCarLabel ? getPaletteCarLabel(c) : t("selectCar", { id: c.id })}
       disabled={disabled}
       className="palette-cell h-auto"
     >
@@ -318,6 +320,7 @@ export interface GameArenaProps {
   boardFooter?: ReactNode;
   paletteCars: Car[];
   paletteDisabled?: boolean | undefined;
+  getPaletteCarLabel?: ((car: Car) => string) | undefined;
   onSelectCar: (id: string) => void;
   paletteFooter?: ReactNode;
 }
@@ -334,6 +337,7 @@ export function GameArena({
   boardFooter,
   paletteCars,
   paletteDisabled = false,
+  getPaletteCarLabel,
   onSelectCar,
   paletteFooter,
 }: GameArenaProps) {
@@ -353,6 +357,7 @@ export function GameArena({
           cars={paletteCars}
           selectedId={board.selectedId}
           disabled={paletteDisabled}
+          getPaletteCarLabel={getPaletteCarLabel}
           onSelect={onSelectCar}
         >
           {paletteFooter}
