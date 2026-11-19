@@ -371,7 +371,7 @@
   --card-foreground: var(--foreground);
   --popover: var(--card);
   --popover-foreground: var(--foreground);
-  --primary: oklch(0.71 0.17 145);              /* ירוק-תפוח נעים */
+  --primary: oklch(0.71 0.17 145);               /* ירוק-תפוח נעים */
   --primary-foreground: oklch(0.16 0.03 145);
   --secondary: oklch(0.55 0.14 250);
   --secondary-foreground: var(--foreground);
@@ -379,7 +379,7 @@
   --muted-foreground: oklch(0.86 0.02 255);
   --accent: oklch(0.48 0.14 295);
   --accent-foreground: var(--foreground);
-  --destructive: oklch(0.63 0.18 25);           /* אדום-תות רך */
+  --destructive: oklch(0.63 0.18 25);            /* אדום-תות רך */
   --destructive-foreground: var(--foreground);
   --border: oklch(0.65 0.08 250 / 0.45);
   --input: oklch(0.78 0.02 255);
@@ -555,7 +555,7 @@ main > header:not(.home-title) h1, .mode-screen .home-title h1 { width: fit-cont
 }
 .entry-play { color: var(--primary-foreground) !important; background-color: var(--primary); --button-edge: var(--toy-green-edge) !important; }
 .entry-daily { background-color: var(--toy-yellow); color: var(--toy-yellow-ink) !important; --button-edge: var(--toy-yellow-edge) !important; }
-.entry-race { background-color: var(--toy-purple); --button-edge: var(--toy-purple-edge) !important; }
+.entry-race { background-color: var(--toy-purple); color: var(--toy-ink) !important; --button-edge: var(--toy-purple-edge) !important; }
 .mode-entry { color: var(--toy-light); }
 .mode-easy { color: var(--primary-foreground); background-color: var(--primary); --button-edge: var(--toy-green-edge) !important; }
 .mode-medium { background-color: var(--toy-yellow); color: var(--toy-yellow-ink) !important; --button-edge: var(--toy-yellow-edge) !important; }
@@ -568,6 +568,7 @@ main > header:not(.home-title) h1, .mode-screen .home-title h1 { width: fit-cont
 /* חלונית ניצחון: לוח שנה ירוק, שחק שוב ובית אדומים */
 .victory-overlay { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 1.25rem; background: var(--toy-dim); backdrop-filter: blur(12px); animation: win-in .3s ease both; }
 .victory-banner { position: relative; width: min(100%, 44rem); max-height: calc(100dvh - 2.5rem); overflow: auto; padding: 2rem; border: 4px solid var(--toy-yellow); border-bottom: 9px solid var(--toy-yellow-edge); border-radius: 2rem; background: var(--toy-gold-surface); color: var(--toy-yellow-ink); text-align: center; box-shadow: inset 0 3px 0 var(--toy-highlight), 0 8px 0 var(--toy-yellow-edge), 0 0 70px color-mix(in oklab, var(--toy-amber) 40%, transparent); animation: toy-pop .4s cubic-bezier(.2,.8,.3,1.2) both; }
+[role="dialog"].victory-banner { position: fixed !important; inset: 0 !important; margin: auto !important; height: fit-content; transform: none !important; }
 .victory-banner h2 { font-size: 2.5rem; line-height: 1.15; font-weight: 700; text-shadow: 0 2px 0 var(--toy-highlight); }
 .victory-banner .text-muted-foreground { color: var(--toy-yellow-ink); }
 .victory-stars { display: flex; align-items: center; justify-content: center; gap: .8rem; margin-bottom: 1rem; }
