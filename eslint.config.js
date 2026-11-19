@@ -36,5 +36,47 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  // נעילת שכבת ה-Domain/Business Logic (אסור לייבא משכבת הנתונים או התצוגה)
+  {
+    files: ["src/engine/**/*.ts"],
+    ignores: ["src/engine/**/*.test.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/services/*", "@/hooks/*", "@/components/*", "@/routes/*", "@/integrations/*"],
+              message: "Layer violation: src/engine must stay pure and cannot import from services, hooks, UI, or integrations.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  // נעילת שכבת ה-Presentation (אסור לגשת ישירות ל-storageService או ל-Supabase מתוך UI/Routes)
+  {
+    files: ["src/components/**/*.{ts,tsx}", "src/routes/**/*.{ts,tsx}"],
+    ignores: ["**/*.test.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "@/services/storageService",
+              message: "Layer violation: UI/Routes must access storage through hooks or repositories, not storageService directly.",
+            },
+          ],
+          patterns: [
+            {
+              group: ["@/integrations/supabase/*"],
+              message: "Layer violation: UI/Routes cannot access Supabase directly.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   eslintPluginPrettier,
 );
