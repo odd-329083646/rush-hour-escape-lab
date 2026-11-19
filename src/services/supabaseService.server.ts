@@ -12,8 +12,15 @@ export async function duelInvitationAction(data: { credential: GuestCredential; 
   const { data: guest, error } = await supabaseAdmin.from("tournament_guests").select("id,invitation_code").eq("id", data.credential.id).eq("token_hash", tokenHash).single();
   if (error || !guest) throw new Error("Invalid guest");
   if (data.action === "send") {
-    if (!data.recipientCode) return { error: "unavailable" };
-    const result = await supabaseAdmin.rpc("send_duel_invitation_to", { p_guest: guest.id, p_hash: tokenHash, p_recipient: data.recipientCode });
+    const username = data.recipientCode?.trim();
+    if (!username) return { sent: false, error: "not_found" };
+    // Invitations are username-only: codes are never resolved, unknown names never create rows.
+    const escaped = username.replace(/[\\%_]/g, ch => `\\${ch}`);
+    const named = await supabaseAdmin.from("tournament_guests").select("id").ilike("username", escaped).limit(2);
+    if (named.error) throw new Error("Invitation unavailable");
+    if (!named.data?.length) return { sent: false, error: "not_found" };
+    if (named.data.length > 1) return { sent: false, error: "ambiguous" };
+    const result = await supabaseAdmin.rpc("send_duel_invitation_to", { p_guest: guest.id, p_hash: tokenHash, p_recipient: username });
     if (result.error) throw new Error("Invitation unavailable");
     const response = result.data as { sent?: boolean; topic?: string; error?: string };
     if (response.sent && response.topic) {

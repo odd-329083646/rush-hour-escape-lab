@@ -1,7 +1,7 @@
 import { useCompetitions } from "@/hooks/useCompetitions";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
-import { Coins, Copy, DoorOpen, Home, LoaderCircle, Shuffle, Trophy, Users, Wifi } from "lucide-react";
+import { Coins, Copy, Home, LoaderCircle, Shuffle, Trophy, Users, Wifi } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { SettingsButton } from "@/components/settings-dialog";
@@ -346,12 +346,7 @@ function Competitions() {
         <DialogContent className="text-center">
           <DialogTitle>{t("raceFriend")}</DialogTitle>
           <DialogDescription>{t("raceEntry")}</DialogDescription>
-          <Button className="h-auto whitespace-normal py-4" onClick={() => { setFriendOpen(false); setJoinOpen(true); }}><DoorOpen className="h-5 w-5" />{t("raceEnterCode")}</Button>
           <Button variant="outline" className="h-auto whitespace-normal py-4" disabled={busy} onClick={() => { void begin("create"); }}><Users className="h-5 w-5" />{t("raceInviteFriend")}</Button>
-          <div className="min-w-0 border-t border-border pt-3">
-            <p className="mb-2 text-sm text-muted-foreground">{t("racePlayerCode")}</p>
-            <div className="flex min-w-0 items-center gap-2"><code className="min-w-0 flex-1 break-all text-sm">{playerCode}</code><Button variant="ghost" size="icon" aria-label={t("raceCopy")} onClick={() => { void navigator.clipboard.writeText(playerCode).then(() => toast.success(t("raceCopied"))).catch(() => toast.error(t("raceConnectionError"))); }}><Copy className="h-4 w-4" /></Button></div>
-          </div>
         </DialogContent>
       </Dialog>
 
