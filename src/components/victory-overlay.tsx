@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { RotateCcw, Star, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
@@ -15,9 +15,39 @@ export function VictoryStars({ earned = 3 }: { earned?: number }) {
   );
 }
 
-export function VictoryOverlay({ children, label, stars = 3 }: { children: ReactNode; label: string; stars?: number }) {
+const CONFETTI_COLORS = ["var(--toy-gold)", "var(--toy-red)", "var(--toy-blue)", "var(--primary)", "var(--toy-purple)", "var(--toy-yellow)"];
+
+/** Full-screen confetti burst that removes itself after the animation ends. */
+export function Confetti({ pieces = 80, duration = 3200 }: { pieces?: number; duration?: number }) {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const id = window.setTimeout(() => setVisible(false), duration + 600);
+    return () => window.clearTimeout(id);
+  }, [duration]);
+  if (!visible) return null;
+  return (
+    <div className="confetti" aria-hidden="true">
+      {Array.from({ length: pieces }, (_, i) => (
+        <i
+          key={i}
+          style={{
+            left: `${(i * 37) % 100}%`,
+            background: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+            animationDelay: `${(i % 10) * 0.08}s`,
+            animationDuration: `${duration / 1000 - (i % 5) * 0.25}s`,
+            ["--drift" as string]: `${((i * 53) % 160) - 80}px`,
+            ["--spin" as string]: `${360 + ((i * 97) % 540)}deg`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+export function VictoryOverlay({ children, label, stars = 3, confetti = false }: { children: ReactNode; label: string; stars?: number; confetti?: boolean }) {
   return (
     <div className="victory-overlay">
+      {confetti && <Confetti />}
       <div className="victory-sparkles" aria-hidden="true">
         {Array.from({ length: 16 }, (_, index) => (
           <i key={index} />

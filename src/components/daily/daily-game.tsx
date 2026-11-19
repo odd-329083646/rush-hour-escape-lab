@@ -155,7 +155,7 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
       />
 
       {result && victoryReady && (
-        <VictoryOverlay label={t("solved")}>
+        <VictoryOverlay label={t("solved")} confetti={result.isRecord}>
           <div>
             <h2 className="font-display text-2xl font-bold">
               {result.isRecord ? t("newRecord") : t("solved")}

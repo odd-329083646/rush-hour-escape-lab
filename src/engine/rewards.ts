@@ -19,7 +19,7 @@ export function saveLevelProgress(
   par: number,
   timeInSeconds: number,
   bumps: number = 0
-): { stars: number; coinsEarned: number } {
+): { stars: number; coinsEarned: number; isRecord: boolean } {
   const stars = calculateStars(moves, par, bumps);
   const current = getSavedProgress(levelKey);
   const prev = current[puzzleIdx];
@@ -47,7 +47,8 @@ export function saveLevelProgress(
     addCoins(coinsEarned);
   }
 
-  return { stars: newStars, coinsEarned };
+  const isRecord = !!prev && (prev.stars ?? 0) > 0 && (moves < prev.bestMoves || timeInSeconds < prev.bestTime);
+  return { stars: newStars, coinsEarned, isRecord };
 }
 
 /**

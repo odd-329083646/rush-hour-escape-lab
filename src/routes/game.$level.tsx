@@ -65,6 +65,7 @@ function Game() {
     failReason,
     simulating,
     wonStars,
+    isRecord,
     coins,
     hints,
     boardRevealed,
@@ -288,7 +289,7 @@ function Game() {
       />
 
       {won && victoryReady && (
-        <VictoryOverlay label={t("victory")} stars={wonStars}>
+        <VictoryOverlay label={t("victory")} stars={wonStars} confetti={isRecord}>
           <h2 className="font-display">{t("victory")}</h2>
           {isLast && <p className="mt-2">{t("allDone")}</p>}
           <div className="mt-3 flex flex-col items-center gap-1 text-lg">

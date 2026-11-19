@@ -11,7 +11,7 @@ import { fmtTime } from "@/lib/daily-scores";
 import { formatRoomCode, normalizeRoomCode } from "@/lib/tournament";
 import { toast } from "sonner";
 import { CoinsBadge } from "@/components/coins-badge";
-import { VictoryStars } from "@/components/victory-overlay";
+import { VictoryOverlay } from "@/components/victory-overlay";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { RaceVersus } from "@/components/race-versus";
 
@@ -83,6 +83,43 @@ function Competitions() {
     void navigate({ to: "/competitions", search: {}, replace: true });
   }, [room, ready, busy, begin, navigate]);
   const backHome = async () => { await dismiss(); void navigate({ to: "/" }); };
+
+  const resultBody = (
+    <>
+              <div className="grid grid-cols-2 divide-x divide-border border-y border-border py-4 text-sm">
+                <div className="flex min-w-0 flex-col gap-2 px-2">
+                  <strong className="flex items-center justify-center gap-2"><PlayerAvatar avatarId={profile?.avatarId} /><span className="truncate">{profile.username}</span></strong>
+                  <span>{t("statTime", { t: fmtTime(mine?.index === 3 ? mine.elapsed : resultElapsed) })}</span>
+                  <span>{t("statMoves", { n: mine?.totalMoves ?? 0 })}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {mine?.index === 3 ? t("raceFinished") : t("raceIncomplete")}
+                  </span>
+                </div>
+                <div className="flex min-w-0 flex-col gap-2 px-2">
+                  <strong className="flex items-center justify-center gap-2"><PlayerAvatar avatarId={opponentAvatarId} /><span className="truncate">{opponentName}</span></strong>
+                  <span>
+                    {t("statTime", { t: fmtTime(opponent?.index === 3 ? opponent.elapsed : resultElapsed) })}
+                  </span>
+                  <span>{t("statMoves", { n: opponent?.totalMoves ?? 0 })}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {opponent?.index === 3 ? t("raceFinished") : t("raceIncomplete")}
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-center gap-3">
+                <Button
+                  className="execute"
+                  disabled={busy}
+                  onClick={() => {
+                    void dismiss();
+                  }}
+                >
+                  {t("playAgain")}
+                </Button>
+                <Button variant="outline" disabled={busy} onClick={() => { void backHome(); }}>{t("backHome")}</Button>
+              </div>
+            </>
+  );
 
   return (
     <main className="tournament lot-bg flex h-dvh flex-col gap-3 overflow-hidden px-3 py-3" dir="ltr">
@@ -210,9 +247,17 @@ function Competitions() {
         </section>
       ) : null}
 
-      <Dialog open={unavailable || match?.status === "waiting" || match?.status === "finished" || match?.status === "cancelled"}>
+      {match?.status === "finished" && winner && (
+        <VictoryOverlay label={t("raceWon")} confetti>
+          <h2 className="font-display">{t("raceWon")}</h2>
+          <p className="mt-2">{t("raceReward")}</p>
+          <div className="mt-3">{resultBody}</div>
+        </VictoryOverlay>
+      )}
+
+      <Dialog open={unavailable || match?.status === "waiting" || (match?.status === "finished" && !winner) || match?.status === "cancelled"}>
         <DialogContent
-          className={`w-[calc(100%-2rem)] rounded-lg bg-card text-center [&>button:last-child]:hidden ${match?.status === "finished" && winner ? "victory-banner" : ""}`}
+          className={`w-[calc(100%-2rem)] rounded-lg bg-card text-center [&>button:last-child]:hidden`}
           onEscapeKeyDown={(event) => event.preventDefault()}
           onPointerDownOutside={(event) => event.preventDefault()}
         >
@@ -263,41 +308,10 @@ function Competitions() {
             </>
           ) : match?.status === "finished" ? (
             <>
-              {winner ? <VictoryStars /> : <Trophy className="mx-auto h-12 w-12 text-primary" />}
-              <DialogTitle className="font-display text-2xl">{t(winner ? "raceWon" : "raceLost")}</DialogTitle>
-              <DialogDescription>{t(winner ? "raceReward" : "raceNoReward")}</DialogDescription>
-              <div className="grid grid-cols-2 divide-x divide-border border-y border-border py-4 text-sm">
-                <div className="flex min-w-0 flex-col gap-2 px-2">
-                  <strong className="flex items-center justify-center gap-2"><PlayerAvatar avatarId={profile?.avatarId} /><span className="truncate">{profile.username}</span></strong>
-                  <span>{t("statTime", { t: fmtTime(mine?.index === 3 ? mine.elapsed : resultElapsed) })}</span>
-                  <span>{t("statMoves", { n: mine?.totalMoves ?? 0 })}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {mine?.index === 3 ? t("raceFinished") : t("raceIncomplete")}
-                  </span>
-                </div>
-                <div className="flex min-w-0 flex-col gap-2 px-2">
-                  <strong className="flex items-center justify-center gap-2"><PlayerAvatar avatarId={opponentAvatarId} /><span className="truncate">{opponentName}</span></strong>
-                  <span>
-                    {t("statTime", { t: fmtTime(opponent?.index === 3 ? opponent.elapsed : resultElapsed) })}
-                  </span>
-                  <span>{t("statMoves", { n: opponent?.totalMoves ?? 0 })}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {opponent?.index === 3 ? t("raceFinished") : t("raceIncomplete")}
-                  </span>
-                </div>
-              </div>
-              <div className="flex justify-center gap-3">
-                <Button
-                  className="execute"
-                  disabled={busy}
-                  onClick={() => {
-                    void dismiss();
-                  }}
-                >
-                  {t("playAgain")}
-                </Button>
-                <Button variant="outline" disabled={busy} onClick={() => { void backHome(); }}>{t("backHome")}</Button>
-              </div>
+              <Trophy className="mx-auto h-12 w-12 text-primary" />
+              <DialogTitle className="font-display text-2xl">{t("raceLost")}</DialogTitle>
+              <DialogDescription>{t("raceNoReward")}</DialogDescription>
+              {resultBody}
             </>
           ) : (
             <>

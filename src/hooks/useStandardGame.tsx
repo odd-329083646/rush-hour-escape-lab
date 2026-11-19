@@ -45,6 +45,7 @@ export function useStandardGame(level: Level) {
   const [simulating, setSimulating] = useState(false);
   const [invisibleBumps, setInvisibleBumps] = useState(0);
   const [wonStars, setWonStars] = useState(3);
+  const [isRecord, setIsRecord] = useState(false);
   const [coins, setCoinsState] = useState(0);
   const hints = useHints(setCoinsState);
   const boardRevealed = hints.peek;
@@ -111,7 +112,7 @@ export function useStandardGame(level: Level) {
     setSel(null);
 
     const timeInSeconds = startedAt === null ? 0 : Math.max(0, Math.floor((Date.now() - startedAt) / 1000));
-    const { stars, coinsEarned } = rewards.saveLevelProgress(
+    const { stars, coinsEarned, isRecord: record } = rewards.saveLevelProgress(
       level,
       idx,
       finalMoves,
@@ -121,6 +122,7 @@ export function useStandardGame(level: Level) {
     );
 
     setWonStars(stars);
+    setIsRecord(record);
     setCoinsState(getCoins());
     setMsg(t("msgWon", { stars, coins: coinsEarned }));
 
@@ -408,5 +410,5 @@ export function useStandardGame(level: Level) {
     void generatePuzzle().then((next) => { setCars(next.cars); setInitialCars(next.cars); setMsg(t("randomDrawn")); }).catch(() => flash(t("noHint")));
   };
 
-  return { openHints, tiers, drawRandom, t, te, lang, murderer, idxKey, maxKey, puzzles, setPuzzles, idx, setIdx, maxSolved, setMaxSolved, puzzle, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, initialCars, setInitialCars, sel, setSel, move, setMove, steps, setSteps, msg, setMsg, warn, setWarn, started, setStarted, hidden, setHidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, failReason, setFailReason, simulating, setSimulating, invisibleBumps, setInvisibleBumps, wonStars, setWonStars, coins, setCoinsState, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, setCollapsedTiers, won, elapsed, clock, progress, toggleTier, formatTime, loadPuzzle, markWon, jumpTo, start, flash, useHint, checkInvisibleBump, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, freeRange, handlePointerDown, handlePointerMove, handlePointerUp };
+  return { openHints, tiers, drawRandom, t, te, lang, murderer, idxKey, maxKey, puzzles, setPuzzles, idx, setIdx, maxSolved, setMaxSolved, puzzle, cars, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, initialCars, setInitialCars, sel, setSel, move, setMove, steps, setSteps, msg, setMsg, warn, setWarn, started, setStarted, hidden, setHidden, plan, setPlan, levelsOpen, setLevelsOpen, failed, failReason, setFailReason, simulating, setSimulating, invisibleBumps, setInvisibleBumps, wonStars, setWonStars, isRecord, coins, setCoinsState, hints, boardRevealed, boardCars, murdererBoard, setMurdererBoard, collapsedTiers, setCollapsedTiers, won, elapsed, clock, progress, toggleTier, formatTime, loadPuzzle, markWon, jumpTo, start, flash, useHint, checkInvisibleBump, execute, submitPlan, isLast, standard, trucks, showBoard, dragStart, drag, setDrag, freeRange, handlePointerDown, handlePointerMove, handlePointerUp };
 }
