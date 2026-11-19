@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { RotateCcw, Star, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
@@ -45,7 +46,7 @@ export function Confetti({ pieces = 80, duration = 3200 }: { pieces?: number; du
 }
 
 export function VictoryOverlay({ children, label, stars = 3, confetti = false }: { children: ReactNode; label: string; stars?: number; confetti?: boolean }) {
-  return (
+  const content = (
     <div className="victory-overlay">
       {confetti && <Confetti />}
       <div className="victory-sparkles" aria-hidden="true">
@@ -59,6 +60,8 @@ export function VictoryOverlay({ children, label, stars = 3, confetti = false }:
       </section>
     </div>
   );
+
+  return typeof document !== "undefined" ? createPortal(content, document.body) : content;
 }
 
 export function FailureOverlay({
