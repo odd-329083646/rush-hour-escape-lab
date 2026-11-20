@@ -176,7 +176,7 @@ function LessonView({ lesson, onNext }: { lesson: Lesson; onNext: () => void }) 
             setDrag(null);
           },
         }}
-        boardFooter={msg ? <p role="alert" className="text-center text-sm text-destructive">{msg}</p> : null}
+        boardFooter={msg ? <p role="alert" className="game-feedback text-center text-sm">{msg}</p> : null}
         paletteCars={cars}
         paletteDisabled={done}
         onSelectCar={setSel}
