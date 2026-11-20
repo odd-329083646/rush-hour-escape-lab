@@ -16,7 +16,14 @@ export function VictoryStars({ earned = 3 }: { earned?: number }) {
   );
 }
 
-const CONFETTI_COLORS = ["var(--toy-gold)", "var(--toy-red)", "var(--toy-blue)", "var(--primary)", "var(--toy-purple)", "var(--toy-yellow)"];
+const CONFETTI_COLORS = [
+  "var(--toy-gold)",
+  "var(--toy-red)",
+  "var(--toy-blue)",
+  "var(--primary)",
+  "var(--toy-purple)",
+  "var(--toy-yellow)",
+];
 
 /** Full-screen confetti burst that removes itself after the animation ends. */
 export function Confetti({ pieces = 80, duration = 3200 }: { pieces?: number; duration?: number }) {
@@ -45,7 +52,17 @@ export function Confetti({ pieces = 80, duration = 3200 }: { pieces?: number; du
   );
 }
 
-export function VictoryOverlay({ children, label, stars = 3, confetti = false }: { children: ReactNode; label: string; stars?: number; confetti?: boolean }) {
+export function VictoryOverlay({
+  children,
+  label,
+  stars = 3,
+  confetti = false,
+}: {
+  children: ReactNode;
+  label: string;
+  stars?: number;
+  confetti?: boolean;
+}) {
   const content = (
     <div className="victory-overlay">
       {confetti && <Confetti />}
@@ -81,8 +98,8 @@ export function FailureOverlay({
     reason === "bumps"
       ? t(isDaily ? "bumped3Daily" : "bumped3")
       : reason === "moves"
-      ? t("tooManyMoves")
-      : t("planWrong");
+        ? t("tooManyMoves")
+        : t("planWrong");
 
   return (
     <div className="win flex-col gap-2 text-center">

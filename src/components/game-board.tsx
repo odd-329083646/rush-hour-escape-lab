@@ -227,11 +227,7 @@ export function ControlPanel({
           </div>
 
           {showExecute && onExecute && (
-            <Button
-              onClick={onExecute}
-              disabled={executeDisabled}
-              className="execute mt-1"
-            >
+            <Button onClick={onExecute} disabled={executeDisabled} className="execute mt-1">
               {executeIcon === "plus" ? (
                 <Plus className="h-4 w-4 shrink-0" />
               ) : (

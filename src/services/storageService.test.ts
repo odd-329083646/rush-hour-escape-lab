@@ -11,7 +11,9 @@ it("updates memory immediately and coalesces persistent writes in the background
   vi.runOnlyPendingTimers();
   expect(write).toHaveBeenCalledTimes(1);
   expect(localStorage.getItem("layer_test")).toBe("2");
-  write.mockRestore(); vi.useRealTimers(); localStorage.removeItem("layer_test");
+  write.mockRestore();
+  vi.useRealTimers();
+  localStorage.removeItem("layer_test");
 });
 it("reads existing device data once and then serves gameplay from memory", () => {
   localStorage.setItem("legacy_layer", "saved");
@@ -19,5 +21,6 @@ it("reads existing device data once and then serves gameplay from memory", () =>
   expect(storageService.getItem("legacy_layer")).toBe("saved");
   expect(storageService.getItem("legacy_layer")).toBe("saved");
   expect(read).toHaveBeenCalledTimes(1);
-  read.mockRestore(); localStorage.removeItem("legacy_layer");
+  read.mockRestore();
+  localStorage.removeItem("legacy_layer");
 });

@@ -17,7 +17,7 @@ import { RaceVersus } from "@/components/race-versus";
 
 export const Route = createFileRoute("/competitions")({
   validateSearch: (search: Record<string, unknown>): { room?: string } => {
-    const room = typeof search['room'] === "string" ? normalizeRoomCode(search['room']) : null;
+    const room = typeof search["room"] === "string" ? normalizeRoomCode(search["room"]) : null;
     return room ? { room } : {};
   },
   head: () => ({
@@ -31,7 +31,8 @@ export const Route = createFileRoute("/competitions")({
       { property: "og:title", content: "Competitions - Rush Hour Vanishing Cars" },
       {
         property: "og:description",
-        content: "Live guest competitions, private room codes, and three-puzzle head-to-head races.",
+        content:
+          "Live guest competitions, private room codes, and three-puzzle head-to-head races.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -70,8 +71,15 @@ function Competitions() {
     begin,
     commit,
     dismiss,
-    friendOpen, setFriendOpen, unavailable, recipientCode, setRecipientCode,
-    sendingInvite, sendInvite, playerCode, phase,
+    friendOpen,
+    setFriendOpen,
+    unavailable,
+    recipientCode,
+    setRecipientCode,
+    sendingInvite,
+    sendInvite,
+    playerCode,
+    phase,
   } = useCompetitions();
   const navigate = useNavigate();
   const { room } = Route.useSearch();
@@ -82,23 +90,36 @@ function Competitions() {
     void begin("join", room);
     void navigate({ to: "/competitions", search: {}, replace: true });
   }, [room, ready, busy, begin, navigate]);
-  const backHome = async () => { await dismiss(); void navigate({ to: "/" }); };
+  const backHome = async () => {
+    await dismiss();
+    void navigate({ to: "/" });
+  };
 
   const resultBody = (
     <>
       <div className="grid grid-cols-2 divide-x divide-border border-y border-border py-4 text-sm">
         <div className="flex min-w-0 flex-col gap-2 px-2">
-          <strong className="flex items-center justify-center gap-2"><PlayerAvatar avatarId={profile?.avatarId} /><span className="truncate">{profile.username}</span></strong>
-          <span>{t("statTime", { t: fmtTime(mine?.index === 3 ? mine.elapsed : resultElapsed) })}</span>
+          <strong className="flex items-center justify-center gap-2">
+            <PlayerAvatar avatarId={profile?.avatarId} />
+            <span className="truncate">{profile.username}</span>
+          </strong>
+          <span>
+            {t("statTime", { t: fmtTime(mine?.index === 3 ? mine.elapsed : resultElapsed) })}
+          </span>
           <span>{t("statMoves", { n: mine?.totalMoves ?? 0 })}</span>
           <span className="text-xs text-muted-foreground">
             {mine?.index === 3 ? t("raceFinished") : t("raceIncomplete")}
           </span>
         </div>
         <div className="flex min-w-0 flex-col gap-2 px-2">
-          <strong className="flex items-center justify-center gap-2"><PlayerAvatar avatarId={opponentAvatarId} /><span className="truncate">{opponentName}</span></strong>
+          <strong className="flex items-center justify-center gap-2">
+            <PlayerAvatar avatarId={opponentAvatarId} />
+            <span className="truncate">{opponentName}</span>
+          </strong>
           <span>
-            {t("statTime", { t: fmtTime(opponent?.index === 3 ? opponent.elapsed : resultElapsed) })}
+            {t("statTime", {
+              t: fmtTime(opponent?.index === 3 ? opponent.elapsed : resultElapsed),
+            })}
           </span>
           <span>{t("statMoves", { n: opponent?.totalMoves ?? 0 })}</span>
           <span className="text-xs text-muted-foreground">
@@ -132,7 +153,10 @@ function Competitions() {
   );
 
   return (
-    <main className="tournament lot-bg flex h-dvh flex-col gap-3 overflow-hidden px-3 py-3" dir="ltr">
+    <main
+      className="tournament lot-bg flex h-dvh flex-col gap-3 overflow-hidden px-3 py-3"
+      dir="ltr"
+    >
       <header className="mx-auto flex w-full max-w-6xl shrink-0 items-center justify-between gap-2">
         {match?.status === "playing" ? (
           <Button
@@ -179,40 +203,56 @@ function Competitions() {
             <div className="race-hud-card min-w-0">
               <PlayerAvatar avatarId={profile?.avatarId} />
               <div className="min-w-0 flex-1">
-                <p dir="auto" className="truncate font-semibold">{profile?.country ? flag(profile.country) : ""} {profile?.username}</p>
+                <p dir="auto" className="truncate font-semibold">
+                  {profile?.country ? flag(profile.country) : ""} {profile?.username}
+                </p>
                 <p dir="auto" className="truncate text-xs opacity-80">
-                  {t("raceProgress", { n: Math.min(mine.index + 1, 3), moves: mine.moves })} · {fmtTime(elapsed)}
+                  {t("raceProgress", { n: Math.min(mine.index + 1, 3), moves: mine.moves })} ·{" "}
+                  {fmtTime(elapsed)}
                 </p>
               </div>
             </div>
             <div className="race-hud-card min-w-0 flex-row-reverse text-right">
               <PlayerAvatar avatarId={opponentAvatarId} />
               <div className="min-w-0 flex-1">
-                <p dir="auto" className="truncate font-semibold">{opponentCountry ? flag(opponentCountry) : ""} {opponentName}</p>
+                <p dir="auto" className="truncate font-semibold">
+                  {opponentCountry ? flag(opponentCountry) : ""} {opponentName}
+                </p>
                 <p dir="auto" className="truncate text-xs opacity-80">
                   {opponent?.index === 3
                     ? t("raceFinished")
-                    : t("raceProgress", { n: Math.min((opponent?.index ?? 0) + 1, 3), moves: opponent?.moves ?? 0 })}
+                    : t("raceProgress", {
+                        n: Math.min((opponent?.index ?? 0) + 1, 3),
+                        moves: opponent?.moves ?? 0,
+                      })}
                 </p>
               </div>
             </div>
           </div>
           <div className="flex min-h-0 flex-1 items-center justify-center">
-          <TournamentBoard
-            key={mine.index}
-            state={mine}
-            blocked={countdown > 0 || forfeitOpen || mine.index >= 3}
-            onMove={commit}
-          />
+            <TournamentBoard
+              key={mine.index}
+              state={mine}
+              blocked={countdown > 0 || forfeitOpen || mine.index >= 3}
+              onMove={commit}
+            />
           </div>
           <p className="mx-auto flex items-center gap-1 text-[10px] text-muted-foreground">
             <Wifi className="h-3 w-3" />
             {connected ? t("raceLive") : t("raceReconnecting")}
           </p>
-          {phase === "vs" && <RaceVersus players={[
-            { name: match.a_name, country: match.a_country, avatarId: match.a_avatar_id },
-            { name: match.b_name ?? "", country: match.b_country ?? "", avatarId: match.b_avatar_id },
-          ]} />}
+          {phase === "vs" && (
+            <RaceVersus
+              players={[
+                { name: match.a_name, country: match.a_country, avatarId: match.a_avatar_id },
+                {
+                  name: match.b_name ?? "",
+                  country: match.b_country ?? "",
+                  avatarId: match.b_avatar_id,
+                },
+              ]}
+            />
+          )}
           {phase !== "vs" && countdown >= 0 && serverNow < start + 700 && (
             <div className="fixed inset-0 z-40 grid place-items-center bg-background/80 backdrop-blur-sm">
               <span className="font-display text-6xl font-bold text-primary">
@@ -223,22 +263,31 @@ function Competitions() {
         </>
       ) : !match ? (
         <section className="race-lobby mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center gap-6">
-          <div className="race-lobby-emblem"><PlayerAvatar avatarId={profile.avatarId} className="race-lobby-avatar" /><Trophy className="h-10 w-10 text-toy-yellow" /></div>
-          <div className="race-lobby-info">
-          <p dir="auto" className="text-center font-display text-xl">{t("raceDescription")}</p>
-          <div className="flex flex-wrap justify-center gap-2 text-sm">
-            <span dir="auto" className="race-lobby-pill">
-              <Coins className="h-4 w-4" />
-              {t("raceEntry")}
-            </span>
-            <span dir="auto" className="race-lobby-pill race-lobby-pill-prize">
-              <Trophy className="h-4 w-4" />
-              {t("racePrize")}
-            </span>
+          <div className="race-lobby-emblem">
+            <PlayerAvatar avatarId={profile.avatarId} className="race-lobby-avatar" />
+            <Trophy className="h-10 w-10 text-toy-yellow" />
           </div>
+          <div className="race-lobby-info">
+            <p dir="auto" className="text-center font-display text-xl">
+              {t("raceDescription")}
+            </p>
+            <div className="flex flex-wrap justify-center gap-2 text-sm">
+              <span dir="auto" className="race-lobby-pill">
+                <Coins className="h-4 w-4" />
+                {t("raceEntry")}
+              </span>
+              <span dir="auto" className="race-lobby-pill race-lobby-pill-prize">
+                <Trophy className="h-4 w-4" />
+                {t("racePrize")}
+              </span>
+            </div>
           </div>
           <div className="grid w-full gap-3">
-            <Button className="execute h-auto py-4" disabled={!ready || busy} onClick={() => begin("random")}>
+            <Button
+              className="execute h-auto py-4"
+              disabled={!ready || busy}
+              onClick={() => begin("random")}
+            >
               <Shuffle className="h-5 w-5" />
               {t("raceRandom")}
             </Button>
@@ -271,7 +320,14 @@ function Competitions() {
         </VictoryOverlay>
       )}
 
-      <Dialog open={unavailable || match?.status === "waiting" || (match?.status === "finished" && !winner) || match?.status === "cancelled"}>
+      <Dialog
+        open={
+          unavailable ||
+          match?.status === "waiting" ||
+          (match?.status === "finished" && !winner) ||
+          match?.status === "cancelled"
+        }
+      >
         <DialogContent
           className={`w-[calc(100%-2rem)] rounded-lg bg-card text-center [&>button:last-child]:hidden`}
           onEscapeKeyDown={(event) => event.preventDefault()}
@@ -307,11 +363,28 @@ function Competitions() {
                   </Button>
                 </div>
               )}
-              {match.private && <form className="flex flex-col gap-2" onSubmit={event => { event.preventDefault(); void sendInvite(); }}>
-                <label className="text-sm" htmlFor="recipient-code">{t("raceRecipientCode")}</label>
-                <input id="recipient-code" value={recipientCode} onChange={event => setRecipientCode(event.target.value)} className="min-w-0 rounded-md border border-input bg-background p-3 text-sm" />
-                <Button type="submit" disabled={sendingInvite || !recipientCode.trim()}>{t("raceSendInvite")}</Button>
-              </form>}
+              {match.private && (
+                <form
+                  className="flex flex-col gap-2"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void sendInvite();
+                  }}
+                >
+                  <label className="text-sm" htmlFor="recipient-code">
+                    {t("raceRecipientCode")}
+                  </label>
+                  <input
+                    id="recipient-code"
+                    value={recipientCode}
+                    onChange={(event) => setRecipientCode(event.target.value)}
+                    className="min-w-0 rounded-md border border-input bg-background p-3 text-sm"
+                  />
+                  <Button type="submit" disabled={sendingInvite || !recipientCode.trim()}>
+                    {t("raceSendInvite")}
+                  </Button>
+                </form>
+              )}
               <Button
                 variant="outline"
                 disabled={busy}
@@ -331,8 +404,20 @@ function Competitions() {
             </>
           ) : (
             <>
-              <DialogTitle>{t(unavailable ? "raceUnavailable" : match?.private ? "racePrivateExpired" : "raceTimeout")}</DialogTitle>
-              <DialogDescription>{t(unavailable ? "raceCoinsSafe" : match?.private ? "raceRefund" : "raceTimeoutBody")}</DialogDescription>
+              <DialogTitle>
+                {t(
+                  unavailable
+                    ? "raceUnavailable"
+                    : match?.private
+                      ? "racePrivateExpired"
+                      : "raceTimeout",
+                )}
+              </DialogTitle>
+              <DialogDescription>
+                {t(
+                  unavailable ? "raceCoinsSafe" : match?.private ? "raceRefund" : "raceTimeoutBody",
+                )}
+              </DialogDescription>
               <Button
                 className="execute"
                 disabled={busy}
@@ -342,7 +427,15 @@ function Competitions() {
               >
                 {t("tryAgain")}
               </Button>
-              <Button variant="outline" disabled={busy} onClick={() => { void backHome(); }}>{t("backHome")}</Button>
+              <Button
+                variant="outline"
+                disabled={busy}
+                onClick={() => {
+                  void backHome();
+                }}
+              >
+                {t("backHome")}
+              </Button>
             </>
           )}
         </DialogContent>
@@ -352,7 +445,17 @@ function Competitions() {
         <DialogContent className="text-center">
           <DialogTitle>{t("raceFriend")}</DialogTitle>
           <DialogDescription>{t("raceEntry")}</DialogDescription>
-          <Button variant="outline" className="h-auto whitespace-normal py-4" disabled={busy} onClick={() => { void begin("create"); }}><Users className="h-5 w-5" />{t("raceInviteFriend")}</Button>
+          <Button
+            variant="outline"
+            className="h-auto whitespace-normal py-4"
+            disabled={busy}
+            onClick={() => {
+              void begin("create");
+            }}
+          >
+            <Users className="h-5 w-5" />
+            {t("raceInviteFriend")}
+          </Button>
         </DialogContent>
       </Dialog>
 

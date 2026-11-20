@@ -3,8 +3,17 @@ import { afterEach, expect, it, vi } from "vitest";
 import { useHints } from "./use-hints";
 import { getCoins } from "@/lib/puzzles";
 
-afterEach(() => { cleanup(); localStorage.clear(); vi.useRealTimers(); });
-it.each([["next", 15], ["peek", 25], ["reveal", 40], ["validate", 20]] as const)("deducts exactly the %s price and refuses insufficient coins", (type, cost) => {
+afterEach(() => {
+  cleanup();
+  localStorage.clear();
+  vi.useRealTimers();
+});
+it.each([
+  ["next", 15],
+  ["peek", 25],
+  ["reveal", 40],
+  ["validate", 20],
+] as const)("deducts exactly the %s price and refuses insufficient coins", (type, cost) => {
   localStorage.setItem("rush_hour_coins", String(cost));
   const { result } = renderHook(() => useHints(vi.fn()));
   expect(result.current.charge(type)).toBe(true);

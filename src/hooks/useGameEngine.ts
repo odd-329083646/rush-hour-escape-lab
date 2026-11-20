@@ -4,9 +4,18 @@ import { applyMove, isSolved, cells, type Car, type Move } from "@/engine/game";
 export function movementRange(cars: Car[], car: Car, plan = false) {
   const position = car.dir === "h" ? car.col : car.row;
   if (plan) return { back: position, fwd: 6 - position - car.len };
-  let back = 0, fwd = 0;
-  while (back < position && !applyMove(cars, car.id, car.dir === "h" ? "left" : "up", back + 1).error) back++;
-  while (fwd < 6 - position - car.len && !applyMove(cars, car.id, car.dir === "h" ? "right" : "down", fwd + 1).error) fwd++;
+  let back = 0,
+    fwd = 0;
+  while (
+    back < position &&
+    !applyMove(cars, car.id, car.dir === "h" ? "left" : "up", back + 1).error
+  )
+    back++;
+  while (
+    fwd < 6 - position - car.len &&
+    !applyMove(cars, car.id, car.dir === "h" ? "right" : "down", fwd + 1).error
+  )
+    fwd++;
   return { back, fwd };
 }
 export function blockerOf(cars: Car[], car: Car, move: Move, steps: number) {
@@ -17,7 +26,9 @@ export function blockerOf(cars: Car[], car: Car, move: Move, steps: number) {
     const row = car.dir === "h" ? car.row : car.row + front;
     const col = car.dir === "h" ? car.col + front : car.col;
     if (row < 0 || row > 5 || col < 0 || col > 5) return undefined;
-    const hit = cars.find((other) => other.id !== car.id && cells(other).some(([r, c]) => r === row && c === col));
+    const hit = cars.find(
+      (other) => other.id !== car.id && cells(other).some(([r, c]) => r === row && c === col),
+    );
     if (hit) return hit.id;
   }
   return undefined;
@@ -37,7 +48,10 @@ export function useGameEngine(initialCars: Car[] = []) {
   };
   const commitMove = (id: string, move: Move, steps: number) => {
     const result = applyMove(current.current, id, move, steps);
-    if (!result.error) { setCars(result.cars); setMoves((count) => count + 1); }
+    if (!result.error) {
+      setCars(result.cars);
+      setMoves((count) => count + 1);
+    }
     return result;
   };
   useEffect(() => {
@@ -46,5 +60,19 @@ export function useGameEngine(initialCars: Car[] = []) {
     const timer = setInterval(() => setNow(Date.now()), 250);
     return () => clearInterval(timer);
   }, [startedAt, wonAt]);
-  return { cars, currentCars: current, setCars, moves, setMoves, startedAt, setStartedAt, now, setNow, wonAt, setWonAt, commitMove, solved: isSolved(cars) };
+  return {
+    cars,
+    currentCars: current,
+    setCars,
+    moves,
+    setMoves,
+    startedAt,
+    setStartedAt,
+    now,
+    setNow,
+    wonAt,
+    setWonAt,
+    commitMove,
+    solved: isSolved(cars),
+  };
 }

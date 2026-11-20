@@ -1,7 +1,13 @@
 import { Car, Truck, Trophy, Flame, Zap, Shield, Crown, Flag, type LucideIcon } from "lucide-react";
 import type { TKey } from "@/lib/i18n";
 
-export type PlayerAvatarConfig = { id: string; label: TKey; icon: LucideIcon; theme: string; imageUrl?: string };
+export type PlayerAvatarConfig = {
+  id: string;
+  label: TKey;
+  icon: LucideIcon;
+  theme: string;
+  imageUrl?: string;
+};
 export const AVATARS: PlayerAvatarConfig[] = [
   { id: "car", label: "avatarCar", icon: Car, theme: "avatar-car" },
   { id: "truck", label: "avatarTruck", icon: Truck, theme: "avatar-truck" },
@@ -13,4 +19,6 @@ export const AVATARS: PlayerAvatarConfig[] = [
   { id: "flag", label: "avatarFlag", icon: Flag, theme: "avatar-flag" },
 ];
 export const DEFAULT_AVATAR_ID = "car";
-export function resolveAvatar(id?: string) { return AVATARS.find((avatar) => avatar.id === id) ?? AVATARS[0]; }
+export function resolveAvatar(id?: string) {
+  return AVATARS.find((avatar) => avatar.id === id) ?? AVATARS[0];
+}

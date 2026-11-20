@@ -4,19 +4,28 @@ import { beforeEach as _be } from "vitest";
 import { DailyGame } from "./daily-game";
 import { pickHidden, getCoins } from "@/lib/puzzles";
 
-vi.mock("@tanstack/react-router", () => ({ Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a> }));
+vi.mock("@tanstack/react-router", () => ({
+  Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
+}));
 vi.mock("./daily-calendar", () => ({ DailyCalendar: () => null }));
 vi.mock("@/lib/puzzles", async (importOriginal) => ({
-  ...await importOriginal<typeof import("@/lib/puzzles")>(),
-  getDailyPuzzleAsync: vi.fn().mockResolvedValue({ par: 2, cars: [
-    { id: "X", name: "Red Racer", color: "var(--car-red)", row: 2, col: 0, len: 2, dir: "h" },
-    { id: "A", name: "Green Car", color: "var(--car-green)", row: 0, col: 0, len: 2, dir: "h" },
-    { id: "Q", name: "Blue Truck", color: "var(--car-blue)", row: 3, col: 5, len: 3, dir: "v" },
-  ] }),
+  ...(await importOriginal<typeof import("@/lib/puzzles")>()),
+  getDailyPuzzleAsync: vi.fn().mockResolvedValue({
+    par: 2,
+    cars: [
+      { id: "X", name: "Red Racer", color: "var(--car-red)", row: 2, col: 0, len: 2, dir: "h" },
+      { id: "A", name: "Green Car", color: "var(--car-green)", row: 0, col: 0, len: 2, dir: "h" },
+      { id: "Q", name: "Blue Truck", color: "var(--car-blue)", row: 3, col: 5, len: 3, dir: "v" },
+    ],
+  }),
   pickHidden: vi.fn(() => new Set<string>()),
 }));
 
-afterEach(() => { cleanup(); localStorage.clear(); vi.mocked(pickHidden).mockReturnValue(new Set()); });
+afterEach(() => {
+  cleanup();
+  localStorage.clear();
+  vi.mocked(pickHidden).mockReturnValue(new Set());
+});
 
 async function startGame() {
   render(<DailyGame date="2026-11-07" />);
@@ -40,11 +49,17 @@ describe("Daily gameplay controls", () => {
     fireEvent.click(screen.getByRole("button", { name: /Peek at Board/ }));
     expect(getCoins()).toBe(75);
     expect(car.style.gridColumn).toBe("1 / span 2");
-    expect(screen.getByRole("button", { name: "Blue Truck" })).toHaveAttribute("data-hidden", "false");
+    expect(screen.getByRole("button", { name: "Blue Truck" })).toHaveAttribute(
+      "data-hidden",
+      "false",
+    );
     fireEvent.keyDown(window, { key: "Enter" });
     fireEvent.click(screen.getByRole("button", { name: "Execute" }));
     await waitFor(() => expect(car.style.gridColumn).toBe("2 / span 2"), { timeout: 4000 });
-    expect(screen.getByRole("button", { name: "Hidden car" })).toHaveAttribute("data-hidden", "true");
+    expect(screen.getByRole("button", { name: "Hidden car" })).toHaveAttribute(
+      "data-hidden",
+      "true",
+    );
     expect(getCoins()).toBe(75);
   });
   it("reveals one chosen car permanently for 40 coins without moving it", async () => {
@@ -72,16 +87,19 @@ describe("Daily gameplay controls", () => {
     expect(screen.getByRole("button", { name: "Red Racer" }).style.gridColumn).toBe("1 / span 2");
   });
 
-  it.each([1, 2, 3, 4])("uses letter selection, %i steps, direction and Enter without moving on arrow alone", async (steps) => {
-    await startGame();
-    fireEvent.keyDown(window, { key: "a", code: "KeyA" });
-    fireEvent.keyDown(window, { key: String(steps) });
-    fireEvent.keyDown(window, { key: "ArrowRight" });
-    const car = screen.getByRole("button", { name: "Green Car" });
-    expect(car.style.gridColumn).toBe("1 / span 2");
-    fireEvent.keyDown(window, { key: "Enter" });
-    expect(car.style.gridColumn).toBe(`${steps + 1} / span 2`);
-  });
+  it.each([1, 2, 3, 4])(
+    "uses letter selection, %i steps, direction and Enter without moving on arrow alone",
+    async (steps) => {
+      await startGame();
+      fireEvent.keyDown(window, { key: "a", code: "KeyA" });
+      fireEvent.keyDown(window, { key: String(steps) });
+      fireEvent.keyDown(window, { key: "ArrowRight" });
+      const car = screen.getByRole("button", { name: "Green Car" });
+      expect(car.style.gridColumn).toBe("1 / span 2");
+      fireEvent.keyDown(window, { key: "Enter" });
+      expect(car.style.gridColumn).toBe(`${steps + 1} / span 2`);
+    },
+  );
 
   it("executes an arrow move for a car selected from the palette", async () => {
     await startGame();

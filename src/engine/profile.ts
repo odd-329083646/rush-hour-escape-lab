@@ -1,4 +1,5 @@
-import { storageService } from "@/services/storageService";
+// src/engine/profile.ts
+import type { StoragePort } from "./contracts";
 import { getSavedProgress, type Level } from "@/lib/puzzles";
 import { AVATARS, DEFAULT_AVATAR_ID } from "@/config/avatars";
 import { getMySolves, getWorldRecordCount } from "@/engine/daily-scores";
@@ -6,8 +7,20 @@ import { getCoins } from "@/engine/rewards";
 import { tournamentStats } from "@/engine/tournament-device";
 
 export type Profile = { username: string; country: string; avatarId: string };
-export type PlayerRecords = { standardCompleted: number; dailySolved: number; worldRecords: number; wins: number; losses: number; coins: number };
+export type PlayerRecords = {
+  standardCompleted: number;
+  dailySolved: number;
+  worldRecords: number;
+  wins: number;
+  losses: number;
+  coins: number;
+};
 const KEY = "rush_hour_profile";
+
+const fallbackStorage: StoragePort = {
+  getItem: () => null,
+  setItem: () => {},
+};
 
 export const COUNTRIES: { code: string; en: string; he: string }[] = [
   { code: "IL", en: "Israel", he: "ישראל" },
@@ -38,25 +51,39 @@ export const COUNTRIES: { code: string; en: string; he: string }[] = [
 
 /** Converts an ISO country code into its flag emoji. */
 export function flag(code: string): string {
-  return String.fromCodePoint(...[...code.toUpperCase()].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65));
+  return String.fromCodePoint(
+    ...[...code.toUpperCase()].map((c) => 0x1f1e6 + c.charCodeAt(0) - 65),
+  );
 }
 
 export function randomUsername(rand: () => number = Math.random): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  return "Guest_" + Array.from({ length: 4 }, () => chars[Math.floor(rand() * chars.length)]).join("");
+  return (
+    "Guest_" + Array.from({ length: 4 }, () => chars[Math.floor(rand() * chars.length)]).join("")
+  );
 }
 
 /** Loads the profile, creating and saving a random username on first load. */
-export function getProfile(): Profile {
+export function getProfile(storage: StoragePort = fallbackStorage): Profile {
   try {
-    const raw = storageService.getItem(KEY);
+    const raw = storage.getItem(KEY);
     if (raw) {
       const p = JSON.parse(raw) as Partial<Profile>;
-      if (typeof p.username === "string" && p.username.trim()) return { username: p.username.trim().slice(0, 20), country: p.country ?? "", avatarId: AVATARS.some((a) => a.id === p.avatarId) ? p.avatarId ?? DEFAULT_AVATAR_ID : DEFAULT_AVATAR_ID };
+      if (typeof p.username === "string" && p.username.trim()) {
+        return {
+          username: p.username.trim().slice(0, 20),
+          country: p.country ?? "",
+          avatarId: AVATARS.some((a) => a.id === p.avatarId)
+            ? (p.avatarId ?? DEFAULT_AVATAR_ID)
+            : DEFAULT_AVATAR_ID,
+        };
+      }
     }
-  } catch { /* fall through */ }
+  } catch {
+    /* fall through */
+  }
   const p = { username: randomUsername(), country: "", avatarId: DEFAULT_AVATAR_ID };
-  saveProfile(p);
+  saveProfile(p, storage);
   return p;
 }
 
@@ -65,20 +92,39 @@ export function validateUsername(value: string): string | null {
   return trimmed.length > 0 && trimmed.length <= 20 ? trimmed : null;
 }
 
-export function saveProfile(p: Omit<Profile, "avatarId"> & { avatarId?: string }) {
+export function saveProfile(
+  p: Omit<Profile, "avatarId"> & { avatarId?: string },
+  storage: StoragePort = fallbackStorage,
+) {
   const username = p.username.trim().slice(0, 20) || randomUsername();
   let previousAvatar: string | undefined;
-  try { previousAvatar = JSON.parse(storageService.getItem(KEY) ?? "{}").avatarId; } catch { /* legacy profile */ }
+  try {
+    previousAvatar = JSON.parse(storage.getItem(KEY) ?? "{}").avatarId;
+  } catch {
+    /* legacy profile */
+  }
   const candidate = p.avatarId ?? previousAvatar;
   const avatarId = AVATARS.some((a) => a.id === candidate) ? candidate : DEFAULT_AVATAR_ID;
-  storageService.setItem(KEY, JSON.stringify({ username, country: p.country, avatarId }));
-  storageService.setItem("player_name", username);
+  storage.setItem(KEY, JSON.stringify({ username, country: p.country, avatarId }));
+  storage.setItem("player_name", username);
 }
 
 export function getPlayerRecords(): PlayerRecords {
-  const standardCompleted = (["easy", "medium", "hard", "murderer"] as Level[]).reduce((total, level) => total + Object.values(getSavedProgress(level)).filter((s) => s?.stars > 0).length, 0);
-  const dailySolved = Object.values(getMySolves()).filter((time) => Number.isFinite(time) && time >= 0).length;
-  return { standardCompleted, dailySolved, worldRecords: getWorldRecordCount(), ...tournamentStats(), coins: getCoins() };
+  const standardCompleted = (["easy", "medium", "hard", "murderer"] as Level[]).reduce(
+    (total, level) =>
+      total + Object.values(getSavedProgress(level)).filter((s) => s?.stars > 0).length,
+    0,
+  );
+  const dailySolved = Object.values(getMySolves()).filter(
+    (time) => Number.isFinite(time) && time >= 0,
+  ).length;
+  return {
+    standardCompleted,
+    dailySolved,
+    worldRecords: getWorldRecordCount(),
+    ...tournamentStats(),
+    coins: getCoins(),
+  };
 }
 
 /** Best time (seconds) and fewest moves across all solved puzzles of a level. */

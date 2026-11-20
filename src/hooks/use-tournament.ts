@@ -3,15 +3,27 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { subscribeRace, ensureGuestCredential } from "@/services/supabaseService";
 import { registerTournamentGuest, tournamentAction } from "@/lib/tournament.functions";
-import { applyTournamentSnapshot, getGuestCredential, saveGuestCredential, walletDelta } from "@/lib/tournament-device";
+import {
+  applyTournamentSnapshot,
+  getGuestCredential,
+  saveGuestCredential,
+  walletDelta,
+} from "@/lib/tournament-device";
 import { getProfile } from "@/lib/profile";
 import { getCoins, type Move } from "@/lib/puzzles";
 import { useI18n } from "@/lib/i18n";
-import { advanceRace, resolveRacePuzzles, type GuestCredential, type RaceSnapshot } from "@/lib/tournament";
+import {
+  advanceRace,
+  resolveRacePuzzles,
+  type GuestCredential,
+  type RaceSnapshot,
+} from "@/lib/tournament";
 
 type Action = "status" | "random" | "create" | "join" | "cancel" | "move" | "forfeit" | "leave";
 
-export function useTournament({ resetResultsOnEntry = false }: { resetResultsOnEntry?: boolean } = {}) {
+export function useTournament({
+  resetResultsOnEntry = false,
+}: { resetResultsOnEntry?: boolean } = {}) {
   const register = useServerFn(registerTournamentGuest);
   const invoke = useServerFn(tournamentAction);
   const { t, te } = useI18n();
@@ -33,64 +45,87 @@ export function useTournament({ resetResultsOnEntry = false }: { resetResultsOnE
   const entrySnapshotReceived = useRef(false);
   const dismissedResult = useRef<string | null>(null);
 
-  const publish = useCallback((data: RaceSnapshot) => {
-    authoritative.current = data;
-    let visible = data;
-    const match = data.match;
+  const publish = useCallback(
+    (data: RaceSnapshot) => {
+      authoritative.current = data;
+      let visible = data;
+      const match = data.match;
 
-    // אם המשחק עדיין פעיל בשרת, נסנכרן מהלכים עומדים בתור
-    if (match?.status === "playing") {
-      const side = match.a === data.guest.id ? "a_state" : "b_state";
-      let state = match[side];
-      for (const move of queued.current) {
-        if (!state) break;
-        const next = advanceRace(resolveRacePuzzles(match), state, move.id, move.direction, move.steps, state.elapsed);
-        if (next.error) break;
-        state = next.state;
+      // אם המשחק עדיין פעיל בשרת, נסנכרן מהלכים עומדים בתור
+      if (match?.status === "playing") {
+        const side = match.a === data.guest.id ? "a_state" : "b_state";
+        let state = match[side];
+        for (const move of queued.current) {
+          if (!state) break;
+          const next = advanceRace(
+            resolveRacePuzzles(match),
+            state,
+            move.id,
+            move.direction,
+            move.steps,
+            state.elapsed,
+          );
+          if (next.error) break;
+          state = next.state;
+        }
+
+        // בדיקה: אם בעקבות המהלכים המקומיים הגענו ל-3 שלבים - נעדכן אופטימית לניצחון!
+        const isFinishedOptimistically = state && state.index >= 3;
+        visible = {
+          ...data,
+          match: {
+            ...match,
+            [side]: state,
+            status: isFinishedOptimistically ? "finished" : match.status,
+            winner: isFinishedOptimistically ? data.guest.id : match.winner,
+          },
+        };
       }
 
-      // בדיקה: אם בעקבות המהלכים המקומיים הגענו ל-3 שלבים - נעדכן אופטימית לניצחון!
-      const isFinishedOptimistically = state && state.index >= 3;
-      visible = {
-        ...data,
-        match: {
-          ...match,
-          [side]: state,
-          status: isFinishedOptimistically ? "finished" : match.status,
-          winner: isFinishedOptimistically ? data.guest.id : match.winner,
-        },
-      };
-    }
-
-    const won = localWin.current;
-    if (won && visible.match?.id === won && visible.match.status === "playing") {
-      const side = visible.match.a === data.guest.id ? "a_state" : "b_state";
-      const kept = optimistic.current?.match?.id === won ? optimistic.current.match[side] : visible.match[side];
-      visible = { ...visible, match: { ...visible.match, [side]: kept, status: "finished", winner: data.guest.id } };
-    }
-    // Once the server settles the match (or it is gone), its result is authoritative again.
-    if (won && data.match?.id !== won) localWin.current = null;
-    else if (won && data.match?.status !== "playing") localWin.current = null;
-    // Only dismiss a result already present on entry, never one earned during this visit.
-    // Keep syncing the authoritative guest wallet/stats; polling must not reopen the old dialog.
-    if (!entrySnapshotReceived.current) {
-      entrySnapshotReceived.current = true;
-      if (resetResultsOnEntry && (match?.status === "finished" || match?.status === "cancelled")) {
-        dismissedResult.current = match.id;
+      const won = localWin.current;
+      if (won && visible.match?.id === won && visible.match.status === "playing") {
+        const side = visible.match.a === data.guest.id ? "a_state" : "b_state";
+        const kept =
+          optimistic.current?.match?.id === won
+            ? optimistic.current.match[side]
+            : visible.match[side];
+        visible = {
+          ...visible,
+          match: { ...visible.match, [side]: kept, status: "finished", winner: data.guest.id },
+        };
       }
-    }
-    if (visible.match?.id === dismissedResult.current) visible = { ...visible, match: null };
-    optimistic.current = visible;
-    if (alive.current) setSnapshot(visible);
-  }, [resetResultsOnEntry]);
+      // Once the server settles the match (or it is gone), its result is authoritative again.
+      if (won && data.match?.id !== won) localWin.current = null;
+      else if (won && data.match?.status !== "playing") localWin.current = null;
+      // Only dismiss a result already present on entry, never one earned during this visit.
+      // Keep syncing the authoritative guest wallet/stats; polling must not reopen the old dialog.
+      if (!entrySnapshotReceived.current) {
+        entrySnapshotReceived.current = true;
+        if (
+          resetResultsOnEntry &&
+          (match?.status === "finished" || match?.status === "cancelled")
+        ) {
+          dismissedResult.current = match.id;
+        }
+      }
+      if (visible.match?.id === dismissedResult.current) visible = { ...visible, match: null };
+      optimistic.current = visible;
+      if (alive.current) setSnapshot(visible);
+    },
+    [resetResultsOnEntry],
+  );
 
   const action = useCallback(
-    async (kind: Action, options?: { code?: string; moves?: { id: string; direction: Move; steps: number }[] }): Promise<RaceSnapshot | undefined> => {
+    async (
+      kind: Action,
+      options?: { code?: string; moves?: { id: string; direction: Move; steps: number }[] },
+    ): Promise<RaceSnapshot | undefined> => {
       if (!credential.current) return;
       if (kind === "status" && queued.current.length > 0) return;
       if (locked.current) {
         if (kind === "status") return;
-        while (locked.current && alive.current) await new Promise((resolve) => window.setTimeout(resolve, 15));
+        while (locked.current && alive.current)
+          await new Promise((resolve) => window.setTimeout(resolve, 15));
         if (!alive.current) return;
       }
       locked.current = true;
@@ -120,7 +155,8 @@ export function useTournament({ resetResultsOnEntry = false }: { resetResultsOnE
             }
             publish(data);
           }
-          if (data.error && !(kind === "join" && data.error === "unavailable")) toast.error(data.error === "coins" ? t("raceNeedCoins") : t("raceUnavailable"));
+          if (data.error && !(kind === "join" && data.error === "unavailable"))
+            toast.error(data.error === "coins" ? t("raceNeedCoins") : t("raceUnavailable"));
           return data;
         } else if (result.error) {
           if (kind === "move") {
@@ -132,8 +168,8 @@ export function useTournament({ resetResultsOnEntry = false }: { resetResultsOnE
             result.error === "coins"
               ? t("raceNeedCoins")
               : result.error === "unavailable"
-              ? t("raceUnavailable")
-              : te(result.error)
+                ? t("raceUnavailable")
+                : te(result.error),
           );
         }
       } catch {
@@ -153,7 +189,7 @@ export function useTournament({ resetResultsOnEntry = false }: { resetResultsOnE
       }
       return undefined;
     },
-    [invoke, t, te, publish]
+    [invoke, t, te, publish],
   );
 
   const actionRef = useRef(action);
@@ -190,7 +226,10 @@ export function useTournament({ resetResultsOnEntry = false }: { resetResultsOnE
         id,
         direction,
         steps,
-        Math.max(0, Math.floor((Date.now() + clockOffset - Date.parse(match.started_at ?? "")) / 1000))
+        Math.max(
+          0,
+          Math.floor((Date.now() + clockOffset - Date.parse(match.started_at ?? "")) / 1000),
+        ),
       );
       if (next.error) {
         toast.error(te(next.error));
@@ -218,13 +257,12 @@ export function useTournament({ resetResultsOnEntry = false }: { resetResultsOnE
 
       void flushMoves();
     },
-    [clockOffset, te, flushMoves]
+    [clockOffset, te, flushMoves],
   );
 
   useEffect(() => {
     alive.current = true;
-    if (!initialization.current)
-      initialization.current = ensureGuestCredential(register);
+    if (!initialization.current) initialization.current = ensureGuestCredential(register);
     void initialization.current
       .then(async (guest) => {
         credential.current = guest;
@@ -256,7 +294,7 @@ export function useTournament({ resetResultsOnEntry = false }: { resetResultsOnE
       () => {
         void actionRef.current("status");
       },
-      setConnected
+      setConnected,
     );
   }, [matchId]);
 

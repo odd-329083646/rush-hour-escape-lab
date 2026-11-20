@@ -1,394 +1,382 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.18"
-  }
+    PostgrestVersion: "14.18";
+  };
   public: {
     Tables: {
       daily_scores: {
         Row: {
-          created_at: string
-          date: string
-          id: string
-          player_name: string
-          solve_time: number
-        }
+          created_at: string;
+          date: string;
+          id: string;
+          player_name: string;
+          solve_time: number;
+        };
         Insert: {
-          created_at?: string
-          date: string
-          id?: string
-          player_name?: string
-          solve_time: number
-        }
+          created_at?: string;
+          date: string;
+          id?: string;
+          player_name?: string;
+          solve_time: number;
+        };
         Update: {
-          created_at?: string
-          date?: string
-          id?: string
-          player_name?: string
-          solve_time?: number
-        }
-        Relationships: []
-      }
+          created_at?: string;
+          date?: string;
+          id?: string;
+          player_name?: string;
+          solve_time?: number;
+        };
+        Relationships: [];
+      };
       duel_invitations: {
         Row: {
-          created_at: string
-          dismissed: boolean
-          id: string
-          match_id: string
-          recipient: string
-          responded_at: string | null
-          sender: string
-          sender_seen: boolean
-          status: string
-        }
+          created_at: string;
+          dismissed: boolean;
+          id: string;
+          match_id: string;
+          recipient: string;
+          responded_at: string | null;
+          sender: string;
+          sender_seen: boolean;
+          status: string;
+        };
         Insert: {
-          created_at?: string
-          dismissed?: boolean
-          id?: string
-          match_id: string
-          recipient: string
-          responded_at?: string | null
-          sender: string
-          sender_seen?: boolean
-          status?: string
-        }
+          created_at?: string;
+          dismissed?: boolean;
+          id?: string;
+          match_id: string;
+          recipient: string;
+          responded_at?: string | null;
+          sender: string;
+          sender_seen?: boolean;
+          status?: string;
+        };
         Update: {
-          created_at?: string
-          dismissed?: boolean
-          id?: string
-          match_id?: string
-          recipient?: string
-          responded_at?: string | null
-          sender?: string
-          sender_seen?: boolean
-          status?: string
-        }
+          created_at?: string;
+          dismissed?: boolean;
+          id?: string;
+          match_id?: string;
+          recipient?: string;
+          responded_at?: string | null;
+          sender?: string;
+          sender_seen?: boolean;
+          status?: string;
+        };
         Relationships: [
           {
-            foreignKeyName: "duel_invitations_match_id_fkey"
-            columns: ["match_id"]
-            isOneToOne: false
-            referencedRelation: "tournament_matches"
-            referencedColumns: ["id"]
+            foreignKeyName: "duel_invitations_match_id_fkey";
+            columns: ["match_id"];
+            isOneToOne: false;
+            referencedRelation: "tournament_matches";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "duel_invitations_recipient_fkey"
-            columns: ["recipient"]
-            isOneToOne: false
-            referencedRelation: "tournament_guests"
-            referencedColumns: ["id"]
+            foreignKeyName: "duel_invitations_recipient_fkey";
+            columns: ["recipient"];
+            isOneToOne: false;
+            referencedRelation: "tournament_guests";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "duel_invitations_sender_fkey"
-            columns: ["sender"]
-            isOneToOne: false
-            referencedRelation: "tournament_guests"
-            referencedColumns: ["id"]
+            foreignKeyName: "duel_invitations_sender_fkey";
+            columns: ["sender"];
+            isOneToOne: false;
+            referencedRelation: "tournament_guests";
+            referencedColumns: ["id"];
           },
-        ]
-      }
+        ];
+      };
       tournament_guests: {
         Row: {
-          active_match: string | null
-          avatar_id: string
-          coins: number
-          country: string
-          created_at: string
-          id: string
-          invitation_code: string
-          losses: number
-          player_records: Json
-          token_hash: string
-          username: string
-          wins: number
-        }
+          active_match: string | null;
+          avatar_id: string;
+          coins: number;
+          country: string;
+          created_at: string;
+          id: string;
+          invitation_code: string;
+          losses: number;
+          player_records: Json;
+          token_hash: string;
+          username: string;
+          wins: number;
+        };
         Insert: {
-          active_match?: string | null
-          avatar_id?: string
-          coins?: number
-          country?: string
-          created_at?: string
-          id?: string
-          invitation_code?: string
-          losses?: number
-          player_records?: Json
-          token_hash: string
-          username: string
-          wins?: number
-        }
+          active_match?: string | null;
+          avatar_id?: string;
+          coins?: number;
+          country?: string;
+          created_at?: string;
+          id?: string;
+          invitation_code?: string;
+          losses?: number;
+          player_records?: Json;
+          token_hash: string;
+          username: string;
+          wins?: number;
+        };
         Update: {
-          active_match?: string | null
-          avatar_id?: string
-          coins?: number
-          country?: string
-          created_at?: string
-          id?: string
-          invitation_code?: string
-          losses?: number
-          player_records?: Json
-          token_hash?: string
-          username?: string
-          wins?: number
-        }
-        Relationships: []
-      }
+          active_match?: string | null;
+          avatar_id?: string;
+          coins?: number;
+          country?: string;
+          created_at?: string;
+          id?: string;
+          invitation_code?: string;
+          losses?: number;
+          player_records?: Json;
+          token_hash?: string;
+          username?: string;
+          wins?: number;
+        };
+        Relationships: [];
+      };
       tournament_matches: {
         Row: {
-          a: string
-          a_country: string
-          a_name: string
-          a_state: Json
-          b: string | null
-          b_country: string | null
-          b_name: string | null
-          b_state: Json | null
-          bot: boolean
-          bot_seconds: number
-          bot_won: boolean
-          close_reason: string | null
-          created_at: string
-          id: string
-          private: boolean
-          puzzle_indices: number[] | null
-          puzzles: Json
-          room_code: string | null
-          settled: boolean
-          started_at: string | null
-          status: string
-          updated_at: string
-          winner: string | null
-        }
+          a: string;
+          a_country: string;
+          a_name: string;
+          a_state: Json;
+          b: string | null;
+          b_country: string | null;
+          b_name: string | null;
+          b_state: Json | null;
+          bot: boolean;
+          bot_seconds: number;
+          bot_won: boolean;
+          close_reason: string | null;
+          created_at: string;
+          id: string;
+          private: boolean;
+          puzzle_indices: number[] | null;
+          puzzles: Json;
+          room_code: string | null;
+          settled: boolean;
+          started_at: string | null;
+          status: string;
+          updated_at: string;
+          winner: string | null;
+        };
         Insert: {
-          a: string
-          a_country?: string
-          a_name: string
-          a_state: Json
-          b?: string | null
-          b_country?: string | null
-          b_name?: string | null
-          b_state?: Json | null
-          bot?: boolean
-          bot_seconds?: number
-          bot_won?: boolean
-          close_reason?: string | null
-          created_at?: string
-          id?: string
-          private?: boolean
-          puzzle_indices?: number[] | null
-          puzzles: Json
-          room_code?: string | null
-          settled?: boolean
-          started_at?: string | null
-          status?: string
-          updated_at?: string
-          winner?: string | null
-        }
+          a: string;
+          a_country?: string;
+          a_name: string;
+          a_state: Json;
+          b?: string | null;
+          b_country?: string | null;
+          b_name?: string | null;
+          b_state?: Json | null;
+          bot?: boolean;
+          bot_seconds?: number;
+          bot_won?: boolean;
+          close_reason?: string | null;
+          created_at?: string;
+          id?: string;
+          private?: boolean;
+          puzzle_indices?: number[] | null;
+          puzzles: Json;
+          room_code?: string | null;
+          settled?: boolean;
+          started_at?: string | null;
+          status?: string;
+          updated_at?: string;
+          winner?: string | null;
+        };
         Update: {
-          a?: string
-          a_country?: string
-          a_name?: string
-          a_state?: Json
-          b?: string | null
-          b_country?: string | null
-          b_name?: string | null
-          b_state?: Json | null
-          bot?: boolean
-          bot_seconds?: number
-          bot_won?: boolean
-          close_reason?: string | null
-          created_at?: string
-          id?: string
-          private?: boolean
-          puzzle_indices?: number[] | null
-          puzzles?: Json
-          room_code?: string | null
-          settled?: boolean
-          started_at?: string | null
-          status?: string
-          updated_at?: string
-          winner?: string | null
-        }
+          a?: string;
+          a_country?: string;
+          a_name?: string;
+          a_state?: Json;
+          b?: string | null;
+          b_country?: string | null;
+          b_name?: string | null;
+          b_state?: Json | null;
+          bot?: boolean;
+          bot_seconds?: number;
+          bot_won?: boolean;
+          close_reason?: string | null;
+          created_at?: string;
+          id?: string;
+          private?: boolean;
+          puzzle_indices?: number[] | null;
+          puzzles?: Json;
+          room_code?: string | null;
+          settled?: boolean;
+          started_at?: string | null;
+          status?: string;
+          updated_at?: string;
+          winner?: string | null;
+        };
         Relationships: [
           {
-            foreignKeyName: "tournament_matches_a_fkey"
-            columns: ["a"]
-            isOneToOne: false
-            referencedRelation: "tournament_guests"
-            referencedColumns: ["id"]
+            foreignKeyName: "tournament_matches_a_fkey";
+            columns: ["a"];
+            isOneToOne: false;
+            referencedRelation: "tournament_guests";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "tournament_matches_b_fkey"
-            columns: ["b"]
-            isOneToOne: false
-            referencedRelation: "tournament_guests"
-            referencedColumns: ["id"]
+            foreignKeyName: "tournament_matches_b_fkey";
+            columns: ["b"];
+            isOneToOne: false;
+            referencedRelation: "tournament_guests";
+            referencedColumns: ["id"];
           },
-        ]
-      }
-    }
+        ];
+      };
+    };
     Views: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     Functions: {
       send_duel_invitation: {
-        Args: { p_guest: string; p_hash: string; p_recipient_code: string }
-        Returns: Json
-      }
+        Args: { p_guest: string; p_hash: string; p_recipient_code: string };
+        Returns: Json;
+      };
       send_duel_invitation_to: {
-        Args: { p_guest: string; p_hash: string; p_recipient: string }
-        Returns: Json
-      }
+        Args: { p_guest: string; p_hash: string; p_recipient: string };
+        Returns: Json;
+      };
       tournament_action: {
         Args: {
-          p_action: string
-          p_code?: string
-          p_delta?: number
-          p_expected?: number
-          p_guest: string
-          p_hash: string
-          p_puzzles?: Json
-          p_state?: Json
-        }
-        Returns: Json
-      }
-    }
+          p_action: string;
+          p_code?: string;
+          p_delta?: number;
+          p_expected?: number;
+          p_guest: string;
+          p_hash: string;
+          p_puzzles?: Json;
+          p_state?: Json;
+        };
+        Returns: Json;
+      };
+    };
     Enums: {
-      [_ in never]: never
-    }
+      [_ in never]: never;
+    };
     CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
+      [_ in never]: never;
+    };
+  };
+};
 
-type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends (DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
       DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
+      Row: infer R;
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] & DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R;
       }
       ? R
       : never
-    : never
+    : never;
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
   TableName extends (DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
+      Insert: infer I;
     }
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
+        Insert: infer I;
       }
       ? I
       : never
-    : never
+    : never;
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+    keyof DefaultSchema["Tables"] | { schema: keyof DatabaseWithoutInternals },
   TableName extends (DefaultSchemaTableNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
+      Update: infer U;
     }
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
     ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
+        Update: infer U;
       }
       ? U
       : never
-    : never
+    : never;
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
+    keyof DefaultSchema["Enums"] | { schema: keyof DatabaseWithoutInternals },
   EnumName extends (DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+    : never;
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
+    keyof DefaultSchema["CompositeTypes"] | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
-    schema: keyof DatabaseWithoutInternals
+    schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
+  schema: keyof DatabaseWithoutInternals;
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+    : never;
 
 export const Constants = {
   public: {
     Enums: {},
   },
-} as const
+} as const;

@@ -2,7 +2,15 @@ export type Dir = "h" | "v";
 export type Level = "easy" | "medium" | "hard" | "murderer";
 export type Move = "up" | "down" | "left" | "right";
 
-export type Car = { id: string; name: string; color: string; row: number; col: number; len: 2 | 3; dir: Dir };
+export type Car = {
+  id: string;
+  name: string;
+  color: string;
+  row: number;
+  col: number;
+  len: 2 | 3;
+  dir: Dir;
+};
 export type ShortCar = { id: string; row: number; col: number; dir: Dir };
 
 // משתנה דגל המציין אם האפליקציה פועלת כרגע במצב אופליין
@@ -70,8 +78,12 @@ export function isValidPuzzle(p: unknown): p is PuzzleRaw {
       !!c &&
       typeof c.id === "string" &&
       (c.dir === "h" || c.dir === "v") &&
-      Number.isInteger(c.row) && c.row >= 0 && c.row <= 5 &&
-      Number.isInteger(c.col) && c.col >= 0 && c.col <= 5,
+      Number.isInteger(c.row) &&
+      c.row >= 0 &&
+      c.row <= 5 &&
+      Number.isInteger(c.col) &&
+      c.col >= 0 &&
+      c.col <= 5,
   );
 }
 
@@ -95,7 +107,15 @@ export function generateRandomPuzzleOnTheFly(minPar: number = 7): { par: number;
 
     const place = (cid: string, r: number, c: number, dir: Dir, len: 2 | 3) => {
       const defs = CAR_DEFAULTS[cid] || { name: `Car ${cid}`, color: "var(--car-slate)", len };
-      cars.push({ id: cid, name: defs.name, color: defs.color, row: r, col: c, len: defs.len, dir });
+      cars.push({
+        id: cid,
+        name: defs.name,
+        color: defs.color,
+        row: r,
+        col: c,
+        len: defs.len,
+        dir,
+      });
       for (let i = 0; i < len; i++) {
         occupied.add(dir === "h" ? `${r},${c + i}` : `${r + i},${c}`);
       }
@@ -136,7 +156,10 @@ export const LEVELS: Record<Level, { title: string; he: string }> = {
   murderer: { title: "Murderer", he: "רוצח" },
 };
 
-export function runPlan(cars: Car[], plan: { id: string; move: Move; steps: number }[]): { cars: Car[]; failedAt?: number; error?: string } {
+export function runPlan(
+  cars: Car[],
+  plan: { id: string; move: Move; steps: number }[],
+): { cars: Car[]; failedAt?: number; error?: string } {
   let cur = cars;
   for (let i = 0; i < plan.length; i++) {
     const entry = plan[i];
@@ -153,11 +176,15 @@ export function getRandomPuzzle(rand: () => number = Math.random): { par: number
     return generateRandomPuzzleOnTheFly(7);
   }
   const index = Math.floor(rand() * DEFAULT_PUZZLES.length);
-  return DEFAULT_PUZZLES[index] ?? { par: 1, cars: inflateCars([{ id: "X", row: 2, col: 0, dir: "h" }]) };
+  return (
+    DEFAULT_PUZZLES[index] ?? { par: 1, cars: inflateCars([{ id: "X", row: 2, col: 0, dir: "h" }]) }
+  );
 }
 
 export function cells(c: Car): [number, number][] {
-  return Array.from({ length: c.len }, (_, i) => (c.dir === "h" ? [c.row, c.col + i] : [c.row + i, c.col]));
+  return Array.from({ length: c.len }, (_, i) =>
+    c.dir === "h" ? [c.row, c.col + i] : [c.row + i, c.col],
+  );
 }
 
 export function isSolved(cars: Car[]): boolean {
@@ -169,14 +196,24 @@ export function isOutOfMoves(moves: number, par: number): boolean {
   return par > 0 && moves > par + 6;
 }
 
-export function applyMove(cars: Car[], id: string, move: Move, steps: number): { cars: Car[]; error?: string } {
+export function applyMove(
+  cars: Car[],
+  id: string,
+  move: Move,
+  steps: number,
+): { cars: Car[]; error?: string } {
   if (!Number.isInteger(steps) || steps < 1 || steps > 4) return { cars, error: "Invalid move" };
   const car = cars.find((c) => c.id === id);
   if (!car) return { cars, error: "Select a car first" };
   const horiz = move === "left" || move === "right";
   if ((car.dir === "h") !== horiz) return { cars, error: "This car can't move that way" };
   const d = move === "right" || move === "down" ? 1 : -1;
-  const occ = new Set(cars.filter((c) => c.id !== id).flatMap(cells).map(([r, c]) => `${r},${c}`));
+  const occ = new Set(
+    cars
+      .filter((c) => c.id !== id)
+      .flatMap(cells)
+      .map(([r, c]) => `${r},${c}`),
+  );
   let { row, col } = car;
 
   for (let s = 0; s < steps; s++) {
@@ -195,7 +232,8 @@ export function applyMove(cars: Car[], id: string, move: Move, steps: number): {
 
     if (nr < 0 || nr > 5 || nc < 0 || nc > 5) return { cars, error: "Can't leave the parking lot" };
     if (occ.has(`${nr},${nc}`)) return { cars, error: "Blocked by another car" };
-    if (horiz) col += d; else row += d;
+    if (horiz) col += d;
+    else row += d;
   }
 
   return { cars: cars.map((c) => (c.id === id ? { ...c, row, col } : c)) };
@@ -211,12 +249,16 @@ export function minSolution(start: Car[]): number {
       if (isSolved(st)) return depth;
       for (const c of st) {
         const dirs: Move[] = c.dir === "h" ? ["left", "right"] : ["up", "down"];
-        for (const m of dirs) for (let s = 1; s <= 4; s++) {
-          const r = applyMove(st, c.id, m, s);
-          if (r.error) break;
-          const k = key(r.cars);
-          if (!seen.has(k)) { seen.add(k); next.push(r.cars); }
-        }
+        for (const m of dirs)
+          for (let s = 1; s <= 4; s++) {
+            const r = applyMove(st, c.id, m, s);
+            if (r.error) break;
+            const k = key(r.cars);
+            if (!seen.has(k)) {
+              seen.add(k);
+              next.push(r.cars);
+            }
+          }
       }
     }
     frontier = next;
@@ -224,10 +266,17 @@ export function minSolution(start: Car[]): number {
   return -1;
 }
 
-export function pickHidden(cars: Car[], level: Level, rand: () => number = Math.random): Set<string> {
+export function pickHidden(
+  cars: Car[],
+  level: Level,
+  rand: () => number = Math.random,
+): Set<string> {
   if (level === "easy") return new Set();
   if (level === "hard" || level === "murderer") return new Set(cars.map((c) => c.id));
-  const pool = cars.filter((c) => c.id !== "X").map((c) => c.id).sort(() => rand() - 0.5);
+  const pool = cars
+    .filter((c) => c.id !== "X")
+    .map((c) => c.id)
+    .sort(() => rand() - 0.5);
   return new Set(pool.slice(0, Math.ceil(pool.length / 2)));
 }
 
@@ -313,20 +362,74 @@ export interface TierConfig {
 
 export const TIERS: TierConfig[] = [
   { id: "tier_1", heTitle: "רמה 1 (5–9 מהלכים)", minPar: 5, maxPar: 9, requiredSolvesToNext: 0 },
-  { id: "tier_2", heTitle: "רמה 2 (10–14 מהלכים)", minPar: 10, maxPar: 14, requiredSolvesToNext: 4 },
-  { id: "tier_3", heTitle: "רמה 3 (15–19 מהלכים)", minPar: 15, maxPar: 19, requiredSolvesToNext: 4 },
-  { id: "tier_4", heTitle: "רמה 4 (20–24 מהלכים)", minPar: 20, maxPar: 24, requiredSolvesToNext: 4 },
-  { id: "tier_5", heTitle: "רמה 5 (25–29 מהלכים)", minPar: 25, maxPar: 29, requiredSolvesToNext: 4 },
-  { id: "tier_6", heTitle: "רמה 6 (30–34 מהלכים)", minPar: 30, maxPar: 34, requiredSolvesToNext: 4 },
-  { id: "tier_7", heTitle: "רמה 7 (35–39 מהלכים)", minPar: 35, maxPar: 39, requiredSolvesToNext: 4 },
-  { id: "tier_8", heTitle: "רמה 8 (40–44 מהלכים)", minPar: 40, maxPar: 44, requiredSolvesToNext: 4 },
-  { id: "tier_9", heTitle: "רמה 9 (45–49 מהלכים)", minPar: 45, maxPar: 49, requiredSolvesToNext: 4 },
-  { id: "tier_10", heTitle: "רמה 10 (50+ מהלכים)", minPar: 50, maxPar: 60, requiredSolvesToNext: 4 },
+  {
+    id: "tier_2",
+    heTitle: "רמה 2 (10–14 מהלכים)",
+    minPar: 10,
+    maxPar: 14,
+    requiredSolvesToNext: 4,
+  },
+  {
+    id: "tier_3",
+    heTitle: "רמה 3 (15–19 מהלכים)",
+    minPar: 15,
+    maxPar: 19,
+    requiredSolvesToNext: 4,
+  },
+  {
+    id: "tier_4",
+    heTitle: "רמה 4 (20–24 מהלכים)",
+    minPar: 20,
+    maxPar: 24,
+    requiredSolvesToNext: 4,
+  },
+  {
+    id: "tier_5",
+    heTitle: "רמה 5 (25–29 מהלכים)",
+    minPar: 25,
+    maxPar: 29,
+    requiredSolvesToNext: 4,
+  },
+  {
+    id: "tier_6",
+    heTitle: "רמה 6 (30–34 מהלכים)",
+    minPar: 30,
+    maxPar: 34,
+    requiredSolvesToNext: 4,
+  },
+  {
+    id: "tier_7",
+    heTitle: "רמה 7 (35–39 מהלכים)",
+    minPar: 35,
+    maxPar: 39,
+    requiredSolvesToNext: 4,
+  },
+  {
+    id: "tier_8",
+    heTitle: "רמה 8 (40–44 מהלכים)",
+    minPar: 40,
+    maxPar: 44,
+    requiredSolvesToNext: 4,
+  },
+  {
+    id: "tier_9",
+    heTitle: "רמה 9 (45–49 מהלכים)",
+    minPar: 45,
+    maxPar: 49,
+    requiredSolvesToNext: 4,
+  },
+  {
+    id: "tier_10",
+    heTitle: "רמה 10 (50+ מהלכים)",
+    minPar: 50,
+    maxPar: 60,
+    requiredSolvesToNext: 4,
+  },
 ];
 
 export function getPuzzlesForTier(
   tier: TierConfig,
-  allPuzzles: { par: number; cars: Car[] }[]
+  allPuzzles: { par: number; cars: Car[] }[],
 ): { puzzle: { par: number; cars: Car[] }; originalIdx: number; tierLevelNum: number }[] {
   return allPuzzles
     .map((p, originalIdx) => ({ puzzle: p, originalIdx }))
@@ -340,7 +443,7 @@ export function getPuzzlesForTier(
 export function getSolvesCountInTier(
   tier: TierConfig,
   puzzles: { par: number; cars: Car[] }[],
-  progress: Record<number, LevelStats>
+  progress: Record<number, LevelStats>,
 ): number {
   const tierItems = getPuzzlesForTier(tier, puzzles);
   let count = 0;
@@ -355,14 +458,17 @@ export function getSolvesCountInTier(
 export function isTierUnlocked(
   tierIdx: number,
   puzzles: { par: number; cars: Car[] }[],
-  progress: Record<number, LevelStats>
+  progress: Record<number, LevelStats>,
 ): boolean {
   if (tierIdx === 0) return true;
   const prevTier = TIERS[tierIdx - 1];
   if (!prevTier) return true;
-  
+
   const solvedInPrev = getSolvesCountInTier(prevTier, puzzles, progress);
   return solvedInPrev >= prevTier.requiredSolvesToNext;
 }
 
-export function setPuzzleCatalogue(puzzles: { par: number; cars: Car[] }[], offline: boolean) { DEFAULT_PUZZLES = puzzles; IS_OFFLINE_MODE = offline; }
+export function setPuzzleCatalogue(puzzles: { par: number; cars: Car[] }[], offline: boolean) {
+  DEFAULT_PUZZLES = puzzles;
+  IS_OFFLINE_MODE = offline;
+}

@@ -10,10 +10,35 @@ export function usePlayerSettings() {
   const [country, setCountry] = useState("");
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => { const p = getProfile(); setUsername(p.username); setCountry(p.country); }, []);
+  useEffect(() => {
+    const p = getProfile();
+    setUsername(p.username);
+    setCountry(p.country);
+  }, []);
 
-  const commit = (u = username, c = country) => { const valid = validateUsername(u); if (!valid) { toast.error(t("usernameInvalid")); return; } saveProfile({ ...getProfile(), username: valid, country: c }); setUsername(getProfile().username); setSaved(true); };
+  const commit = (u = username, c = country) => {
+    const valid = validateUsername(u);
+    if (!valid) {
+      toast.error(t("usernameInvalid"));
+      return;
+    }
+    saveProfile({ ...getProfile(), username: valid, country: c });
+    setUsername(getProfile().username);
+    setSaved(true);
+  };
 
   const stats = (Object.keys(LEVELS) as Level[]).map((level) => ({ level, ...levelBests(level) }));
-  return { t, lang, username, setUsername, country, setCountry, saved, setSaved, commit, stats, raceStats: tournamentStats() };
+  return {
+    t,
+    lang,
+    username,
+    setUsername,
+    country,
+    setCountry,
+    saved,
+    setSaved,
+    commit,
+    stats,
+    raceStats: tournamentStats(),
+  };
 }

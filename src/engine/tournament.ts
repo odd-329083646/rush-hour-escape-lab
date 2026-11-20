@@ -8,32 +8,69 @@ export const COUNTDOWN_MS = 3_000;
 export const RANDOM_WAIT_MS = 60_000;
 export const VS_MS = 3_000;
 
-export function raceWaitRemaining(match: Pick<RaceMatch, "private" | "created_at">, now: number): number {
-  return Math.max(0, Math.ceil(((match.private ? ROOM_WAIT_MS : RANDOM_WAIT_MS) - now + Date.parse(match.created_at)) / 1000));
+export function raceWaitRemaining(
+  match: Pick<RaceMatch, "private" | "created_at">,
+  now: number,
+): number {
+  return Math.max(
+    0,
+    Math.ceil(
+      ((match.private ? ROOM_WAIT_MS : RANDOM_WAIT_MS) - now + Date.parse(match.created_at)) / 1000,
+    ),
+  );
 }
-export function raceIntroPhase(startedAt: string | null, now: number): "vs" | "countdown" | "playing" {
+export function raceIntroPhase(
+  startedAt: string | null,
+  now: number,
+): "vs" | "countdown" | "playing" {
   const start = Date.parse(startedAt ?? "");
   return now < start - COUNTDOWN_MS ? "vs" : now < start ? "countdown" : "playing";
 }
 
 export type RacePuzzle = { par: number; cars: Car[] };
-export type RaceState = { index: number; moves: number; totalMoves: number; elapsed: number; cars: Car[] };
+export type RaceState = {
+  index: number;
+  moves: number;
+  totalMoves: number;
+  elapsed: number;
+  cars: Car[];
+};
 export type GuestCredential = { id: string; token: string };
 export type RaceGuest = { id: string; coins: number; wins: number; losses: number };
 export type RaceMatch = {
-  id: string; a: string; b: string | null; private: boolean; room_code: string | null;
-  status: "waiting" | "playing" | "finished" | "cancelled"; puzzle_indices: number[] | null;
+  id: string;
+  a: string;
+  b: string | null;
+  private: boolean;
+  room_code: string | null;
+  status: "waiting" | "playing" | "finished" | "cancelled";
+  puzzle_indices: number[] | null;
   /** Read-only compatibility for matches created before index-based races. */
   puzzles?: RacePuzzle[];
-  a_state: RaceState; b_state: RaceState | null; a_name: string; a_country: string;
-  b_name: string | null; b_country: string | null; started_at: string | null;
-  a_avatar_id?: string; b_avatar_id?: string;
-  winner: string | null; created_at: string; updated_at: string;
+  a_state: RaceState;
+  b_state: RaceState | null;
+  a_name: string;
+  a_country: string;
+  b_name: string | null;
+  b_country: string | null;
+  started_at: string | null;
+  a_avatar_id?: string;
+  b_avatar_id?: string;
+  winner: string | null;
+  created_at: string;
+  updated_at: string;
   close_reason?: string | null;
 };
-export type RaceSnapshot = { guest: RaceGuest; match: RaceMatch | null; serverNow: string; error?: string };
+export type RaceSnapshot = {
+  guest: RaceGuest;
+  match: RaceMatch | null;
+  serverNow: string;
+  error?: string;
+};
 
-export function resolveRacePuzzles(match: Pick<RaceMatch, "puzzle_indices" | "puzzles">): RacePuzzle[] {
+export function resolveRacePuzzles(
+  match: Pick<RaceMatch, "puzzle_indices" | "puzzles">,
+): RacePuzzle[] {
   if (match.puzzle_indices === null) return match.puzzles ?? [];
   if (match.puzzle_indices.length !== 3) throw new Error("Three puzzle indices required");
   return match.puzzle_indices.map((index) => {
@@ -55,8 +92,24 @@ export function pickRacePuzzleIndices(random: () => number = Math.random): numbe
 }
 
 const red: Car = { id: "X", name: "X", color: "var(--car-red)", row: 2, col: 0, len: 2, dir: "h" };
-const truck: Car = { id: "O", name: "O", color: "var(--car-yellow)", row: 0, col: 3, len: 3, dir: "v" };
-const blue: Car = { id: "A", name: "A", color: "var(--car-blue)", row: 2, col: 3, len: 2, dir: "v" };
+const truck: Car = {
+  id: "O",
+  name: "O",
+  color: "var(--car-yellow)",
+  row: 0,
+  col: 3,
+  len: 3,
+  dir: "v",
+};
+const blue: Car = {
+  id: "A",
+  name: "A",
+  color: "var(--car-blue)",
+  row: 2,
+  col: 3,
+  len: 2,
+  dir: "v",
+};
 
 export function fallbackRacePuzzles(): RacePuzzle[] {
   return [
@@ -70,35 +123,35 @@ export function normalizeRoomCode(code: string): string | null {
   const normalized = code.replace(/[\s-]/g, "");
   return /^\d{6}$/.test(normalized) ? normalized : null;
 }
-export function formatRoomCode(code: string): string { 
-  return `${code.slice(0, 3)}-${code.slice(3)}`; 
+export function formatRoomCode(code: string): string {
+  return `${code.slice(0, 3)}-${code.slice(3)}`;
 }
 
 export function advanceRace(
-  puzzles: RacePuzzle[], 
-  state: RaceState, 
-  id: string, 
-  move: Move, 
-  steps: number, 
-  elapsed: number
+  puzzles: RacePuzzle[],
+  state: RaceState,
+  id: string,
+  move: Move,
+  steps: number,
+  elapsed: number,
 ): { state: RaceState; error?: string } {
   if (!Number.isInteger(steps) || steps < 1 || steps > 4 || state.index >= 3) {
     return { state, error: "Invalid move" };
   }
-  
+
   const result = applyMove(state.cars, id, move, steps);
   if (result.error) return { state, error: result.error };
-  
+
   const puzzleSolved = isSolved(result.cars);
   const nextIndex = state.index + (puzzleSolved ? 1 : 0);
-  
+
   return {
     state: {
       index: nextIndex,
       totalMoves: state.totalMoves + 1,
       moves: puzzleSolved ? 0 : state.moves + 1,
       elapsed,
-      cars: puzzleSolved ? (puzzles[nextIndex]?.cars ?? result.cars) : result.cars
-    }
+      cars: puzzleSolved ? (puzzles[nextIndex]?.cars ?? result.cars) : result.cars,
+    },
   };
 }

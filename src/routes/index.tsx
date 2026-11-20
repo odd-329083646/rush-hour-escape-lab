@@ -70,7 +70,18 @@ function Index() {
       {/* סרגל עליון: תג מטבעות והגדרות */}
       <div className="home-tools absolute end-3 top-3 flex items-center gap-2">
         <CoinsBadge />
-        <Button asChild variant="ghost" size="icon" className="h-9 w-9 rounded-full p-0" aria-label={t("profile")} title={t("profile")}><Link to="/profile"><PlayerAvatar avatarId={profile.avatarId} className="h-9 w-9" /></Link></Button>
+        <Button
+          asChild
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 rounded-full p-0"
+          aria-label={t("profile")}
+          title={t("profile")}
+        >
+          <Link to="/profile">
+            <PlayerAvatar avatarId={profile.avatarId} className="h-9 w-9" />
+          </Link>
+        </Button>
         <SettingsButton />
       </div>
 
@@ -80,7 +91,12 @@ function Index() {
         </p>
         <h1 className="home-logo-title">
           <span className="sr-only">Rush Hour</span>
-          <img className="home-logo w-auto object-contain" src={rushHourLogo.url} alt="" fetchPriority="high" />
+          <img
+            className="home-logo w-auto object-contain"
+            src={rushHourLogo.url}
+            alt=""
+            fetchPriority="high"
+          />
         </h1>
         <p className="home-edition mt-1 font-display text-base font-semibold sm:text-xl">
           {t("edition")}
@@ -92,24 +108,29 @@ function Index() {
         className="home-menu mt-auto grid w-full max-w-5xl gap-3 md:grid-cols-3 md:gap-4"
       >
         {ENTRIES.map(({ to, title, desc, tag, Icon }) => (
-          <Button asChild key={to} className={`home-entry ${to === "/play" ? "entry-play" : to === "/daily" ? "entry-daily" : "entry-race"}`}>
-          <Link to={to} search={(to === "/daily" && dailySolved ? { calendar: true } : {}) as never}>
-            <span className="menu-icon">
-              <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
-            </span>
-            <span className="min-w-0 flex-1 text-left">
-              <span className="block font-display text-lg font-bold sm:text-xl">{t(title)}</span>
-            </span>
-            <span className="sr-only">
-              {t(desc)}
-            </span>
-            <span className="home-entry-end flex shrink-0 items-center gap-2">
-              <span className="home-tag text-[10px] sm:text-xs">
-                {to === "/daily" && dailySolved ? t("solvedBadge") : t(tag)}
+          <Button
+            asChild
+            key={to}
+            className={`home-entry ${to === "/play" ? "entry-play" : to === "/daily" ? "entry-daily" : "entry-race"}`}
+          >
+            <Link
+              to={to}
+              search={(to === "/daily" && dailySolved ? { calendar: true } : {}) as never}
+            >
+              <span className="menu-icon">
+                <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
               </span>
-               <ChevronRight className="h-5 w-5 shrink-0" aria-hidden />
-            </span>
-          </Link>
+              <span className="min-w-0 flex-1 text-left">
+                <span className="block font-display text-lg font-bold sm:text-xl">{t(title)}</span>
+              </span>
+              <span className="sr-only">{t(desc)}</span>
+              <span className="home-entry-end flex shrink-0 items-center gap-2">
+                <span className="home-tag text-[10px] sm:text-xs">
+                  {to === "/daily" && dailySolved ? t("solvedBadge") : t(tag)}
+                </span>
+                <ChevronRight className="h-5 w-5 shrink-0" aria-hidden />
+              </span>
+            </Link>
           </Button>
         ))}
       </nav>

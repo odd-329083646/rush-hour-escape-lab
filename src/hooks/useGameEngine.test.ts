@@ -3,7 +3,10 @@ import { afterEach, expect, it, vi } from "vitest";
 import { useGameEngine, movementRange } from "./useGameEngine";
 import { fallbackRacePuzzles } from "@/engine/tournament";
 
-afterEach(() => { cleanup(); vi.useRealTimers(); });
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 it("commits sequential local moves immediately without touching network or storage", () => {
   const network = vi.spyOn(globalThis, "fetch");
   const storage = vi.spyOn(Storage.prototype, "setItem");
@@ -18,10 +21,12 @@ it("commits sequential local moves immediately without touching network or stora
   expect(result.current.solved).toBe(true);
   expect(network).not.toHaveBeenCalled();
   expect(storage).not.toHaveBeenCalled();
-  network.mockRestore(); storage.mockRestore();
+  network.mockRestore();
+  storage.mockRestore();
 });
 it("keeps the local timer running independently and stops it on completion", () => {
-  vi.useFakeTimers(); vi.setSystemTime(10000);
+  vi.useFakeTimers();
+  vi.setSystemTime(10000);
   const { result } = renderHook(() => useGameEngine());
   act(() => result.current.setStartedAt(10000));
   act(() => vi.advanceTimersByTime(1000));

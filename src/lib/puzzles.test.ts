@@ -84,8 +84,7 @@ describe("runPlan", () => {
 
 describe("pickHidden", () => {
   it("easy hides nothing", () => expect(pickHidden(FIXTURE, "easy").size).toBe(0));
-  it("hard hides every car", () =>
-    expect(pickHidden(FIXTURE, "hard").size).toBe(FIXTURE.length));
+  it("hard hides every car", () => expect(pickHidden(FIXTURE, "hard").size).toBe(FIXTURE.length));
   it("murderer hides every car", () =>
     expect(pickHidden(FIXTURE, "murderer").size).toBe(FIXTURE.length));
   it("medium hides some, never the red car", () => {

@@ -5,7 +5,12 @@ export const PEEK_DURATION = 3000;
 export type HintType = keyof typeof HINT_COSTS;
 export type PlannedMove = { id: string; move: Move; steps: number };
 
-export function hintAvailable(type: HintType, level: Level, hidden: Set<string>, plan: PlannedMove[]) {
+export function hintAvailable(
+  type: HintType,
+  level: Level,
+  hidden: Set<string>,
+  plan: PlannedMove[],
+) {
   if (type === "peek") return level !== "easy";
   if (type === "reveal") return hidden.size > 0;
   if (type === "validate") return level === "murderer" && plan.length > 0;

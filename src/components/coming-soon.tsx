@@ -40,9 +40,7 @@ export function ComingSoon({ Icon, title, blurb, bullets, note }: Props) {
           {blurb}
         </p>
 
-        {note && (
-          <p className="mx-auto mt-4 w-fit font-display text-sm text-primary">{note}</p>
-        )}
+        {note && <p className="mx-auto mt-4 w-fit font-display text-sm text-primary">{note}</p>}
 
         <ul className="mx-auto mt-5 flex max-w-xs flex-col items-start gap-2 text-start text-sm">
           {bullets.map((b) => (

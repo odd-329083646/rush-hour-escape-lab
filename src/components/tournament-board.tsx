@@ -27,10 +27,7 @@ export function TournamentBoard({
     offset,
     up,
   } = useTournamentBoard({ state, blocked, onMove });
-  const translate = t as (
-    key: string,
-    vars?: Record<string, string | number>
-  ) => string;
+  const translate = t as (key: string, vars?: Record<string, string | number>) => string;
 
   return (
     <GameArena

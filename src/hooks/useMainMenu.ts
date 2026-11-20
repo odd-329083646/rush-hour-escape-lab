@@ -10,7 +10,10 @@ export function useMainMenu() {
   const { t } = useI18n();
   const navigate = useNavigate();
   useEffect(() => {
-    if (!hasSeenTutorial()) { navigate({ to: "/tutorial", replace: true }); return; }
+    if (!hasSeenTutorial()) {
+      navigate({ to: "/tutorial", replace: true });
+      return;
+    }
     setDailySolved(isSolvedOn(todayKey()));
   }, [navigate]);
   return { dailySolved, t };

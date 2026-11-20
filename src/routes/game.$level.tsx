@@ -2,7 +2,24 @@ import { useSettings } from "@/hooks/useSettings";
 import { useStandardGame } from "@/hooks/useStandardGame";
 import { useExitAnimation } from "@/hooks/useExitAnimation";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ArrowRight, CheckCircle2, ChevronDown, ChevronUp, Eye, Home, Layers, Lock, RotateCcw, Send, Shuffle, Star, Timer, Trash2, WifiOff, X } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  Home,
+  Layers,
+  Lock,
+  RotateCcw,
+  Send,
+  Shuffle,
+  Star,
+  Timer,
+  Trash2,
+  WifiOff,
+  X,
+} from "lucide-react";
 import { LEVELS, IS_OFFLINE_MODE, TIERS, type Level, type Move } from "@/lib/puzzles";
 import { Button } from "@/components/ui/button";
 import { SettingsButton } from "@/components/settings-dialog";
@@ -23,7 +40,10 @@ export const Route = createFileRoute("/game/$level")({
         { title: t },
         { name: "description", content: "Pick a car, choose a direction and steps, and execute." },
         { property: "og:title", content: t },
-        { property: "og:description", content: "Pick a car, choose a direction and steps, and execute." },
+        {
+          property: "og:description",
+          content: "Pick a car, choose a direction and steps, and execute.",
+        },
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary_large_image" },
       ],
@@ -139,7 +159,8 @@ function Game() {
         </div>
 
         <h1 className="min-w-0 truncate font-display text-sm font-bold md:text-xl">
-          {t(`level.${level}`)} <span className="text-muted-foreground">· {t("level", { n: idx + 1 })}</span>
+          {t(`level.${level}`)}{" "}
+          <span className="text-muted-foreground">· {t("level", { n: idx + 1 })}</span>
         </h1>
 
         <div className="flex shrink-0 items-center gap-2">
@@ -171,7 +192,16 @@ function Game() {
         </div>
       </header>
 
-      <HintSelection open={hints.open} onOpenChange={hints.setOpen} level={level} cars={cars} hidden={hidden} plan={plan} coins={coins} onUse={useHint} />
+      <HintSelection
+        open={hints.open}
+        onOpenChange={hints.setOpen}
+        level={level}
+        cars={cars}
+        hidden={hidden}
+        plan={plan}
+        coins={coins}
+        onUse={useHint}
+      />
 
       <GameArena
         t={t}
@@ -195,7 +225,11 @@ function Game() {
         }}
         boardHeader={
           murderer && started && !won && !failed && !hints.peek && hidden.size < cars.length ? (
-            <Button variant="ghost" className="chip" onClick={() => setMurdererBoard((value) => !value)}>
+            <Button
+              variant="ghost"
+              className="chip"
+              onClick={() => setMurdererBoard((value) => !value)}
+            >
               {murdererBoard ? <Layers className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               {t(murdererBoard ? "plannedMoves" : "hintRevealedBoard")}
             </Button>
@@ -217,11 +251,16 @@ function Game() {
             dragStart.current = null;
             setDrag(null);
           },
-          children: failed ? <FailureOverlay reason={failReason} onRetry={() => loadPuzzle(idx)} /> : null,
+          children: failed ? (
+            <FailureOverlay reason={failReason} onRetry={() => loadPuzzle(idx)} />
+          ) : null,
         }}
         customCenter={
           !showBoard ? (
-            <div className="panel relative flex w-full flex-col gap-2 self-start" style={{ width: "var(--board)", maxHeight: "var(--board)" }}>
+            <div
+              className="panel relative flex w-full flex-col gap-2 self-start"
+              style={{ width: "var(--board)", maxHeight: "var(--board)" }}
+            >
               {warn && (
                 <div key={warn.key} className="warn" role="alert">
                   {warn.text}
@@ -236,7 +275,10 @@ function Game() {
                     const c = cars.find((x) => x.id === p.id);
                     if (!c) return null;
                     return (
-                      <li key={i} className="flex items-center gap-3 rounded-lg border bg-background px-3 py-2 text-sm">
+                      <li
+                        key={i}
+                        className="flex items-center gap-3 rounded-lg border bg-background px-3 py-2 text-sm"
+                      >
                         <span className="w-6 font-display text-muted-foreground">{i + 1}.</span>
                         <span className="h-3 w-5 rounded-sm" style={{ background: c.color }} />
                         <span className="flex-1">
@@ -261,10 +303,20 @@ function Game() {
                 </ol>
               )}
               <div className="flex gap-2">
-                <Button variant="ghost" onClick={() => setPlan([])} disabled={!plan.length || simulating} className="chip">
+                <Button
+                  variant="ghost"
+                  onClick={() => setPlan([])}
+                  disabled={!plan.length || simulating}
+                  className="chip"
+                >
                   {t("clear")}
                 </Button>
-                <Button variant="ghost" onClick={submitPlan} disabled={simulating} className="execute flex flex-1 items-center justify-center gap-2">
+                <Button
+                  variant="ghost"
+                  onClick={submitPlan}
+                  disabled={simulating}
+                  className="execute flex flex-1 items-center justify-center gap-2"
+                >
                   <Send className="h-4 w-4" /> {t("submitSolution")}
                 </Button>
               </div>
@@ -272,9 +324,15 @@ function Game() {
           ) : undefined
         }
         boardFooter={
-          <div className="game-stats flex w-full shrink-0 items-center justify-between gap-3 text-sm text-muted-foreground" style={{ width: "var(--board)" }}>
+          <div
+            className="game-stats flex w-full shrink-0 items-center justify-between gap-3 text-sm text-muted-foreground"
+            style={{ width: "var(--board)" }}
+          >
             <span>
-              {t("movesLabel")}: <b className="font-display text-foreground">{murderer && !won ? plan.length : moves}</b>
+              {t("movesLabel")}:{" "}
+              <b className="font-display text-foreground">
+                {murderer && !won ? plan.length : moves}
+              </b>
             </span>
             <span className="min-w-0 flex-1 truncate text-center">{msg}</span>
             <span className="flex items-center gap-1">
@@ -298,7 +356,10 @@ function Game() {
             <span>{t("statPar", { n: puzzle.par })}</span>
           </div>
           <div className="victory-actions">
-            <Button className="victory-next" onClick={() => (isLast ? loadPuzzle(idx) : jumpTo(idx + 1))}>
+            <Button
+              className="victory-next"
+              onClick={() => (isLast ? loadPuzzle(idx) : jumpTo(idx + 1))}
+            >
               {t(isLast ? "playAgain" : "nextLevel")}
             </Button>
             <Button asChild variant="secondary" className="victory-home">
@@ -312,11 +373,22 @@ function Game() {
       )}
 
       {levelsOpen && (
-        <div className="toy-dialog-overlay fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setLevelsOpen(false)}>
-          <div className={`panel level-picker difficulty-${level} flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden p-0`} onClick={(e) => e.stopPropagation()}>
+        <div
+          className="toy-dialog-overlay fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={() => setLevelsOpen(false)}
+        >
+          <div
+            className={`panel level-picker difficulty-${level} flex max-h-[85vh] w-full max-w-xl flex-col overflow-hidden p-0`}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="sticky top-0 z-10 flex items-center justify-between border-b bg-card px-4 py-3">
               <h2 className="font-display text-xl font-bold">{t("chooseLevel")}</h2>
-              <Button variant="ghost" aria-label={t("close")} onClick={() => setLevelsOpen(false)} className="chip">
+              <Button
+                variant="ghost"
+                aria-label={t("close")}
+                onClick={() => setLevelsOpen(false)}
+                className="chip"
+              >
                 <X className="h-4 w-4" />
               </Button>
             </div>
@@ -328,14 +400,34 @@ function Game() {
 
                 return (
                   <div key={tier.id} className="rounded-lg border bg-card p-3">
-                    <Button variant="ghost" onClick={() => toggleTier(tier.id)} className="flex w-full items-center justify-between text-start transition-colors hover:opacity-80">
+                    <Button
+                      variant="ghost"
+                      onClick={() => toggleTier(tier.id)}
+                      className="flex w-full items-center justify-between text-start transition-colors hover:opacity-80"
+                    >
                       <div className="flex items-center gap-2 text-sm font-bold sm:text-base">
-                        {!unlocked ? <Lock className="h-4 w-4 shrink-0 text-amber-500" /> : <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />}
-                        <span>{t(tierIdx === TIERS.length - 1 ? "tierTitleLast" : "tierTitle", { n: tierIdx + 1, min: tier.minPar, max: tier.maxPar })}</span>
-                        {isCollapsed ? <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" /> : <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" />}
+                        {!unlocked ? (
+                          <Lock className="h-4 w-4 shrink-0 text-amber-500" />
+                        ) : (
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                        )}
+                        <span>
+                          {t(tierIdx === TIERS.length - 1 ? "tierTitleLast" : "tierTitle", {
+                            n: tierIdx + 1,
+                            min: tier.minPar,
+                            max: tier.maxPar,
+                          })}
+                        </span>
+                        {isCollapsed ? (
+                          <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        ) : (
+                          <ChevronUp className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        )}
                       </div>
                       <span className="text-xs text-muted-foreground">
-                        {unlocked ? t("tierSolved", { a: solvedCount, b: tierItems.length }) : t("tierLocked", { n: remaining })}
+                        {unlocked
+                          ? t("tierSolved", { a: solvedCount, b: tierItems.length })
+                          : t("tierLocked", { n: remaining })}
                       </span>
                     </Button>
 
@@ -357,18 +449,25 @@ function Game() {
                             >
                               {tierLevelNum}
                               {!unlocked && <Lock className="h-3 w-3 text-muted-foreground" />}
-                              {done && <CheckCircle2 className="absolute -right-1 -top-1 h-4 w-4 text-primary" />}
+                              {done && (
+                                <CheckCircle2 className="absolute -right-1 -top-1 h-4 w-4 text-primary" />
+                              )}
 
                               {unlocked && starCount > 0 && (
                                 <div className="mt-1 flex gap-0.5">
                                   {[1, 2, 3].map((s) => (
-                                    <Star key={s} className={`h-2.5 w-2.5 ${s <= starCount ? "fill-yellow-400 text-yellow-400" : "text-gray-400"}`} />
+                                    <Star
+                                      key={s}
+                                      className={`h-2.5 w-2.5 ${s <= starCount ? "fill-yellow-400 text-yellow-400" : "text-gray-400"}`}
+                                    />
                                   ))}
                                 </div>
                               )}
 
                               {unlocked && done && bestSecs !== undefined && (
-                                <span className="mt-0.5 font-display text-[10px] font-semibold text-muted-foreground">{formatTime(bestSecs)}</span>
+                                <span className="mt-0.5 font-display text-[10px] font-semibold text-muted-foreground">
+                                  {formatTime(bestSecs)}
+                                </span>
                               )}
                             </Button>
                           );

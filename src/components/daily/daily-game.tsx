@@ -13,7 +13,13 @@ import { DailyCalendar } from "./daily-calendar";
 import { getCoins, pickHidden } from "@/lib/puzzles";
 import { fmtTime } from "@/lib/daily-scores";
 
-export function DailyGame({ date, openCalendar = false }: { date: string; openCalendar?: boolean }) {
+export function DailyGame({
+  date,
+  openCalendar = false,
+}: {
+  date: string;
+  openCalendar?: boolean;
+}) {
   const {
     t,
     start,
@@ -76,11 +82,21 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
         <div className="flex shrink-0 items-center gap-2">
           <CoinsBadge />
 
-          <Button variant="ghost" className="chip px-2 sm:px-3.5" onClick={() => setCalOpen(true)} aria-label={t("calendar")}>
+          <Button
+            variant="ghost"
+            className="chip px-2 sm:px-3.5"
+            onClick={() => setCalOpen(true)}
+            aria-label={t("calendar")}
+          >
             <CalendarDays className="h-4 w-4" />
             <span className="hidden sm:inline">{t("calendar")}</span>
           </Button>
-          <Button variant="ghost" className="chip px-2 sm:px-3.5" onClick={() => reset(start)} aria-label={t("reset")}>
+          <Button
+            variant="ghost"
+            className="chip px-2 sm:px-3.5"
+            onClick={() => reset(start)}
+            aria-label={t("reset")}
+          >
             <RotateCcw className="h-4 w-4" />
             <span className="hidden sm:inline">{t("reset")}</span>
           </Button>
@@ -88,7 +104,15 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
         </div>
       </header>
 
-      <HintSelection open={hints.open} onOpenChange={hints.setOpen} level="medium" cars={cars} hidden={hidden} coins={coins} onUse={useHint} />
+      <HintSelection
+        open={hints.open}
+        onOpenChange={hints.setOpen}
+        level="medium"
+        cars={cars}
+        hidden={hidden}
+        coins={coins}
+        onUse={useHint}
+      />
 
       <GameArena
         t={t}
@@ -137,7 +161,10 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
           children: <FailureOverlay reason={failReason} onRetry={() => reset(start)} isDaily />,
         }}
         boardFooter={
-          <div className="game-stats flex w-full items-center justify-between gap-3 text-sm" style={{ maxWidth: "var(--board)" }}>
+          <div
+            className="game-stats flex w-full items-center justify-between gap-3 text-sm"
+            style={{ maxWidth: "var(--board)" }}
+          >
             <span>
               {t("movesLabel")} <b className="font-display">{moves}</b>{" "}
               <span className="text-muted-foreground">/ {t("par", { n: par })}</span>
@@ -167,7 +194,10 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
             </div>
             {!result.isRecord && (
               <p className="mt-1 text-sm">
-                {t("yourVsBest", { time: fmtTime(result.time), best: result.best != null ? fmtTime(result.best) : "—" })}
+                {t("yourVsBest", {
+                  time: fmtTime(result.time),
+                  best: result.best != null ? fmtTime(result.best) : "—",
+                })}
               </p>
             )}
 
@@ -176,7 +206,8 @@ export function DailyGame({ date, openCalendar = false }: { date: string; openCa
                 <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-sm font-bold text-amber-400">
                   <Coins className="h-4 w-4 fill-amber-400" />
                   <span>
-                    {t("coinsEarned", { n: result.coinsEarned })} {result.isRecord ? t("recordBonus") : ""}
+                    {t("coinsEarned", { n: result.coinsEarned })}{" "}
+                    {result.isRecord ? t("recordBonus") : ""}
                   </span>
                 </div>
               ) : (

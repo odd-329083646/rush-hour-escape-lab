@@ -17,10 +17,13 @@ describe("profile", () => {
   });
 
   it("computes best time and fewest moves per level", () => {
-    localStorage.setItem("rush_hour_progress_easy", JSON.stringify({
-      0: { stars: 3, bestTime: 40, bestMoves: 9 },
-      1: { stars: 2, bestTime: 25, bestMoves: 12 },
-    }));
+    localStorage.setItem(
+      "rush_hour_progress_easy",
+      JSON.stringify({
+        0: { stars: 3, bestTime: 40, bestMoves: 9 },
+        1: { stars: 2, bestTime: 25, bestMoves: 12 },
+      }),
+    );
     expect(levelBests("easy")).toEqual({ bestTime: 25, bestMoves: 9 });
     expect(levelBests("hard")).toEqual({ bestTime: null, bestMoves: null });
   });
@@ -38,16 +41,29 @@ describe("profile", () => {
     expect(getProfile()).toEqual({ username: "Daniel", country: "US", avatarId: "crown" });
   });
   it("falls back to the racing car for legacy and unknown avatars", () => {
-    localStorage.setItem("rush_hour_profile", JSON.stringify({ username: "Legacy", country: "IL", avatarId: "missing" }));
+    localStorage.setItem(
+      "rush_hour_profile",
+      JSON.stringify({ username: "Legacy", country: "IL", avatarId: "missing" }),
+    );
     expect(getProfile().avatarId).toBe("car");
   });
   it("derives completed levels, daily solves, race results and coins without counting unsolved attempts", () => {
-    localStorage.setItem("rush_hour_progress_easy", JSON.stringify({ 0: { stars: 3 }, 1: { stars: 0 } }));
+    localStorage.setItem(
+      "rush_hour_progress_easy",
+      JSON.stringify({ 0: { stars: 3 }, 1: { stars: 0 } }),
+    );
     localStorage.setItem("rush_hour_progress_hard", JSON.stringify({ 0: { stars: 1 } }));
     localStorage.setItem("daily_my_solves", JSON.stringify({ "2026-11-13": 0, "2026-11-14": 42 }));
     localStorage.setItem("rush_hour_tournament_stats", JSON.stringify({ wins: 4, losses: 2 }));
     localStorage.setItem("rush_hour_coins", "140");
-    expect(getPlayerRecords()).toEqual({ standardCompleted: 2, dailySolved: 2, worldRecords: 0, wins: 4, losses: 2, coins: 140 });
+    expect(getPlayerRecords()).toEqual({
+      standardCompleted: 2,
+      dailySolved: 2,
+      worldRecords: 0,
+      wins: 4,
+      losses: 2,
+      coins: 140,
+    });
   });
 });
 

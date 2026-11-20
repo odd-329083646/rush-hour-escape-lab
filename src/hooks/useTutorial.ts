@@ -6,7 +6,10 @@ export function useTutorial() {
   const { t, lang } = useI18n();
   const [step, setStep] = useState(0);
   const [phase, setPhase] = useState<"language" | "intro" | "play" | "complete" | null>(null);
-  const chooseLanguage = (language: Lang) => { setLang(language); setPhase("intro"); };
+  const chooseLanguage = (language: Lang) => {
+    setLang(language);
+    setPhase("intro");
+  };
   const [finished, setFinished] = useState<null | boolean>(null);
   const initialized = useRef(false);
   useEffect(() => {
@@ -16,8 +19,13 @@ export function useTutorial() {
     markTutorialSeen();
   }, []);
   const next = () => {
-    if (step < LESSONS.length - 1) { setStep(step + 1); setPhase("intro"); }
-    else { setFinished(completeTutorial()); setPhase("complete"); }
+    if (step < LESSONS.length - 1) {
+      setStep(step + 1);
+      setPhase("intro");
+    } else {
+      setFinished(completeTutorial());
+      setPhase("complete");
+    }
   };
   const lesson = LESSONS[step];
   return { t, lang, step, phase, chooseLanguage, finished, lesson, next, setPhase, setStep };

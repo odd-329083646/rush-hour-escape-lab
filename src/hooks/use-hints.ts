@@ -13,7 +13,12 @@ export function useHints(onBalance: (balance: number) => void) {
     setOpen(false);
     setPeek(false);
   };
-  useEffect(() => () => { if (timer.current !== null) clearTimeout(timer.current); }, []);
+  useEffect(
+    () => () => {
+      if (timer.current !== null) clearTimeout(timer.current);
+    },
+    [],
+  );
   const charge = (type: HintType) => {
     if (!spendCoins(HINT_COSTS[type])) return false;
     onBalance(getCoins());
@@ -22,7 +27,10 @@ export function useHints(onBalance: (balance: number) => void) {
   const startPeek = () => {
     if (timer.current !== null) clearTimeout(timer.current);
     setPeek(true);
-    timer.current = setTimeout(() => { setPeek(false); timer.current = null; }, PEEK_DURATION);
+    timer.current = setTimeout(() => {
+      setPeek(false);
+      timer.current = null;
+    }, PEEK_DURATION);
   };
   return { open, setOpen, peek, startPeek, charge, reset };
 }

@@ -3,11 +3,12 @@ import { inflateCars, isValidPuzzle, todayKey, setPuzzleCatalogue, type Car } fr
 
 export async function loadPuzzlesAsync(): Promise<{ par: number; cars: Car[] }[]> {
   try {
-    const PUZZLES_URL = "https://raw.githubusercontent.com/odd-329083646/rush-hour-escape-lab/refs/heads/main/public/puzzles.json";
-    
+    const PUZZLES_URL =
+      "https://raw.githubusercontent.com/odd-329083646/rush-hour-escape-lab/refs/heads/main/public/puzzles.json";
+
     const response = await fetch(`${PUZZLES_URL}?t=${Date.now()}`, { cache: "no-store" });
     if (!response.ok) throw new Error(`Failed to load external puzzles (${response.status})`);
-    
+
     const data: unknown = await response.json();
     const raw = Array.isArray(data) ? data : (data as { puzzles?: unknown[] })?.puzzles;
     const loadedPuzzles = (Array.isArray(raw) ? raw : [])
@@ -21,12 +22,19 @@ export async function loadPuzzlesAsync(): Promise<{ par: number; cars: Car[] }[]
     setPuzzleCatalogue(loadedPuzzles, false);
     return loadedPuzzles;
   } catch (err) {
-    console.warn("Could not load puzzles.json from network. Switching to offline generator mode:", err);
-    
+    console.warn(
+      "Could not load puzzles.json from network. Switching to offline generator mode:",
+      err,
+    );
 
     // Serve a validated snapshot immediately; background generation never blocks the board.
     const { DEFAULT_PUZZLES } = await import("@/engine/game");
-    const offlinePuzzles = typeof Worker === "undefined" ? DEFAULT_PUZZLES : await Promise.all(Array.from({ length: 5 }, () => generatePuzzle(6).catch(() => DEFAULT_PUZZLES[0]))).then((items) => items.filter((item): item is { par: number; cars: Car[] } => !!item));
+    const offlinePuzzles =
+      typeof Worker === "undefined"
+        ? DEFAULT_PUZZLES
+        : await Promise.all(
+            Array.from({ length: 5 }, () => generatePuzzle(6).catch(() => DEFAULT_PUZZLES[0])),
+          ).then((items) => items.filter((item): item is { par: number; cars: Car[] } => !!item));
     setPuzzleCatalogue(offlinePuzzles, true);
     return offlinePuzzles;
   }
@@ -44,8 +52,18 @@ export async function getDailyPuzzleAsync(dateStr?: string): Promise<{ par: numb
   } catch (err) {
     console.warn("Daily puzzle unavailable, generating one:", err);
     const { DEFAULT_PUZZLES } = await import("@/engine/game");
-    if (typeof Worker !== "undefined") { try { return await generatePuzzle(10); } catch { /* Saved layout fallback. */ } }
-    return DEFAULT_PUZZLES[Math.floor(Math.random() * DEFAULT_PUZZLES.length)] ?? { par: 1, cars: inflateCars([{ id: "X", row: 2, col: 0, dir: "h" }]) };
+    if (typeof Worker !== "undefined") {
+      try {
+        return await generatePuzzle(10);
+      } catch {
+        /* Saved layout fallback. */
+      }
+    }
+    return (
+      DEFAULT_PUZZLES[Math.floor(Math.random() * DEFAULT_PUZZLES.length)] ?? {
+        par: 1,
+        cars: inflateCars([{ id: "X", row: 2, col: 0, dir: "h" }]),
+      }
+    );
   }
 }
-

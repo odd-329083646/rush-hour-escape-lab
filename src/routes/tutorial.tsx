@@ -13,9 +13,16 @@ export const Route = createFileRoute("/tutorial")({
   head: () => ({
     meta: [
       { title: "Tutorial - Rush Hour Vanishing Cars" },
-      { name: "description", content: "Learn Rush Hour Vanishing Cars in 4 interactive lessons: the goal, movement, invisible cars and plan mode." },
+      {
+        name: "description",
+        content:
+          "Learn Rush Hour Vanishing Cars in 4 interactive lessons: the goal, movement, invisible cars and plan mode.",
+      },
       { property: "og:title", content: "Tutorial - Rush Hour Vanishing Cars" },
-      { property: "og:description", content: "4 interactive lessons that teach every rule. Finish to earn 50 coins." },
+      {
+        property: "og:description",
+        content: "4 interactive lessons that teach every rule. Finish to earn 50 coins.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -24,7 +31,8 @@ export const Route = createFileRoute("/tutorial")({
 });
 
 export function Tutorial() {
-  const { t, lang, step, phase, chooseLanguage, finished, lesson, next, setPhase, setStep } = useTutorial();
+  const { t, lang, step, phase, chooseLanguage, finished, lesson, next, setPhase, setStep } =
+    useTutorial();
   return (
     <main className="tutorial lot-bg flex h-dvh flex-col items-center gap-3 overflow-hidden px-3 py-3">
       <header className="flex w-full max-w-3xl items-center justify-between gap-2">
@@ -81,12 +89,20 @@ export function Tutorial() {
           ) : (
             lesson && (
               <>
-                <span className="font-display text-sm text-primary">{t("tutLesson", { n: step + 1 })}</span>
-                <DialogTitle className="font-display text-xl leading-snug" dir={lang === "he" ? "rtl" : "ltr"}>
+                <span className="font-display text-sm text-primary">
+                  {t("tutLesson", { n: step + 1 })}
+                </span>
+                <DialogTitle
+                  className="font-display text-xl leading-snug"
+                  dir={lang === "he" ? "rtl" : "ltr"}
+                >
                   {t(lesson.title)}
                 </DialogTitle>
                 <DialogDescription asChild>
-                  <ul className="flex flex-col gap-3 text-sm leading-relaxed text-muted-foreground" dir={lang === "he" ? "rtl" : "ltr"}>
+                  <ul
+                    className="flex flex-col gap-3 text-sm leading-relaxed text-muted-foreground"
+                    dir={lang === "he" ? "rtl" : "ltr"}
+                  >
                     {t(lesson.body)
                       .split("\n")
                       .map((line) => (
@@ -176,7 +192,13 @@ function LessonView({ lesson, onNext }: { lesson: Lesson; onNext: () => void }) 
             setDrag(null);
           },
         }}
-        boardFooter={msg ? <p role="alert" className="game-feedback text-center text-sm">{msg}</p> : null}
+        boardFooter={
+          msg ? (
+            <p role="alert" className="game-feedback text-center text-sm">
+              {msg}
+            </p>
+          ) : null
+        }
         paletteCars={cars}
         paletteDisabled={done}
         onSelectCar={setSel}
@@ -188,7 +210,8 @@ function LessonView({ lesson, onNext }: { lesson: Lesson; onNext: () => void }) 
                 {plan.length ? (
                   plan.map((entry, i) => (
                     <li key={i}>
-                      {i + 1}. {entry.id} {{ up: "↑", down: "↓", left: "←", right: "→" }[entry.move]} {entry.steps}
+                      {i + 1}. {entry.id}{" "}
+                      {{ up: "↑", down: "↓", left: "←", right: "→" }[entry.move]} {entry.steps}
                     </li>
                   ))
                 ) : (

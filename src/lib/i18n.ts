@@ -41,7 +41,7 @@ const en = {
   oops: "Oops!",
   bumped3: "You bumped into invisible cars 3 times!",
   planWrong: "The plan was invalid or didn't free the red car.",
-  tooManyMoves: "You took too many moves and still haven't freed the red car.", 
+  tooManyMoves: "You took too many moves and still haven't freed the red car.",
   allDone: "You finished every level. Well done! 🎉",
   winSummary: "{moves} moves · {clock} · best possible {par}",
   plannedMoves: "Planned Moves",
@@ -112,7 +112,8 @@ const en = {
   "level.hard": "Hard",
   "level.murderer": "Murderer",
   playRegular: "Play regular games",
-  compBlurb: "Timed rounds where everyone gets the same lot and the clock. Fewest moves and fastest time take the spot on the board.",
+  compBlurb:
+    "Timed rounds where everyone gets the same lot and the clock. Fewest moves and fastest time take the spot on the board.",
   compB1: "Scheduled rounds you can join from the menu",
   compB2: "Standings by moves used, then by time",
   compB3: "Badges for every round you finish",
@@ -161,12 +162,15 @@ const en = {
   tut1Title: "Objective: free the car",
   tut1Body: "Guide the red car X safely to the exit on the right.",
   tut2Title: "Movement rules and controls",
-  tut2Body: "Vehicles (cars and trucks) move only along their own direction.\nA horizontal vehicle moves left and right | a vertical vehicle moves up and down.\nYou can move vehicles by dragging, with the keyboard, or with the on-screen arrows.",
+  tut2Body:
+    "Vehicles (cars and trucks) move only along their own direction.\nA horizontal vehicle moves left and right | a vertical vehicle moves up and down.\nYou can move vehicles by dragging, with the keyboard, or with the on-screen arrows.",
   tut3Title: "Vanishing cars",
-  tut3Body: "In advanced levels some vehicles are hidden from view.\nHidden vehicles still block the way – watch out for collisions!",
+  tut3Body:
+    "In advanced levels some vehicles are hidden from view.\nHidden vehicles still block the way – watch out for collisions!",
   tut3Start: "Start puzzle",
   tut4Title: "Plan ahead (Murderer level)",
-  tut4Body: "Plan the order of your moves in the list.\nRun the full solution with one click on \"Execute\".",
+  tut4Body:
+    'Plan the order of your moves in the list.\nRun the full solution with one click on "Execute".',
   tutPlan: "Planned moves",
   tutPlanEmpty: "No moves yet",
   tutSubmit: "Execute",
@@ -354,7 +358,8 @@ const he: Record<TKey, string> = {
   "level.hard": "קשה",
   "level.murderer": "רוצח",
   playRegular: "שחק במשחקים רגילים",
-  compBlurb: "סבבים מתוזמנים שבהם כולם מקבלים אותו חניון ואותו שעון. הכי מעט מהלכים והזמן המהיר ביותר זוכים במקום בטבלה.",
+  compBlurb:
+    "סבבים מתוזמנים שבהם כולם מקבלים אותו חניון ואותו שעון. הכי מעט מהלכים והזמן המהיר ביותר זוכים במקום בטבלה.",
   compB1: "סבבים מתוזמנים שאפשר להצטרף אליהם מהתפריט",
   compB2: "דירוג לפי מספר מהלכים ואז לפי זמן",
   compB3: "תגים על כל סבב שסיימתם",
@@ -403,12 +408,14 @@ const he: Record<TKey, string> = {
   tut1Title: "מטרת המשחק: חילוץ הרכב",
   tut1Body: "הובילו את המכונית האדומה X בבטחה אל היציאה מימין.",
   tut2Title: "חוקי תנועה ודרכי שליטה",
-  tut2Body: "כלי רכב (מכוניות ומשאיות) נעים אך ורק לפי הכיוון שלהם.\nרכב אופקי זז ימינה ושמאלה | רכב אנכי זז למעלה ולמטה.\nניתן להזיז רכבים בגרירה, במקשי המקלדת, או עם חיצי השליטה במסך.",
+  tut2Body:
+    "כלי רכב (מכוניות ומשאיות) נעים אך ורק לפי הכיוון שלהם.\nרכב אופקי זז ימינה ושמאלה | רכב אנכי זז למעלה ולמטה.\nניתן להזיז רכבים בגרירה, במקשי המקלדת, או עם חיצי השליטה במסך.",
   tut3Title: "מכוניות נעלמות",
-  tut3Body: "ברמות מתקדמות חלק מכלי הרכב מוסתרים מהעין.\nהרכבים הנסתרים עדיין חוסמים את הדרך – היזהרו מהתנגשויות!",
+  tut3Body:
+    "ברמות מתקדמות חלק מכלי הרכב מוסתרים מהעין.\nהרכבים הנסתרים עדיין חוסמים את הדרך – היזהרו מהתנגשויות!",
   tut3Start: "התחל פאזל",
   tut4Title: "מצב תכנון מראש (רמת רוצח)",
-  tut4Body: "תכננו את סדר המהלכים ברשימה.\nהריצו את הפתרון המלא בלחיצה אחת על \"בצע\".",
+  tut4Body: 'תכננו את סדר המהלכים ברשימה.\nהריצו את הפתרון המלא בלחיצה אחת על "בצע".',
   tutPlan: "מהלכים מתוכננים",
   tutPlanEmpty: "אין מהלכים עדיין",
   tutSubmit: "בצע",
@@ -501,9 +508,15 @@ export function translateError(lang: Lang, msg: string): string {
 
 const listeners = new Set<() => void>();
 function read(): Lang {
-  try { return storageService.getItem(KEY) === "he" ? "he" : "en"; } catch { return "en"; }
+  try {
+    return storageService.getItem(KEY) === "he" ? "he" : "en";
+  } catch {
+    return "en";
+  }
 }
-export function getLang(): Lang { return typeof window === "undefined" ? "en" : read(); }
+export function getLang(): Lang {
+  return typeof window === "undefined" ? "en" : read();
+}
 export function setLang(l: Lang) {
   storageService.setItem(KEY, l);
   applyDocumentLang(l);
@@ -513,7 +526,10 @@ export function applyDocumentLang(l: Lang = getLang()) {
   document.documentElement.lang = l;
   document.documentElement.dir = "ltr";
 }
-function subscribe(f: () => void) { listeners.add(f); return () => listeners.delete(f); }
+function subscribe(f: () => void) {
+  listeners.add(f);
+  return () => listeners.delete(f);
+}
 
 export function useI18n() {
   const lang = useSyncExternalStore(subscribe, getLang, () => "en" as Lang);

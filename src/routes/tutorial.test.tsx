@@ -11,7 +11,13 @@ vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
 }));
 
-afterEach(() => { cleanup(); storageService.resetCache(); localStorage.clear(); setLang("en"); storageService.flush(); });
+afterEach(() => {
+  cleanup();
+  storageService.resetCache();
+  localStorage.clear();
+  setLang("en");
+  storageService.flush();
+});
 
 function chooseEnglish() {
   render(<Tutorial />);
@@ -26,7 +32,11 @@ function move(id: string, direction: string, steps: number) {
 }
 
 it("keeps first-visit language setup open when effects are replayed", () => {
-  render(<StrictMode><Tutorial /></StrictMode>);
+  render(
+    <StrictMode>
+      <Tutorial />
+    </StrictMode>,
+  );
   expect(screen.getByRole("button", { name: "English" })).toBeInTheDocument();
   expect(storageService.getItem("has_seen_tutorial")).toBe("1");
 });
@@ -58,7 +68,9 @@ it("keeps the board closed until acknowledgment and returns to the previous less
   expect(document.querySelector(".board")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Previous Lesson" }));
   fireEvent.click(screen.getByRole("button", { name: "I Understand" }));
-  expect(document.querySelector<HTMLButtonElement>(".board .car")?.style.gridColumn).toBe("1 / span 2");
+  expect(document.querySelector<HTMLButtonElement>(".board .car")?.style.gridColumn).toBe(
+    "1 / span 2",
+  );
 });
 
 it("moves through keyboard selection, direction and Enter without moving on arrow alone", () => {

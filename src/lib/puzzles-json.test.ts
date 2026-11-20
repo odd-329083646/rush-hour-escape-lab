@@ -1,11 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import {
-  IS_OFFLINE_MODE,
-  loadPuzzlesAsync,
-  type PuzzleRaw,
-} from "./puzzles";
+import { IS_OFFLINE_MODE, loadPuzzlesAsync, type PuzzleRaw } from "./puzzles";
 
 const JSON_PATH = path.resolve(process.cwd(), "public/puzzles.json");
 
@@ -43,25 +39,38 @@ describe("public/puzzles.json", () => {
 describe("loadPuzzlesAsync", () => {
   it("fetches the puzzle file, inflates and sorts the puzzles", async () => {
     const raw: PuzzleRaw[] = [
-      { par: 20, cars: [{ id: "X", row: 2, col: 0, dir: "h" }, { id: "O", row: 0, col: 2, dir: "v" }] },
+      {
+        par: 20,
+        cars: [
+          { id: "X", row: 2, col: 0, dir: "h" },
+          { id: "O", row: 0, col: 2, dir: "v" },
+        ],
+      },
       { par: 5, cars: [{ id: "X", row: 2, col: 3, dir: "h" }] },
     ];
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(raw), { status: 200 })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify(raw), { status: 200 })),
+    );
     const loaded = await loadPuzzlesAsync();
     expect(loaded.map((p) => p.par)).toEqual([5, 20]);
     // every car got its full definition inflated from CAR_DEFAULTS
-    for (const p of loaded) for (const c of p.cars) {
-      expect(c.name).toBeTruthy();
-      expect(c.color).toBeTruthy();
-      expect([2, 3]).toContain(c.len);
-    }
+    for (const p of loaded)
+      for (const c of p.cars) {
+        expect(c.name).toBeTruthy();
+        expect(c.color).toBeTruthy();
+        expect([2, 3]).toContain(c.len);
+      }
     expect(IS_OFFLINE_MODE).toBe(false);
   });
 
   // The offline path builds its stages on the fly and validates each one with a
   // breadth-first search, so it needs far more than the default 5s budget.
   it("switches to the offline generator when the fetch fails", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => new Response("not json", { status: 500 })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("not json", { status: 500 })),
+    );
     const loaded = await loadPuzzlesAsync();
     expect(loaded.length).toBeGreaterThan(0);
     for (const p of loaded) {
@@ -72,7 +81,10 @@ describe("loadPuzzlesAsync", () => {
   }, 60_000);
 
   it("switches to the offline generator when the JSON is malformed", async () => {
-    vi.stubGlobal("fetch", vi.fn(async () => new Response("[{oops", { status: 200 })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("[{oops", { status: 200 })),
+    );
     const loaded = await loadPuzzlesAsync();
     expect(loaded.length).toBeGreaterThan(0);
     expect(loaded[0]!.cars.some((c) => c.id === "X")).toBe(true);
@@ -86,7 +98,10 @@ describe("loadPuzzlesAsync", () => {
       { par: "nine", cars: [{ id: "X", row: 2, col: 0, dir: "h" }] }, // bad par
       { par: 9, cars: [{ id: "X", row: 99, col: 0, dir: "h" }] }, // off the board
     ];
-    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(raw), { status: 200 })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify(raw), { status: 200 })),
+    );
     const loaded = await loadPuzzlesAsync();
     expect(loaded.map((p) => p.par)).toEqual([7]);
   });

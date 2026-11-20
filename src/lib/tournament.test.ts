@@ -1,5 +1,15 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { advanceRace, COUNTDOWN_MS, ENTRY_FEE, fallbackRacePuzzles, normalizeRoomCode, ROOM_WAIT_MS, WIN_REWARD, type RaceState, type RaceSnapshot } from "./tournament";
+import {
+  advanceRace,
+  COUNTDOWN_MS,
+  ENTRY_FEE,
+  fallbackRacePuzzles,
+  normalizeRoomCode,
+  ROOM_WAIT_MS,
+  WIN_REWARD,
+  type RaceState,
+  type RaceSnapshot,
+} from "./tournament";
 import { minSolution, getCoins, PUZZLES, setPuzzleCatalogue } from "./puzzles";
 import { pickRacePuzzleIndices, resolveRacePuzzles } from "./tournament";
 import { applyTournamentSnapshot, saveGuestCredential, walletDelta } from "./tournament-device";
@@ -52,7 +62,13 @@ describe("three-puzzle race", () => {
   });
   it("rejects collisions without adding moves or changing progress", () => {
     const puzzles = fallbackRacePuzzles();
-    const state: RaceState = { index: 0, moves: 0, totalMoves: 0, elapsed: 0, cars: puzzles[0]?.cars ?? [] };
+    const state: RaceState = {
+      index: 0,
+      moves: 0,
+      totalMoves: 0,
+      elapsed: 0,
+      cars: puzzles[0]?.cars ?? [],
+    };
     const result = advanceRace(puzzles, state, "X", "right", 4, 2);
     expect(result.error).toBe("Blocked by another car");
     expect(result.state).toEqual(state);
@@ -62,7 +78,11 @@ it("imports existing coins once, deducts 50, and applies the 90-coin payout with
   localStorage.setItem("rush_hour_coins", "150");
   saveGuestCredential({ id: "guest", token: "secret" });
   expect(walletDelta()).toBe(0);
-  const snapshot: RaceSnapshot = { guest: { id: "guest", coins: 100, wins: 0, losses: 0 }, match: null, serverNow: "2026-11-09T20:00:00Z" };
+  const snapshot: RaceSnapshot = {
+    guest: { id: "guest", coins: 100, wins: 0, losses: 0 },
+    match: null,
+    serverNow: "2026-11-09T20:00:00Z",
+  };
   applyTournamentSnapshot(snapshot, 150);
   expect(getCoins()).toBe(100);
   snapshot.guest.coins = 190;

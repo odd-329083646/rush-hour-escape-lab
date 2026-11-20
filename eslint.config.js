@@ -46,8 +46,15 @@ export default tseslint.config(
         {
           patterns: [
             {
-              group: ["@/services/*", "@/hooks/*", "@/components/*", "@/routes/*", "@/integrations/*"],
-              message: "Layer violation: src/engine must stay pure and cannot import from services, hooks, UI, or integrations.",
+              group: [
+                "@/services/*",
+                "@/hooks/*",
+                "@/components/*",
+                "@/routes/*",
+                "@/integrations/*",
+              ],
+              message:
+                "Layer violation: src/engine must stay pure and cannot import from services, hooks, UI, or integrations.",
             },
           ],
         },
@@ -65,7 +72,8 @@ export default tseslint.config(
           paths: [
             {
               name: "@/services/storageService",
-              message: "Layer violation: UI/Routes must access storage through hooks or repositories, not storageService directly.",
+              message:
+                "Layer violation: UI/Routes must access storage through hooks or repositories, not storageService directly.",
             },
           ],
           patterns: [

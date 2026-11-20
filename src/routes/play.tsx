@@ -12,8 +12,7 @@ export const Route = createFileRoute("/play")({
       { title: "Regular Games - Rush Hour Vanishing Cars" },
       {
         name: "description",
-        content:
-          "Choose a difficulty mode: Easy, Medium, Hard or Murderer, then start solving.",
+        content: "Choose a difficulty mode: Easy, Medium, Hard or Murderer, then start solving.",
       },
       { property: "og:title", content: "Regular Games - Rush Hour Vanishing Cars" },
       {
@@ -46,18 +45,16 @@ function Play() {
       </header>
 
       <div className="home-title text-center !pt-0">
-        <p className="home-edition font-display text-sm font-semibold">
-          {t("regularGames")}
-        </p>
+        <p className="home-edition font-display text-sm font-semibold">{t("regularGames")}</p>
         <h1 className="mt-3 font-display text-4xl font-bold sm:text-5xl">{t("chooseMode")}</h1>
       </div>
 
       <div className="flex w-full max-w-sm flex-col gap-3">
         {(Object.keys(LEVELS) as Level[]).map((l) => (
           <Button asChild key={l} className={`mode-entry mode-${l} h-14 text-lg`}>
-          <Link to="/game/$level" params={{ level: l }}>
-            <span>{t(`level.${l}`)}</span>
-          </Link>
+            <Link to="/game/$level" params={{ level: l }}>
+              <span>{t(`level.${l}`)}</span>
+            </Link>
           </Button>
         ))}
       </div>

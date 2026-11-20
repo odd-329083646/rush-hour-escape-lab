@@ -1,4 +1,3 @@
-import { initializeStorage } from "@/services/storageService";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -9,7 +8,7 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -93,7 +92,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Rubik:wght@400;500;600;700;800&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Rubik:wght@400;500;600;700;800&display=swap",
+      },
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
     ],
@@ -127,7 +129,7 @@ function RootComponent() {
   useProfileSync();
   const { queryClient } = Route.useRouteContext();
 
-  const { t } = useI18n();
+  useI18n();
 
   useEffect(() => {
     // Recover from stale chunks after a rebuild/deploy: reload once.
@@ -139,11 +141,13 @@ function RootComponent() {
     };
     window.addEventListener("vite:preloadError", onPreloadError);
     const clear = window.setTimeout(() => sessionStorage.removeItem("chunk_reload"), 10000);
-    return () => { window.removeEventListener("vite:preloadError", onPreloadError); window.clearTimeout(clear); };
+    return () => {
+      window.removeEventListener("vite:preloadError", onPreloadError);
+      window.clearTimeout(clear);
+    };
   }, []);
 
   useEffect(() => {
-    initializeStorage();
     applyDocumentLang();
     getProfile(); // creates a random username on first load
     // מריץ טעינה מוקדמת של קובץ הפאזלים
