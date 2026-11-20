@@ -175,32 +175,36 @@ function Competitions() {
 
       {match?.status === "playing" && mine ? (
         <>
-          <div className="mx-auto grid w-full max-w-6xl grid-cols-2 gap-3 border-y border-border py-2 text-sm">
-            <div className="min-w-0">
-              <p className="flex items-center gap-2 font-semibold">
-                <PlayerAvatar avatarId={profile?.avatarId} /><span className="truncate">{profile?.country ? flag(profile.country) : ""} {profile?.username}</span>
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {t("raceProgress", { n: Math.min(mine.index + 1, 3), moves: mine.moves })} · {fmtTime(elapsed)}
-              </p>
+          <div className="race-hud mx-auto grid w-full max-w-6xl shrink-0 grid-cols-2 gap-2 text-sm">
+            <div className="race-hud-card min-w-0">
+              <PlayerAvatar avatarId={profile?.avatarId} />
+              <div className="min-w-0 flex-1">
+                <p dir="auto" className="truncate font-semibold">{profile?.country ? flag(profile.country) : ""} {profile?.username}</p>
+                <p dir="auto" className="truncate text-xs opacity-80">
+                  {t("raceProgress", { n: Math.min(mine.index + 1, 3), moves: mine.moves })} · {fmtTime(elapsed)}
+                </p>
+              </div>
             </div>
-            <div className="min-w-0 text-right">
-              <p className="flex items-center justify-end gap-2 font-semibold">
-                <span className="truncate">{opponentCountry ? flag(opponentCountry) : ""} {opponentName}</span><PlayerAvatar avatarId={opponentAvatarId} />
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {opponent?.index === 3
-                  ? t("raceFinished")
-                  : t("raceProgress", { n: Math.min((opponent?.index ?? 0) + 1, 3), moves: opponent?.moves ?? 0 })}
-              </p>
+            <div className="race-hud-card min-w-0 flex-row-reverse text-right">
+              <PlayerAvatar avatarId={opponentAvatarId} />
+              <div className="min-w-0 flex-1">
+                <p dir="auto" className="truncate font-semibold">{opponentCountry ? flag(opponentCountry) : ""} {opponentName}</p>
+                <p dir="auto" className="truncate text-xs opacity-80">
+                  {opponent?.index === 3
+                    ? t("raceFinished")
+                    : t("raceProgress", { n: Math.min((opponent?.index ?? 0) + 1, 3), moves: opponent?.moves ?? 0 })}
+                </p>
+              </div>
             </div>
           </div>
+          <div className="flex min-h-0 flex-1 items-center justify-center">
           <TournamentBoard
             key={mine.index}
             state={mine}
             blocked={countdown > 0 || forfeitOpen || mine.index >= 3}
             onMove={commit}
           />
+          </div>
           <p className="mx-auto flex items-center gap-1 text-[10px] text-muted-foreground">
             <Wifi className="h-3 w-3" />
             {connected ? t("raceLive") : t("raceReconnecting")}
@@ -220,16 +224,18 @@ function Competitions() {
       ) : !match ? (
         <section className="race-lobby mx-auto flex w-full max-w-xl flex-1 flex-col items-center justify-center gap-6">
           <div className="race-lobby-emblem"><PlayerAvatar avatarId={profile.avatarId} className="race-lobby-avatar" /><Trophy className="h-10 w-10 text-toy-yellow" /></div>
-          <p className="text-center font-display text-xl">{t("raceDescription")}</p>
-          <div className="flex gap-5 text-sm">
-            <span className="flex items-center gap-2 text-muted-foreground">
+          <div className="race-lobby-info">
+          <p dir="auto" className="text-center font-display text-xl">{t("raceDescription")}</p>
+          <div className="flex flex-wrap justify-center gap-2 text-sm">
+            <span dir="auto" className="race-lobby-pill">
               <Coins className="h-4 w-4" />
               {t("raceEntry")}
             </span>
-            <span className="flex items-center gap-2 text-primary">
+            <span dir="auto" className="race-lobby-pill race-lobby-pill-prize">
               <Trophy className="h-4 w-4" />
               {t("racePrize")}
             </span>
+          </div>
           </div>
           <div className="grid w-full gap-3">
             <Button className="execute h-auto py-4" disabled={!ready || busy} onClick={() => begin("random")}>
