@@ -1,51 +1,66 @@
-/** Device DAL: immediate memory updates, coalesced persistence after the current frame. */
+// src/services/storageService.ts
+/** Device DAL: synchronous persistence with immediate memory cache. */
 const cache = new Map<string, string | null>();
-const pending = new Map<string, string | null>();
 const listeners = new Set<() => void>();
-let scheduled = false;
 
-function flush() {
-  scheduled = false;
+function writeToDevice(key: string, value: string | null) {
   if (typeof window === "undefined") return;
-  for (const [key, value] of pending) {
+  try {
+    if (value === null) {
+      window.localStorage.removeItem(key);
+    } else {
+      window.localStorage.setItem(key, value);
+    }
+  } catch {
+    /* Fallback to cookie if localStorage throws (e.g., strict private mode) */
     try {
-      if (value === null) window.localStorage.removeItem(key);
-      else window.localStorage.setItem(key, value);
-      pending.delete(key);
+      if (value === null) {
+        document.cookie = `${encodeURIComponent(key)}=; path=/; max-age=0; SameSite=Lax`;
+      } else {
+        document.cookie = `${encodeURIComponent(key)}=${encodeURIComponent(value)}; path=/; max-age=31536000; SameSite=Lax`;
+      }
     } catch {
-      /* Keep the in-memory value; retry on the next write. */
+      /* Keep in-memory value only */
     }
   }
 }
-function schedule() {
-  if (scheduled || typeof window === "undefined") return;
-  scheduled = true;
-  window.setTimeout(flush, 0);
+
+function readFromDevice(key: string): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const val = window.localStorage.getItem(key);
+    if (val !== null) return val;
+  } catch {
+    /* Try cookie fallback */
+  }
+  try {
+    const prefix = `${encodeURIComponent(key)}=`;
+    const match = document.cookie.split("; ").find((row) => row.startsWith(prefix));
+    if (match) return decodeURIComponent(match.slice(prefix.length));
+  } catch {
+    /* Ignore */
+  }
+  return null;
 }
+
 export const storageService = {
   getItem(key: string): string | null {
     if (typeof window === "undefined") return null;
     if (cache.has(key)) return cache.get(key) ?? null;
-    // One cold read preserves legacy device data; all gameplay reads use memory.
-    try {
-      const value = window.localStorage.getItem(key);
-      cache.set(key, value);
-      return value;
-    } catch {
-      return null;
-    }
+    const value = readFromDevice(key);
+    cache.set(key, value);
+    return value;
   },
   setItem(key: string, value: string) {
     if (typeof window === "undefined") return;
     cache.set(key, value);
-    pending.set(key, value);
-    schedule();
+    writeToDevice(key, value);
     listeners.forEach((listener) => listener());
   },
   removeItem(key: string) {
+    if (typeof window === "undefined") return;
     cache.set(key, null);
-    pending.set(key, null);
-    schedule();
+    writeToDevice(key, null);
     listeners.forEach((listener) => listener());
   },
   subscribe(listener: () => void) {
@@ -54,41 +69,38 @@ export const storageService = {
       listeners.delete(listener);
     };
   },
-  flush,
+  flush() {
+    /* Kept for backward compatibility; writes are now immediate. */
+  },
   resetCache() {
     cache.clear();
-    pending.clear();
-    scheduled = false;
   },
 };
 
 export function initializeStorage() {
   if (typeof window === "undefined") return;
-  const hydrate = () => {
-    try {
-      for (let i = 0; i < window.localStorage.length; i++) {
-        const key = window.localStorage.key(i);
-        if (key && !cache.has(key)) cache.set(key, window.localStorage.getItem(key));
-      }
-    } catch {
-      /* Device storage may be unavailable. */
+  try {
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const key = window.localStorage.key(i);
+      if (key && !cache.has(key)) cache.set(key, window.localStorage.getItem(key));
     }
-  };
-  window.setTimeout(hydrate, 0);
-  window.addEventListener("pagehide", flush);
+  } catch {
+    /* Device storage may be unavailable. */
+  }
+
   window.addEventListener("storage", (event) => {
-    if (event.key && !pending.has(event.key)) cache.set(event.key, event.newValue);
-    else if (!event.key) cache.clear();
+    if (event.key) cache.set(event.key, event.newValue);
+    else cache.clear();
     listeners.forEach((listener) => listener());
   });
 }
+
 export type ControlSetting = "dragEnabled" | "keyboardEnabled";
 
-/** Missing or invalid device settings retain the ON default. */
 export function getControlSetting(key: ControlSetting): boolean {
   return storageService.getItem(key) !== "false";
 }
-/** Unset panel preference defaults to visible on wide screens and hidden on narrow ones. */
+
 export function getPanelsVisible(): boolean {
   const saved = storageService.getItem("panelsVisible");
   if (saved === "true" || saved === "false") return saved === "true";
@@ -96,9 +108,11 @@ export function getPanelsVisible(): boolean {
     typeof window === "undefined" || window.matchMedia?.("(min-width: 768px)").matches !== false
   );
 }
+
 export function setPanelsVisible(visible: boolean) {
   storageService.setItem("panelsVisible", String(visible));
 }
+
 export function setControlSetting(key: ControlSetting, enabled: boolean) {
   storageService.setItem(key, String(enabled));
 }
