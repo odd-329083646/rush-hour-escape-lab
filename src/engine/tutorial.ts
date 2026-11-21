@@ -15,15 +15,24 @@ export function isTutorialDone(storage: StoragePort = fallbackStorage): boolean 
   return typeof window !== "undefined" && storage.getItem(KEY) === "1";
 }
 
-/** Marks the tutorial complete; awards coins only the first time. Returns whether coins were awarded. */
-export function completeTutorial(storage: StoragePort = fallbackStorage): boolean {
-  return awardOnce(KEY, TUTORIAL_REWARD, storage);
-}
-
 export function hasSeenTutorial(storage: StoragePort = fallbackStorage): boolean {
   return typeof window !== "undefined" && storage.getItem(SEEN_KEY) === "1";
 }
 
 export function markTutorialSeen(storage: StoragePort = fallbackStorage): void {
   storage.setItem(SEEN_KEY, "1");
+}
+
+/**
+ * מעניק 50 מטבעות אך ורק אם המתחרה הוא מתחרה חדש (טרם ראה/סיים את המדריך),
+ * ומסמן אותו כמתחרה ותיק.
+ */
+export function completeTutorial(storage: StoragePort = fallbackStorage): boolean {
+  const isNewCompetitor = !hasSeenTutorial(storage) && !isTutorialDone(storage);
+  markTutorialSeen(storage);
+  if (!isNewCompetitor) {
+    storage.setItem(KEY, "1");
+    return false;
+  }
+  return awardOnce(KEY, TUTORIAL_REWARD, storage);
 }

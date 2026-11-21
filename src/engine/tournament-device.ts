@@ -1,6 +1,6 @@
 // src/engine/tournament-device.ts
 import type { StoragePort } from "./contracts";
-import { addCoins, getCoins } from "@/lib/puzzles";
+import { addCoins, getCoins } from "./rewards";
 import type { GuestCredential, RaceSnapshot } from "@/engine/tournament";
 
 const KEY = "rush_hour_guest_capability";

@@ -1,4 +1,4 @@
-import { runPlan, type Car, type Level, type Move } from "@/lib/puzzles";
+import { runPlan, type Car, type Level, type Move } from "./game";
 
 export const HINT_COSTS = { next: 15, peek: 25, reveal: 40, validate: 20 } as const;
 export const PEEK_DURATION = 3000;

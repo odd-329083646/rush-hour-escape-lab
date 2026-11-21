@@ -1,3 +1,4 @@
+import type { PuzzleRepositoryPort } from "./contracts";
 export type Dir = "h" | "v";
 export type Level = "easy" | "medium" | "hard" | "murderer";
 export type Move = "up" | "down" | "left" | "right";
@@ -471,4 +472,42 @@ export function isTierUnlocked(
 export function setPuzzleCatalogue(puzzles: { par: number; cars: Car[] }[], offline: boolean) {
   DEFAULT_PUZZLES = puzzles;
   IS_OFFLINE_MODE = offline;
+}
+
+export async function loadPuzzlesAsync(
+  repo: PuzzleRepositoryPort,
+): Promise<{ par: number; cars: Car[] }[]> {
+  try {
+    const raw = await repo.fetchCatalogue();
+    const valid = raw.filter(isValidPuzzle).map((p) => ({
+      par: p.par,
+      cars: inflateCars(p.cars),
+    }));
+    if (valid.length > 0) {
+      setPuzzleCatalogue(valid, false);
+      return valid;
+    }
+  } catch {
+    /* Fallback to offline mode */
+  }
+  setPuzzleCatalogue(DEFAULT_PUZZLES, true);
+  return DEFAULT_PUZZLES;
+}
+
+export async function getDailyPuzzleAsync(
+  dateKey: string,
+  repo: PuzzleRepositoryPort,
+): Promise<{ par: number; cars: Car[] }> {
+  try {
+    const raw = await repo.fetchDailyPuzzle(dateKey);
+    if (isValidPuzzle(raw)) {
+      return {
+        par: raw.par,
+        cars: inflateCars(raw.cars),
+      };
+    }
+  } catch {
+    /* Fallback to random puzzle */
+  }
+  return getRandomPuzzle();
 }

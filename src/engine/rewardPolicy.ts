@@ -8,9 +8,9 @@ const fallbackStorage: StoragePort = {
 };
 
 /** Device reward checks are not a security boundary; tournament settlement remains server-authoritative. */
-export function spendCoins(amount: number): boolean {
-  if (!Number.isSafeInteger(amount) || amount < 0 || getCoins() < amount) return false;
-  addCoins(-amount);
+export function spendCoins(amount: number, storage: StoragePort = fallbackStorage): boolean {
+  if (!Number.isSafeInteger(amount) || amount < 0 || getCoins(storage) < amount) return false;
+  addCoins(-amount, storage);
   return true;
 }
 
@@ -21,6 +21,6 @@ export function awardOnce(
 ): boolean {
   if (!Number.isSafeInteger(amount) || amount < 0 || storage.getItem(key) === "1") return false;
   storage.setItem(key, "1");
-  addCoins(amount);
+  addCoins(amount, storage);
   return true;
 }

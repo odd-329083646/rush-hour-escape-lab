@@ -6,19 +6,18 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent } from "rea
 import { useI18n } from "@/lib/i18n";
 import { useHints } from "@/hooks/use-hints";
 import { HINT_COSTS, hintAvailable, peekBoardCars, type HintType } from "@/lib/hints";
+import { addCoins, getCoins } from "@/engine/rewards";
+import { getDailyPuzzleAsync } from "@/services/puzzleRepository";
 import {
-  addCoins,
   applyMove,
   cells,
-  getCoins,
-  getDailyPuzzleAsync,
   getNextBestMove,
+  isOutOfMoves,
   isSolved,
   pickHidden,
   type Car,
   type Move,
-} from "@/lib/puzzles";
-import { isOutOfMoves } from "@/engine/game";
+} from "@/engine/game";
 import { fmtTime, isSolvedOn, submitScore } from "@/lib/daily-scores";
 
 import { useGameEngine, movementRange, blockerOf as findBlocker } from "@/hooks/useGameEngine";

@@ -1,9 +1,9 @@
 // src/engine/profile.ts
 import type { StoragePort } from "./contracts";
-import { getSavedProgress, type Level } from "@/lib/puzzles";
+import type { Level } from "./game";
 import { AVATARS, DEFAULT_AVATAR_ID } from "@/config/avatars";
 import { getMySolves, getWorldRecordCount } from "@/engine/daily-scores";
-import { getCoins } from "@/engine/rewards";
+import { getCoins, getSavedProgress } from "@/engine/rewards";
 import { tournamentStats } from "@/engine/tournament-device";
 
 export type Profile = { username: string; country: string; avatarId: string };
@@ -109,10 +109,10 @@ export function saveProfile(
   storage.setItem("player_name", username);
 }
 
-export function getPlayerRecords(): PlayerRecords {
+export function getPlayerRecords(storage: StoragePort = fallbackStorage): PlayerRecords {
   const standardCompleted = (["easy", "medium", "hard", "murderer"] as Level[]).reduce(
     (total, level) =>
-      total + Object.values(getSavedProgress(level)).filter((s) => s?.stars > 0).length,
+      total + Object.values(getSavedProgress(level, storage)).filter((s) => s?.stars > 0).length,
     0,
   );
   const dailySolved = Object.values(getMySolves()).filter(
@@ -122,14 +122,17 @@ export function getPlayerRecords(): PlayerRecords {
     standardCompleted,
     dailySolved,
     worldRecords: getWorldRecordCount(),
-    ...tournamentStats(),
-    coins: getCoins(),
+    ...tournamentStats(storage),
+    coins: getCoins(storage),
   };
 }
 
 /** Best time (seconds) and fewest moves across all solved puzzles of a level. */
-export function levelBests(level: Level): { bestTime: number | null; bestMoves: number | null } {
-  const stats = Object.values(getSavedProgress(level)).filter((s) => s && s.stars > 0);
+export function levelBests(
+  level: Level,
+  storage: StoragePort = fallbackStorage,
+): { bestTime: number | null; bestMoves: number | null } {
+  const stats = Object.values(getSavedProgress(level, storage)).filter((s) => s && s.stars > 0);
   if (!stats.length) return { bestTime: null, bestMoves: null };
   return {
     bestTime: Math.min(...stats.map((s) => s.bestTime)),
