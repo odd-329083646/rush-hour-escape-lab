@@ -223,8 +223,10 @@ export function DailyGame({
                   setCalOpen(false);
                   reset(start);
                 }}
+                aria-label={t("playAgain")}
+                title={t("playAgain")}
               >
-                {t("playAgain")}
+                <RotateCcw className="h-4 w-4" />
               </Button>
               <Button variant="ghost" className="chip" onClick={() => setCalOpen(true)}>
                 <CalendarDays className="h-4 w-4" /> {t("calendar")}

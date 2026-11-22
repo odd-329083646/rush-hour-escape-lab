@@ -357,6 +357,15 @@ function Game() {
           </div>
           <div className="victory-actions">
             <Button
+              variant="ghost"
+              className="chip"
+              onClick={() => loadPuzzle(idx)}
+              aria-label={t("playAgain")}
+              title={t("playAgain")}
+            >
+              <RotateCcw className="h-4 w-4" />
+            </Button>
+            <Button
               className="victory-next"
               onClick={() => (isLast ? loadPuzzle(idx) : jumpTo(idx + 1))}
             >
