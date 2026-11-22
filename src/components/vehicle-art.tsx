@@ -21,20 +21,20 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
         <filter id={`toyShadow-${uid}`} x="-20%" y="-20%" width="140%" height="140%">
           <feDropShadow dx="0" dy="4" stdDeviation="2.5" floodOpacity="0.42" />
         </filter>
-        <linearGradient id={`bodyShade-${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.34" />
-          <stop offset="52%" stopColor="#ffffff" stopOpacity="0.04" />
+        <radialGradient id={`bodyDome-${uid}`} cx="50%" cy="35%" r="65%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.36" />
+          <stop offset="55%" stopColor="#ffffff" stopOpacity="0.05" />
           <stop offset="100%" stopColor="#000000" stopOpacity="0.32" />
+        </radialGradient>
+        <linearGradient id={`roofTone-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.3" />
+          <stop offset="100%" stopColor="#000000" stopOpacity="0.14" />
         </linearGradient>
-        <linearGradient id={`topHighlight-${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.32" />
-          <stop offset="100%" stopColor="#ffffff" stopOpacity="0.06" />
+        <linearGradient id={`glassTone-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.46" />
+          <stop offset="100%" stopColor="#0f172a" stopOpacity="0.36" />
         </linearGradient>
-        <linearGradient id={`windshield-${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.45" />
-          <stop offset="100%" stopColor="#0f172a" stopOpacity="0.34" />
-        </linearGradient>
-        <radialGradient id={`headlight-${uid}`} cx="35%" cy="35%" r="65%">
+        <radialGradient id={`lampTone-${uid}`} cx="35%" cy="35%" r="65%">
           <stop offset="0%" stopColor="#ffffff" stopOpacity="0.98" />
           <stop offset="100%" stopColor="#fde047" stopOpacity="0.88" />
         </radialGradient>
@@ -44,7 +44,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
         transform={vertical ? `translate(0 ${length}) rotate(-90)` : undefined}
         filter={`url(#toyShadow-${uid})`}
       >
-        {/* מראות צד מעודנות */}
+        {/* מראות צד עדינות */}
         <g
           fill="currentColor"
           stroke="var(--vehicle-detail-edge)"
@@ -55,26 +55,26 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
           <ellipse cx={length - 48} cy="90.5" rx="6" ry="3.5" />
         </g>
 
-        {/* גוף ראשי עגלגל ושמנמן */}
+        {/* גוף צעצוע ראשי */}
         <path
           className="vehicle-body"
           d={`M 26 11 H ${length - 26} Q ${length - 7} 11 ${length - 7} 32 V 68 Q ${length - 7} 89 ${length - 26} 89 H 26 Q 7 89 7 68 V 32 Q 7 11 26 11 Z`}
         />
         <path
           d={`M 26 11 H ${length - 26} Q ${length - 7} 11 ${length - 7} 32 V 68 Q ${length - 7} 89 ${length - 26} 89 H 26 Q 7 89 7 68 V 32 Q 7 11 26 11 Z`}
-          fill={`url(#bodyShade-${uid})`}
+          fill={`url(#bodyDome-${uid})`}
           pointerEvents="none"
         />
 
         {isTruck ? (
           <>
-            {/* מכולה / ארגז משאית מובחן */}
+            {/* מכולה / ארגז משאית מובחן ומחובר */}
             <rect
               x="14"
               y="17"
               width={cabX - 14}
               height="66"
-              rx="14"
+              rx="15"
               fill="currentColor"
               stroke="var(--vehicle-detail-edge)"
               strokeOpacity="0.35"
@@ -85,31 +85,44 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               y="17"
               width={cabX - 14}
               height="66"
-              rx="14"
-              fill={`url(#topHighlight-${uid})`}
+              rx="15"
+              fill={`url(#roofTone-${uid})`}
               pointerEvents="none"
             />
-            {/* פסי ארגז אחידים ומסודרים */}
+            {/* מסגרת ארגז ופסים ברורים */}
+            <rect
+              x="20"
+              y="23"
+              width={cabX - 26}
+              height="54"
+              rx="10"
+              fill="#000000"
+              fillOpacity="0.1"
+              stroke="var(--vehicle-detail-edge)"
+              strokeOpacity="0.25"
+              strokeWidth="1.5"
+              pointerEvents="none"
+            />
             <g
               stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.22"
-              strokeWidth="2.2"
+              strokeOpacity="0.28"
+              strokeWidth="3"
               pointerEvents="none"
             >
-              <line x1="36" y1="22" x2="36" y2="78" />
-              <line x1="62" y1="22" x2="62" y2="78" />
-              <line x1="88" y1="22" x2="88" y2="78" />
+              <line x1="42" y1="25" x2="42" y2="75" />
+              <line x1="70" y1="25" x2="70" y2="75" />
+              <line x1="98" y1="25" x2="98" y2="75" />
             </g>
 
-            {/* קו חיבור נקי לקבינה */}
+            {/* קו חיבור ברור לקבינה */}
             <line
               x1={cabX + 2}
               y1="14"
               x2={cabX + 2}
               y2="86"
               stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.4"
-              strokeWidth="2"
+              strokeOpacity="0.42"
+              strokeWidth="2.2"
             />
 
             {/* שמשה קדמית של קבינת המשאית */}
@@ -118,7 +131,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               y="24"
               width="22"
               height="52"
-              rx="8"
+              rx="8.5"
               fill="currentColor"
               stroke="var(--vehicle-detail-edge)"
               strokeOpacity="0.42"
@@ -129,53 +142,64 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               y="24"
               width="22"
               height="52"
-              rx="8"
-              fill={`url(#windshield-${uid})`}
+              rx="8.5"
+              fill={`url(#glassTone-${uid})`}
               pointerEvents="none"
             />
           </>
         ) : (
           <>
-            {/* שמשה אחורית מעודנת */}
+            {/* גג רך ומאוחד של מכונית */}
+            <rect
+              x="26"
+              y="18"
+              width={length - 52}
+              height="64"
+              rx="22"
+              fill="currentColor"
+              stroke="var(--vehicle-detail-edge)"
+              strokeOpacity="0.26"
+              strokeWidth="1.8"
+            />
+            <rect
+              x="26"
+              y="18"
+              width={length - 52}
+              height="64"
+              rx="22"
+              fill={`url(#roofTone-${uid})`}
+              pointerEvents="none"
+            />
+
+            {/* שמשה אחורית עדינה */}
             <rect
               x="30"
-              y="28"
-              width="13"
-              height="44"
+              y="30"
+              width="12"
+              height="40"
               rx="5.5"
               fill="currentColor"
               stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.35"
-              strokeWidth="1.6"
+              strokeOpacity="0.34"
+              strokeWidth="1.5"
             />
             <rect
               x="30"
-              y="28"
-              width="13"
-              height="44"
+              y="30"
+              width="12"
+              height="40"
               rx="5.5"
-              fill={`url(#windshield-${uid})`}
+              fill={`url(#glassTone-${uid})`}
               pointerEvents="none"
             />
 
-            {/* גג מעוגל נקי במרכז */}
-            <rect
-              x="48"
-              y="21"
-              width={length - 102}
-              height="58"
-              rx="18"
-              fill={`url(#topHighlight-${uid})`}
-              pointerEvents="none"
-            />
-
-            {/* שמשה קדמית רחבה ומעוגלת */}
+            {/* שמשה קדמית רחבה וברורה */}
             <rect
               x={length - 49}
               y="25"
               width="20"
               height="50"
-              rx="8"
+              rx="8.5"
               fill="currentColor"
               stroke="var(--vehicle-detail-edge)"
               strokeOpacity="0.42"
@@ -186,8 +210,8 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               y="25"
               width="20"
               height="50"
-              rx="8"
-              fill={`url(#windshield-${uid})`}
+              rx="8.5"
+              fill={`url(#glassTone-${uid})`}
               pointerEvents="none"
             />
           </>
@@ -195,8 +219,8 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
 
         {/* פנסים קדמיים */}
         <g stroke="var(--vehicle-detail-edge)" strokeOpacity="0.35" strokeWidth="1.4">
-          <ellipse cx={length - 15} cy="28" rx="5.5" ry="7" fill={`url(#headlight-${uid})`} />
-          <ellipse cx={length - 15} cy="72" rx="5.5" ry="7" fill={`url(#headlight-${uid})`} />
+          <ellipse cx={length - 15} cy="28" rx="5.5" ry="7" fill={`url(#lampTone-${uid})`} />
+          <ellipse cx={length - 15} cy="72" rx="5.5" ry="7" fill={`url(#lampTone-${uid})`} />
         </g>
 
         {/* גריל קדמי קטן */}
