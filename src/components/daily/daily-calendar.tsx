@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { useDailyCalendar } from "@/hooks/useDailyCalendar";
 import { Check, ChevronLeft, ChevronRight, Lock, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,9 +23,9 @@ export function DailyCalendar({
   );
   if (!open) return null;
 
-  return (
+  const modal = (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-3 backdrop-blur"
+      className="fixed inset-0 z-[70] grid place-items-center bg-background/80 p-3 backdrop-blur"
       onClick={onClose}
     >
       <div
@@ -75,7 +76,7 @@ export function DailyCalendar({
           {Array.from({ length: first }).map((_, i) => (
             <div key={`e${i}`} />
           ))}
-          {entries.map(({ d, k, locked, time: t }) => {
+          {entries.map(({ d, k, locked, time: entryTime }) => {
             return (
               <button
                 key={k}
@@ -87,10 +88,10 @@ export function DailyCalendar({
                 <span className="font-display">{d}</span>
                 {locked ? (
                   <Lock className="h-3 w-3" />
-                ) : t != null ? (
+                ) : entryTime != null ? (
                   <span className="flex items-center text-[10px] text-primary">
                     <Check className="h-3 w-3" />
-                    {blApi.dailyScores.fmtTime(t)}
+                    {blApi.dailyScores.fmtTime(entryTime)}
                   </span>
                 ) : null}
               </button>
@@ -100,4 +101,6 @@ export function DailyCalendar({
       </div>
     </div>
   );
+
+  return typeof document !== "undefined" ? createPortal(modal, document.body) : modal;
 }

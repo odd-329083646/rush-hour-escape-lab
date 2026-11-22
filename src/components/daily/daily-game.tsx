@@ -216,7 +216,14 @@ export function DailyGame({
             </div>
 
             <div className="victory-actions">
-              <Button variant="ghost" className="victory-next" onClick={() => reset(start)}>
+              <Button
+                variant="ghost"
+                className="victory-next"
+                onClick={() => {
+                  setCalOpen(false);
+                  reset(start);
+                }}
+              >
                 {t("playAgain")}
               </Button>
               <Button variant="ghost" className="chip" onClick={() => setCalOpen(true)}>
