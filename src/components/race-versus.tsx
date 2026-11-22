@@ -1,5 +1,5 @@
 import { PlayerAvatar } from "@/components/player-avatar";
-import { flag, COUNTRIES } from "@/lib/profile";
+import { blApi } from "@/engine/blApi";
 import { useI18n } from "@/lib/i18n";
 
 export function RaceVersus({
@@ -18,9 +18,10 @@ export function RaceVersus({
               <PlayerAvatar avatarId={player.avatarId} className="race-avatar" />
               <h2>{player.name}</h2>
               <p>
-                {flag(player.country)}{" "}
-                {COUNTRIES.find((country) => country.code === player.country)?.[lang] ??
-                  player.country}
+                {blApi.profile.flag(player.country)}{" "}
+                {blApi.profile.countries.find((country) => country.code === player.country)?.[
+                  lang
+                ] ?? player.country}
               </p>
             </div>
           </div>

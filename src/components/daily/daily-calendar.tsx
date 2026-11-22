@@ -1,10 +1,7 @@
 import { useDailyCalendar } from "@/hooks/useDailyCalendar";
-import { useEffect, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import { Check, ChevronLeft, ChevronRight, Lock, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { fmtTime, getMySolves } from "@/lib/daily-scores";
-import { todayKey } from "@/lib/puzzles";
+import { blApi } from "@/engine/blApi";
 import { useI18n } from "@/lib/i18n";
 
 const FIRST = "2026-01-01";
@@ -93,7 +90,7 @@ export function DailyCalendar({
                 ) : t != null ? (
                   <span className="flex items-center text-[10px] text-primary">
                     <Check className="h-3 w-3" />
-                    {fmtTime(t)}
+                    {blApi.dailyScores.fmtTime(t)}
                   </span>
                 ) : null}
               </button>

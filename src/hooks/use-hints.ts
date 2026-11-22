@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { getCoins } from "@/engine/rewards";
+import { blApi } from "@/engine/blApi";
+import type { HintType } from "@/engine/hints";
 import { spendCoins } from "./useRewardSystem";
-import { HINT_COSTS, PEEK_DURATION, type HintType } from "@/lib/hints";
+
+const PEEK_DURATION = 3000;
 
 export function useHints(onBalance: (balance: number) => void) {
+  const storage = blApi.ports.storage;
   const [open, setOpen] = useState(false);
   const [peek, setPeek] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -20,8 +23,8 @@ export function useHints(onBalance: (balance: number) => void) {
     [],
   );
   const charge = (type: HintType) => {
-    if (!spendCoins(HINT_COSTS[type])) return false;
-    onBalance(getCoins());
+    if (!spendCoins(blApi.constants.hintCosts[type])) return false;
+    onBalance(blApi.rewards.getCoins(storage));
     return true;
   };
   const startPeek = () => {

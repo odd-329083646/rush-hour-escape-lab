@@ -1,11 +1,23 @@
 import { useSyncExternalStore } from "react";
-import { storageService } from "@/services/storageService";
-import { addCoins, getCoins, saveLevelProgress } from "@/engine/rewards";
-import { ENTRY_FEE } from "@/lib/tournament";
-
+import { blApi } from "@/engine/blApi";
 import { spendCoins, awardOnce } from "@/engine/rewardPolicy";
+
 export { spendCoins, awardOnce } from "@/engine/rewardPolicy";
+
+const emptySubscribe = () => () => {};
+
 export function useRewardSystem() {
-  const coins = useSyncExternalStore(storageService.subscribe, getCoins, () => 0);
-  return { coins, spend: spendCoins, awardOnce, saveLevelProgress, canEnter: coins >= ENTRY_FEE };
+  const storage = blApi.ports.storage;
+  const coins = useSyncExternalStore(
+    emptySubscribe,
+    () => blApi.rewards.getCoins(storage),
+    () => 0,
+  );
+  return {
+    coins,
+    spend: spendCoins,
+    awardOnce,
+    saveLevelProgress: blApi.rewards.saveLevelProgress,
+    canEnter: coins >= blApi.constants.entryFee,
+  };
 }

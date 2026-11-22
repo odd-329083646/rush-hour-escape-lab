@@ -4,8 +4,11 @@ import { ArrowRight, Coins, Eye, ScanEye, ListChecks, X } from "lucide-react";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useI18n, type TKey } from "@/lib/i18n";
-import { HINT_COSTS, hintAvailable, type HintType, type PlannedMove } from "@/lib/hints";
-import { type Car, type Level } from "@/lib/puzzles";
+import { blApi } from "@/engine/blApi";
+import type { HintType } from "@/engine/hints";
+import type { Car, Level, Move } from "@/engine/game";
+
+type PlannedMove = { id: string; move: Move; steps: number };
 
 const OPTIONS: { type: HintType; title: TKey; Icon: typeof Eye }[] = [
   { type: "next", title: "hintNext", Icon: ArrowRight },
@@ -99,14 +102,17 @@ export function HintSelection({
                 key={type}
                 variant="outline"
                 className="h-auto justify-start gap-3 whitespace-normal py-3 text-start"
-                disabled={!hintAvailable(type, level, hidden, plan) || coins < HINT_COSTS[type]}
+                disabled={
+                  !blApi.hints.available(type, level, hidden, plan) ||
+                  coins < blApi.constants.hintCosts[type]
+                }
                 onClick={() => (type === "reveal" ? setSelecting(true) : use(type))}
               >
                 <Icon className="h-5 w-5 shrink-0 text-primary" />
                 <span className="flex-1">{t(title)}</span>
                 <span className="flex items-center gap-1">
                   <Coins className="h-4 w-4" />
-                  {HINT_COSTS[type]}
+                  {blApi.constants.hintCosts[type]}
                 </span>
               </Button>
             ))}

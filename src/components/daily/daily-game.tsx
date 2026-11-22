@@ -10,8 +10,7 @@ import { VictoryOverlay, FailureOverlay } from "@/components/victory-overlay";
 import { CoinsBadge } from "@/components/coins-badge";
 import { GameArena } from "@/components/game-board";
 import { DailyCalendar } from "./daily-calendar";
-import { getCoins, pickHidden } from "@/lib/puzzles";
-import { fmtTime } from "@/lib/daily-scores";
+import { blApi } from "@/engine/blApi";
 
 export function DailyGame({
   date,
@@ -20,6 +19,7 @@ export function DailyGame({
   date: string;
   openCalendar?: boolean;
 }) {
+  const storage = blApi.ports.storage;
   const {
     t,
     start,
@@ -122,7 +122,7 @@ export function DailyGame({
           started,
           startDisabled: loading,
           onStart: () => {
-            setHidden(pickHidden(cars, "medium"));
+            setHidden(blApi.game.pickHidden(cars, "medium"));
             setStartedAt(Date.now());
             setNow(Date.now());
           },
@@ -133,7 +133,7 @@ export function DailyGame({
           showHint: true,
           hintDisabled: !started || !!result || failed || hints.peek,
           onHintClick: () => {
-            setCoins(getCoins());
+            setCoins(blApi.rewards.getCoins(storage));
             hints.setOpen(true);
           },
           executeDisabled: !started || !!result || failed,
@@ -169,7 +169,7 @@ export function DailyGame({
               {t("movesLabel")} <b className="font-display">{moves}</b>{" "}
               <span className="text-muted-foreground">/ {t("par", { n: par })}</span>
             </span>
-            <span className="font-display">{fmtTime(elapsed)}</span>
+            <span className="font-display">{blApi.dailyScores.fmtTime(elapsed)}</span>
             <span>
               {t("bumps")} <b className="font-display">{bumps}</b>
             </span>
@@ -189,14 +189,14 @@ export function DailyGame({
             </h2>
             <div className="mt-2 flex flex-col items-center text-muted-foreground">
               <span>{t("statMoves", { n: moves })}</span>
-              <span>{t("statTime", { t: fmtTime(result.time) })}</span>
+              <span>{t("statTime", { t: blApi.dailyScores.fmtTime(result.time) })}</span>
               <span>{t("statPar", { n: par })}</span>
             </div>
             {!result.isRecord && (
               <p className="mt-1 text-sm">
                 {t("yourVsBest", {
-                  time: fmtTime(result.time),
-                  best: result.best != null ? fmtTime(result.best) : "—",
+                  time: blApi.dailyScores.fmtTime(result.time),
+                  best: result.best != null ? blApi.dailyScores.fmtTime(result.best) : "—",
                 })}
               </p>
             )}

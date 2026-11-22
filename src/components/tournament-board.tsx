@@ -1,7 +1,7 @@
 import { useTournamentBoard } from "@/hooks/useTournamentBoard";
 import { GameArena } from "@/components/game-board";
-import { type Move } from "@/lib/puzzles";
-import type { RaceState } from "@/lib/tournament";
+import type { Move } from "@/engine/game";
+import type { RaceState } from "@/engine/tournament";
 
 export function TournamentBoard({
   state,
@@ -27,7 +27,6 @@ export function TournamentBoard({
     offset,
     up,
   } = useTournamentBoard({ state, blocked, onMove });
-  const translate = t as (key: string, vars?: Record<string, string | number>) => string;
 
   return (
     <GameArena

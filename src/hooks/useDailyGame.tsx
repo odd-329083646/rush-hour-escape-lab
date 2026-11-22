@@ -1,25 +1,11 @@
 import { useSettings } from "@/hooks/useSettings";
-import { findNextMove } from "@/services/puzzleAnalysisService";
 import { useRewardSystem } from "./useRewardSystem";
-import { storageService } from "@/services/storageService";
+import { blApi } from "@/engine/blApi";
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import { useI18n } from "@/lib/i18n";
 import { useHints } from "@/hooks/use-hints";
-import { HINT_COSTS, hintAvailable, peekBoardCars, type HintType } from "@/lib/hints";
-import { addCoins, getCoins } from "@/engine/rewards";
-import { getDailyPuzzleAsync } from "@/services/puzzleRepository";
-import {
-  applyMove,
-  cells,
-  getNextBestMove,
-  isOutOfMoves,
-  isSolved,
-  pickHidden,
-  type Car,
-  type Move,
-} from "@/engine/game";
-import { fmtTime, isSolvedOn, submitScore } from "@/lib/daily-scores";
-
+import type { HintType } from "@/engine/hints";
+import type { Car, Move } from "@/engine/game";
 import { useGameEngine, movementRange, blockerOf as findBlocker } from "@/hooks/useGameEngine";
 
 const ARROW: Record<Move, string> = { up: "↑", down: "↓", left: "←", right: "→" };
@@ -33,6 +19,7 @@ export function useDailyGame({
 }) {
   const { dragEnabled, keyboardEnabled } = useSettings();
   const { t, te, lang } = useI18n();
+  const storage = blApi.ports.storage;
   const [start, setStart] = useState<Car[]>([]);
   const [par, setPar] = useState(0);
   const {
@@ -68,7 +55,7 @@ export function useDailyGame({
     isFirstSolve: boolean;
   } | null>(null);
   const hints = useHints(setCoins);
-  const boardCars = peekBoardCars(start, cars, hints.peek);
+  const boardCars = blApi.hints.peekBoardCars(start, cars, hints.peek);
   const [calOpen, setCalOpen] = useState(openCalendar);
   const dragStart = useRef<{
     id: string;
@@ -93,7 +80,7 @@ export function useDailyGame({
       ? null
       : bumps >= 3
         ? "bumps"
-        : isOutOfMoves(moves, par)
+        : blApi.game.isOutOfMoves(moves, par)
           ? "moves"
           : null;
 
@@ -115,13 +102,13 @@ export function useDailyGame({
     setDrag(null);
     dragStart.current = null;
     submitting.current = false;
-    setCoins(getCoins());
+    setCoins(blApi.rewards.getCoins(storage));
   };
 
   useEffect(() => {
     let live = true;
     setLoading(true);
-    getDailyPuzzleAsync(date).then((p) => {
+    blApi.game.getDailyPuzzle(date).then((p) => {
       if (!live) return;
       setStart(p.cars);
       setPar(p.par);
@@ -144,16 +131,17 @@ export function useDailyGame({
   }, []);
 
   const useHint = async (type: HintType, id?: string): Promise<string | void> => {
-    if (!started || result || failed || !hintAvailable(type, "medium", hidden, []))
+    if (!started || result || failed || !blApi.hints.available(type, "medium", hidden, []))
       return t("noHint");
-    if (getCoins() < HINT_COSTS[type])
-      return t("hintCost", { cost: HINT_COSTS[type], have: getCoins() });
+    const currentCoins = blApi.rewards.getCoins(storage);
+    if (currentCoins < blApi.constants.hintCosts[type])
+      return t("hintCost", { cost: blApi.constants.hintCosts[type], have: currentCoins });
     if (type === "next") {
       const before = cars;
       const nextMove =
         typeof Worker === "undefined"
-          ? getNextBestMove(cars)
-          : await findNextMove(cars).catch(() => null);
+          ? blApi.game.getNextBestMove(cars)
+          : await blApi.game.findNextMove(cars).catch(() => null);
       if (!nextMove || before !== currentCars.current) return t("noHint");
       if (!hints.charge(type)) return t("noHint");
       setSel(nextMove.id);
@@ -194,33 +182,32 @@ export function useDailyGame({
         return flash(te(r.error));
       }
       setWarn(null);
-      if (isSolved(r.cars)) {
+      if (blApi.game.isSolved(r.cars)) {
         submitting.current = true;
         setWonAt(Date.now());
         const time = Math.max(1, Math.round((Date.now() - startedAt) / 1000));
-        const name = storageService.getItem("player_name") || "Player";
+        const name = storage.getItem("player_name") || "Player";
 
-        // 1. בדיקה האם זו פתירה ראשונה של החידה היומית הזו במכשיר זה
-        const isFirstSolve = !isSolvedOn(date);
+        const isFirstSolve = !blApi.dailyScores.isSolvedOn(date, storage);
 
-        // 2. הגשת התוצאה לשרת
-        void submitScore({ date, solve_time: time, player_name: name }).then((res) => {
-          // 3. חישוב תגמול מטבעות
-          let coinsEarned = 0;
-          if (isFirstSolve) {
-            coinsEarned += 30; // 30 מטבעות בפתירה ראשונה
-          }
-          if (res.isRecord) {
-            coinsEarned += 50; // 50 מטבעות בונוס על שבירת שיא עולמי
-          }
+        void blApi.dailyScores
+          .submitScore({ date, solve_time: time, player_name: name }, storage, blApi.ports.remoteScore)
+          .then((res) => {
+            let coinsEarned = 0;
+            if (isFirstSolve) {
+              coinsEarned += 30;
+            }
+            if (res.isRecord) {
+              coinsEarned += 50;
+            }
 
-          if (coinsEarned > 0) {
-            addCoins(coinsEarned);
-            setCoins(getCoins());
-          }
+            if (coinsEarned > 0) {
+              blApi.rewards.addCoins(coinsEarned, storage);
+              setCoins(blApi.rewards.getCoins(storage));
+            }
 
-          setResult({ time, ...res, coinsEarned, isFirstSolve });
-        });
+            setResult({ time, ...res, coinsEarned, isFirstSolve });
+          });
       }
     },
     [
@@ -238,6 +225,8 @@ export function useDailyGame({
       te,
       hints.peek,
       wonAt,
+      storage,
+      blApi.ports.remoteScore,
     ],
   );
 

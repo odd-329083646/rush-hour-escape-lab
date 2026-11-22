@@ -1,15 +1,14 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useI18n } from "@/lib/i18n";
 import { useTournament } from "@/hooks/use-tournament";
-import { getProfile, type Profile } from "@/lib/profile";
-import { getCoins } from "@/lib/puzzles";
-import { ENTRY_FEE, raceWaitRemaining, raceIntroPhase } from "@/lib/tournament";
+import { blApi } from "@/engine/blApi";
 import { toast } from "sonner";
 import { useProfile } from "@/hooks/useProfile";
 import { useDuelInvitations } from "@/hooks/useDuelInvitations";
 
 export function useCompetitions() {
   const { t } = useI18n();
+  const storage = blApi.ports.storage;
   const { snapshot, ready, busy, connected, clockOffset, action, commitMove } = useTournament({
     resetResultsOnEntry: true,
   });
@@ -27,8 +26,8 @@ export function useCompetitions() {
 
   // טעינה ראשונית וסנכרון מטבעות רק כשיש שינוי
   useEffect(() => {
-    setCoins(getCoins());
-  }, []);
+    setCoins(blApi.rewards.getCoins(storage));
+  }, [storage]);
 
   const match = snapshot?.match;
   const isMatchActive = match?.status === "playing" || match?.status === "waiting";
@@ -68,7 +67,7 @@ export function useCompetitions() {
 
   const waitRemaining = useMemo(() => {
     if (!match?.created_at) return 0;
-    return raceWaitRemaining(match, serverNow);
+    return blApi.tournament.raceWaitRemaining(match, serverNow);
   }, [match?.created_at, match?.private, serverNow]);
 
   const winner = match?.winner === guestId;
@@ -82,8 +81,8 @@ export function useCompetitions() {
 
   const begin = useCallback(
     async (kind: "random" | "create" | "join", room?: string) => {
-      const currentCoins = getCoins();
-      if (currentCoins < ENTRY_FEE) {
+      const currentCoins = blApi.rewards.getCoins(storage);
+      if (currentCoins < blApi.constants.entryFee) {
         toast.error(t("raceNeedCoins"));
         return;
       }
@@ -92,14 +91,14 @@ export function useCompetitions() {
       const result = await action(kind, room ? { code: room } : undefined);
       if (kind === "join" && result?.error === "unavailable") setUnavailable(true);
     },
-    [action, t],
+    [action, t, storage],
   );
 
   const dismiss = useCallback(async () => {
     setUnavailable(false);
     await action("leave");
-    setCoins(getCoins()); // עדכון המטבעות לאחר סיום המשחק
-  }, [action]);
+    setCoins(blApi.rewards.getCoins(storage)); // עדכון המטבעות לאחר סיום המשחק
+  }, [action, storage]);
 
   const sendInvite = async () => {
     setSendingInvite(true);
@@ -139,7 +138,7 @@ export function useCompetitions() {
     sendingInvite,
     sendInvite,
     playerCode: inbox.playerCode,
-    phase: raceIntroPhase(match?.started_at ?? null, serverNow),
+    phase: blApi.tournament.raceIntroPhase(match?.started_at ?? null, serverNow),
     forfeitOpen,
     setForfeitOpen,
     code,

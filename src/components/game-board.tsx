@@ -1,7 +1,7 @@
 import type { PointerEvent, ReactNode } from "react";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Lightbulb, Play, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { Car, Move } from "@/lib/puzzles";
+import type { Car, Move } from "@/engine/game";
 import type { TKey } from "@/lib/i18n";
 
 export type TranslateFn = (key: TKey, vars?: Record<string, string | number>) => string;

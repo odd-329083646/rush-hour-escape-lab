@@ -1,8 +1,8 @@
 import { useSettings } from "@/hooks/useSettings";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
-import { applyMove, type Car, type Move } from "@/lib/puzzles";
+import type { Car, Move } from "@/engine/game";
 import { useI18n } from "@/lib/i18n";
-import type { RaceState } from "@/lib/tournament";
+import type { RaceState } from "@/engine/tournament";
 import { movementRange } from "@/hooks/useGameEngine";
 
 export function useTournamentBoard({

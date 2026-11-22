@@ -1,42 +1,12 @@
 import { useSettings } from "@/hooks/useSettings";
-import { generatePuzzle, findNextMove } from "@/services/puzzleAnalysisService";
 import { useRewardSystem } from "./useRewardSystem";
-import { storageService } from "@/services/storageService";
+import { blApi } from "@/engine/blApi";
 import { useEffect, useState, useRef } from "react";
-import {
-  applyMove,
-  isSolved,
-  LEVELS,
-  pickHidden,
-  runPlan,
-  DEFAULT_PUZZLES,
-  IS_OFFLINE_MODE,
-  getRandomPuzzle,
-  saveLevelProgress,
-  getSavedProgress,
-  getCoins,
-  addCoins,
-  getNextBestMove,
-  TIERS,
-  isTierUnlocked,
-  getSolvesCountInTier,
-  getPuzzlesForTier,
-  type Car,
-  type Level,
-  type Move,
-} from "@/lib/puzzles";
+import type { Car, Level, Move } from "@/engine/game";
 import { useI18n } from "@/lib/i18n";
 import { useHints } from "@/hooks/use-hints";
-import {
-  HINT_COSTS,
-  hintAvailable,
-  peekBoardCars,
-  validateHintPlan,
-  type HintType,
-} from "@/lib/hints";
-
+import type { HintType } from "@/engine/hints";
 import { useGameEngine, movementRange, blockerOf } from "@/hooks/useGameEngine";
-import { loadPuzzlesAsync } from "@/services/puzzleRepository";
 
 const ARROW: Record<Move, string> = { up: "↑", down: "↓", left: "←", right: "→" };
 type Planned = { id: string; move: Move; steps: number };
@@ -45,12 +15,13 @@ export function useStandardGame(level: Level) {
   const { dragEnabled, keyboardEnabled } = useSettings();
   const { t, te, lang } = useI18n();
   const rewards = useRewardSystem();
+  const storage = blApi.ports.storage;
   const startedRef = useRef(false);
   const murderer = level === "murderer";
   const idxKey = `rush_hour_puzzle_index_${level}`;
   const maxKey = `rush_hour_max_solved_${level}`;
 
-  const [puzzles, setPuzzles] = useState(DEFAULT_PUZZLES);
+  const [puzzles, setPuzzles] = useState([...blApi.constants.defaultPuzzles]);
   const [idx, setIdx] = useState(0);
   const [maxSolved, setMaxSolved] = useState(-1);
   const puzzle = puzzles[idx] ?? puzzles[0] ?? { par: 0, cars: [] as Car[] };
@@ -89,7 +60,7 @@ export function useStandardGame(level: Level) {
   const [coins, setCoinsState] = useState(0);
   const hints = useHints(setCoinsState);
   const boardRevealed = hints.peek;
-  const boardCars = peekBoardCars(initialCars, cars, hints.peek);
+  const boardCars = blApi.hints.peekBoardCars(initialCars, cars, hints.peek);
   const [murdererBoard, setMurdererBoard] = useState(false);
   const [collapsedTiers, setCollapsedTiers] = useState<Record<string, boolean>>({});
 
@@ -101,7 +72,7 @@ export function useStandardGame(level: Level) {
   const elapsed = startedAt ? Math.floor(((wonAt ?? now) - startedAt) / 1000) : 0;
   const clock = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, "0")}`;
 
-  const progress = getSavedProgress(level);
+  const progress = blApi.rewards.getSavedProgress(level, storage);
 
   const toggleTier = (tierId: string) => {
     setCollapsedTiers((prev) => ({ ...prev, [tierId]: !prev[tierId] }));
@@ -137,28 +108,29 @@ export function useStandardGame(level: Level) {
     setSimulating(false);
     setInvisibleBumps(0);
     setWonStars(3);
-    setCoinsState(getCoins());
+    setCoinsState(blApi.rewards.getCoins(storage));
   };
 
   useEffect(() => {
-    setPuzzles(DEFAULT_PUZZLES);
+    const basePuzzles = [...blApi.constants.defaultPuzzles];
+    setPuzzles(basePuzzles);
+    const maxS = Number.isFinite(parseInt(storage.getItem(maxKey) ?? "", 10))
+      ? parseInt(storage.getItem(maxKey) ?? "", 10)
+      : -1;
+
+    setMaxSolved(maxS);
+
     let live = true;
-    void loadPuzzlesAsync().then((loaded) => {
+    void blApi.game.loadPuzzles().then((loaded) => {
       if (live && !startedRef.current) {
         setPuzzles(loaded);
         loadPuzzle(Math.max(0, Math.min(maxS + 1, loaded.length - 1)), loaded);
       }
     });
-    setCoinsState(getCoins());
+    setCoinsState(blApi.rewards.getCoins(storage));
 
-    const maxS = Number.isFinite(parseInt(storageService.getItem(maxKey) ?? "", 10))
-      ? parseInt(storageService.getItem(maxKey) ?? "", 10)
-      : -1;
-
-    setMaxSolved(maxS);
-
-    const nextLevelIdx = Math.max(0, Math.min(maxS + 1, DEFAULT_PUZZLES.length - 1));
-    loadPuzzle(nextLevelIdx, DEFAULT_PUZZLES);
+    const nextLevelIdx = Math.max(0, Math.min(maxS + 1, basePuzzles.length - 1));
+    loadPuzzle(nextLevelIdx, basePuzzles);
     return () => {
       live = false;
     };
@@ -186,18 +158,17 @@ export function useStandardGame(level: Level) {
 
     setWonStars(stars);
     setIsRecord(record);
-    setCoinsState(getCoins());
+    setCoinsState(blApi.rewards.getCoins(storage));
     setMsg(t("msgWon", { stars, coins: coinsEarned }));
 
     if (idx > maxSolved) {
       setMaxSolved(idx);
-      storageService.setItem(maxKey, String(idx));
+      storage.setItem(maxKey, String(idx));
     }
   };
 
-  // פונקציית עזר לבדיקת מצב הלוח מיד לאחר ביצוע מהלך חוקי
   const evaluateBoardAfterMove = (updatedCars: Car[], nextMoves: number) => {
-    if (isSolved(updatedCars)) {
+    if (blApi.game.isSolved(updatedCars)) {
       markWon(nextMoves);
     } else if (nextMoves > puzzle.par + 6) {
       setFailReason("moves");
@@ -207,14 +178,14 @@ export function useStandardGame(level: Level) {
   };
 
   const jumpTo = (i: number) => {
-    storageService.setItem(idxKey, String(i));
+    storage.setItem(idxKey, String(i));
     loadPuzzle(i);
     setLevelsOpen(false);
   };
 
   const start = () => {
     startedRef.current = true;
-    setHidden(pickHidden(cars, level));
+    setHidden(blApi.game.pickHidden(cars, level));
     setStarted(true);
     setStartedAt(Date.now());
     setMsg(
@@ -237,16 +208,17 @@ export function useStandardGame(level: Level) {
   };
 
   const useHint = async (type: HintType, id?: string): Promise<string | void> => {
-    if (!started || won || failed || simulating || !hintAvailable(type, level, hidden, plan))
+    if (!started || won || failed || simulating || !blApi.hints.available(type, level, hidden, plan))
       return t("noHint");
-    if (getCoins() < HINT_COSTS[type])
-      return t("hintCost", { cost: HINT_COSTS[type], have: getCoins() });
+    const currentCoins = blApi.rewards.getCoins(storage);
+    if (currentCoins < blApi.constants.hintCosts[type])
+      return t("hintCost", { cost: blApi.constants.hintCosts[type], have: currentCoins });
     if (type === "next") {
       const before = cars;
       const nextMove =
         typeof Worker === "undefined"
-          ? getNextBestMove(cars)
-          : await findNextMove(cars).catch(() => null);
+          ? blApi.game.getNextBestMove(cars)
+          : await blApi.game.findNextMove(cars).catch(() => null);
       if (before !== currentCars.current || !startedRef.current) return t("noHint");
       if (!nextMove) return t("noHint");
       if (!hints.charge(type)) return t("noHint");
@@ -267,7 +239,7 @@ export function useStandardGame(level: Level) {
       });
       if (murderer) setMurdererBoard(true);
     } else {
-      const result = validateHintPlan(cars, plan);
+      const result = blApi.hints.validatePlan(cars, plan);
       if (!hints.charge(type)) return t("noHint");
       return result.error
         ? t("hintPlanInvalid", { n: (result.failedAt ?? 0) + 1, error: te(result.error) })
@@ -323,7 +295,7 @@ export function useStandardGame(level: Level) {
       const p = plan[i];
       if (!p) continue;
 
-      const r = applyMove(currentStepCars, p.id, p.move, p.steps);
+      const r = blApi.game.applyMove(currentStepCars, p.id, p.move, p.steps);
 
       if (r.error) {
         setCars(currentStepCars.map((c) => ({ ...c })));
@@ -339,14 +311,14 @@ export function useStandardGame(level: Level) {
 
       await new Promise((res) => setTimeout(res, 400));
 
-      if (!isSolved(currentStepCars) && i + 1 > puzzle.par + 6) {
+      if (!blApi.game.isSolved(currentStepCars) && i + 1 > puzzle.par + 6) {
         setSimulating(false);
         setFailReason("moves");
         return;
       }
     }
 
-    if (isSolved(currentStepCars)) {
+    if (blApi.game.isSolved(currentStepCars)) {
       markWon(plan.length);
     } else {
       await new Promise((res) => setTimeout(res, 400));
@@ -575,26 +547,31 @@ export function useStandardGame(level: Level) {
     evaluateBoardAfterMove(r.cars, moves + 1);
   };
 
-  const tiers = TIERS.map((tier, tierIdx) => ({
+  const tiers = blApi.constants.tiers.map((tier, tierIdx) => ({
     tier,
     tierIdx,
-    unlocked: isTierUnlocked(tierIdx, puzzles, progress),
-    solvedCount: getSolvesCountInTier(tier, puzzles, progress),
-    tierItems: getPuzzlesForTier(tier, puzzles),
+    unlocked: blApi.game.isTierUnlocked(tierIdx, puzzles, progress),
+    solvedCount: blApi.game.getSolvesCountInTier(tier, puzzles, progress),
+    tierItems: blApi.game.getPuzzlesForTier(tier, puzzles),
     remaining: Math.max(
       0,
       tier.requiredSolvesToNext -
-        (TIERS[tierIdx - 1]
-          ? getSolvesCountInTier(TIERS[tierIdx - 1] ?? tier, puzzles, progress)
+        (blApi.constants.tiers[tierIdx - 1]
+          ? blApi.game.getSolvesCountInTier(
+              blApi.constants.tiers[tierIdx - 1] ?? tier,
+              puzzles,
+              progress,
+            )
           : 0),
     ),
   }));
   const openHints = () => {
-    setCoinsState(getCoins());
+    setCoinsState(blApi.rewards.getCoins(storage));
     hints.setOpen(true);
   };
   const drawRandom = () => {
-    void generatePuzzle()
+    void blApi.game
+      .generatePuzzle()
       .then((next) => {
         setCars(next.cars);
         setInitialCars(next.cars);

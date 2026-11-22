@@ -1,10 +1,10 @@
 import { useSettings } from "@/hooks/useSettings";
 import { useEffect, useRef, useState, type PointerEvent } from "react";
-import { applyMove, isSolved, runPlan, type Car, type Move } from "@/lib/puzzles";
-import { setLang, translate, useI18n, type Lang, type TKey } from "@/lib/i18n";
-import { completeTutorial, hasSeenTutorial, markTutorialSeen } from "@/lib/tutorial";
-
+import { blApi } from "@/engine/blApi";
+import type { Car, Move } from "@/engine/game";
+import { useI18n, type TKey } from "@/lib/i18n";
 import { useGameEngine, movementRange } from "@/hooks/useGameEngine";
+
 export type Lesson = { title: TKey; body: TKey; cars: Car[]; hidden?: string[]; plan?: boolean };
 
 export function useTutorialLesson({ lesson, onNext }: { lesson: Lesson; onNext: () => void }) {
@@ -33,7 +33,7 @@ export function useTutorialLesson({ lesson, onNext }: { lesson: Lesson; onNext: 
       setDrag(null);
     }
   }, [dragEnabled]);
-  const done = isSolved(cars);
+  const done = blApi.game.isSolved(cars);
   const hidden = new Set(started && !done ? (lesson.hidden ?? []) : []);
 
   const act = (id: string | null, direction: Move | null, count = steps) => {
@@ -57,11 +57,11 @@ export function useTutorialLesson({ lesson, onNext }: { lesson: Lesson; onNext: 
     }
     const result = commitMove(id, direction, count);
     setMsg(result.error ? te(result.error) : null);
-    if (!result.error && isSolved(result.cars)) onNext();
+    if (!result.error && blApi.game.isSolved(result.cars)) onNext();
   };
   const submit = () => {
-    const result = runPlan(cars, plan);
-    if (result.failedAt === undefined && isSolved(result.cars)) {
+    const result = blApi.game.runPlan(cars, plan);
+    if (result.failedAt === undefined && blApi.game.isSolved(result.cars)) {
       setCars(result.cars);
       setMsg(null);
       onNext();
