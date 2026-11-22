@@ -7,7 +7,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
   const length = car.len * 100;
   const vertical = car.dir === "v";
   const isTruck = car.len === 3;
-  const cabX = length - 68;
+  const cabX = length - 74;
 
   return (
     <svg
@@ -51,72 +51,111 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
           <ellipse cx={length - 48} cy="92" rx="7" ry="4.5" />
         </g>
 
-        {/* גוף צעצוע עגלגל */}
-        <path
-          className="vehicle-body"
-          d={`M 26 11 H ${length - 26} Q ${length - 7} 11 ${length - 7} 32 V 68 Q ${length - 7} 89 ${length - 26} 89 H 26 Q 7 89 7 68 V 32 Q 7 11 26 11 Z`}
-        />
-        <path
-          d={`M 26 11 H ${length - 26} Q ${length - 7} 11 ${length - 7} 32 V 68 Q ${length - 7} 89 ${length - 26} 89 H 26 Q 7 89 7 68 V 32 Q 7 11 26 11 Z`}
-          fill={`url(#toyDome-${uid})`}
-          pointerEvents="none"
-        />
-
         {isTruck ? (
           <>
-            {/* ארגז משאית מעוגל */}
+            {/* ארגז משאית מובחן ומעוגל */}
             <rect
-              x="15"
-              y="18"
-              width={cabX - 21}
-              height="64"
-              rx="17"
+              x="9"
+              y="14"
+              width={cabX - 17}
+              height="72"
+              rx="18"
               fill="currentColor"
               stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.32"
+              strokeOpacity="0.45"
               strokeWidth="2"
             />
             <rect
-              x="15"
-              y="18"
-              width={cabX - 21}
-              height="64"
-              rx="17"
+              x="9"
+              y="14"
+              width={cabX - 17}
+              height="72"
+              rx="18"
               fill={`url(#toyDome-${uid})`}
               pointerEvents="none"
             />
-            {/* הפרדה עדינה לקבינה */}
-            <line
-              className="vehicle-seam"
-              x1={cabX - 2}
-              y1="16"
-              x2={cabX - 2}
-              y2="84"
-            />
-            {/* שמשה קדמית עגלגלה בקבינה */}
+            {/* מסגרת פנימית וצלעות ארגז */}
             <rect
-              x={cabX + 6}
-              y="25"
+              x="16"
+              y="21"
+              width={cabX - 31}
+              height="58"
+              rx="12"
+              fill="#000000"
+              fillOpacity="0.12"
+              stroke="#ffffff"
+              strokeOpacity="0.22"
+              strokeWidth="1.5"
+              pointerEvents="none"
+            />
+            <g
+              stroke="var(--vehicle-detail-edge)"
+              strokeOpacity="0.22"
+              strokeWidth="2.5"
+              pointerEvents="none"
+            >
+              <line x1="42" y1="24" x2="42" y2="76" />
+              <line x1="72" y1="24" x2="72" y2="76" />
+              <line x1="102" y1="24" x2="102" y2="76" />
+            </g>
+
+            {/* קבינה קדמית נפרדת של המשאית */}
+            <rect
+              x={cabX - 2}
+              y="13"
+              width="65"
+              height="74"
+              rx="18"
+              fill="currentColor"
+              stroke="var(--vehicle-detail-edge)"
+              strokeOpacity="0.45"
+              strokeWidth="2"
+            />
+            <rect
+              x={cabX - 2}
+              y="13"
+              width="65"
+              height="74"
+              rx="18"
+              fill={`url(#toyDome-${uid})`}
+              pointerEvents="none"
+            />
+
+            {/* שמשה קדמית רחבה ומעוגלת בקבינה */}
+            <rect
+              x={cabX + 10}
+              y="24"
               width="22"
-              height="50"
-              rx="10"
+              height="52"
+              rx="9"
               fill="currentColor"
               stroke="var(--vehicle-detail-edge)"
               strokeOpacity="0.42"
               strokeWidth="2"
             />
             <rect
-              x={cabX + 6}
-              y="25"
+              x={cabX + 10}
+              y="24"
               width="22"
-              height="50"
-              rx="10"
+              height="52"
+              rx="9"
               fill={`url(#glassTone-${uid})`}
               pointerEvents="none"
             />
           </>
         ) : (
           <>
+            {/* גוף צעצוע עגלגל למכונית */}
+            <path
+              className="vehicle-body"
+              d={`M 26 11 H ${length - 26} Q ${length - 7} 11 ${length - 7} 32 V 68 Q ${length - 7} 89 ${length - 26} 89 H 26 Q 7 89 7 68 V 32 Q 7 11 26 11 Z`}
+            />
+            <path
+              d={`M 26 11 H ${length - 26} Q ${length - 7} 11 ${length - 7} 32 V 68 Q ${length - 7} 89 ${length - 26} 89 H 26 Q 7 89 7 68 V 32 Q 7 11 26 11 Z`}
+              fill={`url(#toyDome-${uid})`}
+              pointerEvents="none"
+            />
+
             {/* גג מעוגל של מכונית */}
             <rect
               x="27"
@@ -138,6 +177,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               fill={`url(#toyDome-${uid})`}
               pointerEvents="none"
             />
+
             {/* שמשה אחורית עדינה */}
             <rect
               x="31"
@@ -159,6 +199,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               fill={`url(#glassTone-${uid})`}
               pointerEvents="none"
             />
+
             {/* שמשה קדמית עגלגלה וברורה */}
             <rect
               x={length - 48}
