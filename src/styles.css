@@ -568,7 +568,7 @@ body { isolation: isolate; }
 .vehicle-window { fill: var(--vehicle-glass); stroke: var(--vehicle-detail-edge); stroke-width: 2; }
 .vehicle-window-shine { fill: var(--vehicle-glass-shine); opacity: .7; }
 .vehicle-cargo { fill: var(--toy-highlight); stroke: var(--vehicle-detail-edge); stroke-opacity: .35; stroke-width: 2; }
-.vehicle-cargo-ribs { fill: none; stroke: var(--vehicle-detail-edge); stroke-opacity: .25; stroke-width: 3; }
+.vehicle-cargo-ribs { fill: var(--toy-highlight); stroke: var(--vehicle-detail-edge); stroke-opacity: .25; stroke-width: 1.5; }
 .vehicle-seam { stroke: var(--vehicle-detail-edge); stroke-opacity: .35; stroke-width: 2; }
 .vehicle-mirrors { fill: currentColor; stroke: var(--vehicle-detail-edge); stroke-width: 2; }
 .vehicle-headlights { fill: var(--vehicle-headlight); }
