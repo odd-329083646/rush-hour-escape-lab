@@ -1,5 +1,5 @@
 // src/services/supabaseService.server.ts
-import type { GuestCredentialDO, MoveDO, ProfileDO, RawCarDO } from "./types";
+import type { GuestCredentialDO, MoveDO, ProfileDO, RawCarDO, RawPuzzleDO } from "./types";
 
 export interface RaceBoardStateDO {
   index: number;
@@ -19,7 +19,7 @@ export interface RaceMatchDO {
   status: string;
   room_code?: string;
   puzzle_indices?: number[];
-  puzzles?: unknown;
+  puzzles?: RawPuzzleDO[];
   a_avatar_id?: string;
   b_avatar_id?: string;
 }
@@ -27,7 +27,8 @@ export interface RaceMatchDO {
 export interface RaceSnapshotDO {
   match?: RaceMatchDO | null;
   error?: string;
-  [key: string]: unknown;
+  guest?: { id: string; coins: number; wins: number; losses: number };
+  serverNow?: string;
 }
 
 export interface TournamentEngineHooks {

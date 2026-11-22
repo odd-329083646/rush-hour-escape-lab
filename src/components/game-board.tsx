@@ -3,6 +3,7 @@ import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Lightbulb, Play, Plus } from
 import { Button } from "@/components/ui/button";
 import type { Car, Move } from "@/engine/game";
 import type { TKey } from "@/lib/i18n";
+import { VehicleArt } from "@/components/vehicle-art";
 
 export type TranslateFn = (key: TKey, vars?: Record<string, string | number>) => string;
 
@@ -94,22 +95,25 @@ export function GameBoard({
             data-selected={isSelected}
             data-hidden={isHidden}
             data-escaping={isEscaping}
+            data-dragging={isDragging}
+            data-orientation={car.dir}
+            data-length={car.len}
             aria-label={getCarLabel ? getCarLabel(car, isHidden) : car.name}
             className="car h-auto min-w-0 touch-none select-none p-0 hover:bg-transparent"
             style={{
-              background: car.color,
               gridRow: `${car.row + 1} / span ${car.dir === "v" ? car.len : 1}`,
               gridColumn: `${car.col + 1} / span ${car.dir === "h" ? car.len : 1}`,
               transform: isDragging
                 ? car.dir === "h"
-                  ? `translate(${drag!.offset}px, 0)`
-                  : `translate(0, ${drag!.offset}px)`
+                  ? `translate(${drag?.offset}px, 0)`
+                  : `translate(0, ${drag?.offset}px)`
                 : undefined,
               transition: isDragging ? "none" : undefined,
               zIndex: isDragging ? 5 : undefined,
             }}
           >
-            {car.id}
+            <VehicleArt car={car} />
+            <span className="vehicle-id">{car.id}</span>
           </Button>
         );
       })}
@@ -276,9 +280,13 @@ export function CarPalette({
       className="palette-cell h-auto"
     >
       <span
-        className="h-3 rounded-sm"
-        style={{ background: c.color, width: c.len === 3 ? "2.5rem" : "1.5rem" }}
-      />
+        className="vehicle-preview"
+        data-orientation={c.dir}
+        data-length={c.len}
+        aria-hidden="true"
+      >
+        <VehicleArt car={c} />
+      </span>
       <span className="text-xs">
         {c.id} {c.dir === "h" ? "↔" : "↕"}
       </span>

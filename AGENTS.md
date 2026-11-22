@@ -34,5 +34,6 @@
 - Device control preferences live in storageService and useSettings exposes hydration-safe reactive switches; all board hooks gate keyboard and pointer gestures without disabling on-screen controls.
 - Render responsive city artwork once in the root shell using CDN asset pointers; shared CSS tokens and button variants own the toy theme, while vehicle transforms remain exclusively controlled by gameplay gestures.
 - Share full-screen victory presentation through VictoryOverlay and VictoryStars; these components only render existing results and never compute rewards or game outcomes.
+- Share decorative vehicle artwork between board and palette; keep it pointer-inert and hide all artwork for mystery vehicles so styling never exposes hidden positions or changes drag geometry.
 - Standard and daily screens use useExitAnimation to reveal results after the red-car exit; presentation timing must never delay completion, scoring, or rewards.
 - Bundle the hosted server as one module via `rolldownConfig.output.inlineDynamicImports` in nitro.config.ts (Nitro merges it above preset defaults); split server dependency chunks form import cycles that crash every request, while browser route code splitting stays intact.

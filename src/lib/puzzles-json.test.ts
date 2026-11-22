@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { IS_OFFLINE_MODE, loadPuzzlesAsync, type PuzzleRaw } from "./puzzles";
+import { IS_OFFLINE_MODE, loadPuzzlesAsync, type PuzzleRaw } from "@/engine/game";
+import { puzzleRepository } from "@/services/puzzleRepository";
 
 const JSON_PATH = path.resolve(process.cwd(), "public/puzzles.json");
 
@@ -37,7 +38,7 @@ describe("public/puzzles.json", () => {
 });
 
 describe("loadPuzzlesAsync", () => {
-  it("fetches the puzzle file, inflates and sorts the puzzles", async () => {
+  it("fetches the puzzle file and inflates vehicles in catalogue order", async () => {
     const raw: PuzzleRaw[] = [
       {
         par: 20,
@@ -52,8 +53,8 @@ describe("loadPuzzlesAsync", () => {
       "fetch",
       vi.fn(async () => new Response(JSON.stringify(raw), { status: 200 })),
     );
-    const loaded = await loadPuzzlesAsync();
-    expect(loaded.map((p) => p.par)).toEqual([5, 20]);
+    const loaded = await loadPuzzlesAsync(puzzleRepository);
+    expect(loaded.map((p) => p.par)).toEqual([20, 5]);
     // every car got its full definition inflated from CAR_DEFAULTS
     for (const p of loaded)
       for (const c of p.cars) {
@@ -71,7 +72,7 @@ describe("loadPuzzlesAsync", () => {
       "fetch",
       vi.fn(async () => new Response("not json", { status: 500 })),
     );
-    const loaded = await loadPuzzlesAsync();
+    const loaded = await loadPuzzlesAsync(puzzleRepository);
     expect(loaded.length).toBeGreaterThan(0);
     for (const p of loaded) {
       expect(p.cars.some((c) => c.id === "X")).toBe(true);
@@ -85,9 +86,9 @@ describe("loadPuzzlesAsync", () => {
       "fetch",
       vi.fn(async () => new Response("[{oops", { status: 200 })),
     );
-    const loaded = await loadPuzzlesAsync();
+    const loaded = await loadPuzzlesAsync(puzzleRepository);
     expect(loaded.length).toBeGreaterThan(0);
-    expect(loaded[0]!.cars.some((c) => c.id === "X")).toBe(true);
+    expect(loaded[0]?.cars.some((c) => c.id === "X")).toBe(true);
     expect(IS_OFFLINE_MODE).toBe(true);
   }, 60_000);
 
@@ -102,7 +103,7 @@ describe("loadPuzzlesAsync", () => {
       "fetch",
       vi.fn(async () => new Response(JSON.stringify(raw), { status: 200 })),
     );
-    const loaded = await loadPuzzlesAsync();
+    const loaded = await loadPuzzlesAsync(puzzleRepository);
     expect(loaded.map((p) => p.par)).toEqual([7]);
   });
 });
