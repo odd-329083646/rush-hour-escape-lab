@@ -7,7 +7,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
   const length = car.len * 100;
   const vertical = car.dir === "v";
   const isTruck = car.len === 3;
-  const cabX = length - 66;
+  const cabX = length - 68;
 
   return (
     <svg
@@ -18,111 +18,110 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
       style={{ color: car.color }}
     >
       <defs>
-        <filter id={`toyGlowShadow-${uid}`} x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="4" stdDeviation="2.5" floodOpacity="0.38" />
+        <filter id={`toyShadow-${uid}`} x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="4" stdDeviation="2.5" floodOpacity="0.4" />
         </filter>
-        <radialGradient id={`toyDome-${uid}`} cx="50%" cy="38%" r="62%">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.36" />
-          <stop offset="60%" stopColor="#ffffff" stopOpacity="0.06" />
-          <stop offset="100%" stopColor="#000000" stopOpacity="0.28" />
+        <radialGradient id={`toyDome-${uid}`} cx="50%" cy="35%" r="65%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.38" />
+          <stop offset="58%" stopColor="#ffffff" stopOpacity="0.06" />
+          <stop offset="100%" stopColor="#000000" stopOpacity="0.3" />
         </radialGradient>
-        <linearGradient id={`softGlass-${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.42" />
-          <stop offset="100%" stopColor="#000000" stopOpacity="0.2" />
+        <linearGradient id={`glassTone-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.48" />
+          <stop offset="100%" stopColor="#0f172a" stopOpacity="0.28" />
         </linearGradient>
-        <radialGradient id={`lampGlow-${uid}`} cx="35%" cy="35%" r="65%">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
-          <stop offset="100%" stopColor="#fde68a" stopOpacity="0.85" />
+        <radialGradient id={`headlightTone-${uid}`} cx="35%" cy="35%" r="65%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.98" />
+          <stop offset="100%" stopColor="#fde047" stopOpacity="0.88" />
         </radialGradient>
       </defs>
 
       <g
         transform={vertical ? `translate(0 ${length}) rotate(-90)` : undefined}
-        filter={`url(#toyGlowShadow-${uid})`}
+        filter={`url(#toyShadow-${uid})`}
       >
-        {/* מראות צד קטנות וחמודות */}
-        <g fill="currentColor" stroke="var(--vehicle-detail-edge)" strokeOpacity="0.45" strokeWidth="2">
-          <ellipse cx={length - 44} cy="7" rx="8" ry="5" />
-          <ellipse cx={length - 44} cy="93" rx="8" ry="5" />
+        {/* מראות צד חמודות ליד הקבינה */}
+        <g
+          fill="currentColor"
+          stroke="var(--vehicle-detail-edge)"
+          strokeOpacity="0.45"
+          strokeWidth="1.8"
+        >
+          <ellipse cx={length - 48} cy="8" rx="7" ry="4.5" />
+          <ellipse cx={length - 48} cy="92" rx="7" ry="4.5" />
         </g>
 
-        {/* גוף צעצוע עגלגל ושמנמן */}
+        {/* גוף צעצוע עגלגל */}
         <path
           className="vehicle-body"
           d={`M 26 11 H ${length - 26} Q ${length - 7} 11 ${length - 7} 32 V 68 Q ${length - 7} 89 ${length - 26} 89 H 26 Q 7 89 7 68 V 32 Q 7 11 26 11 Z`}
         />
-
-        {/* הצללת נפח עגלגלה */}
         <path
           d={`M 26 11 H ${length - 26} Q ${length - 7} 11 ${length - 7} 32 V 68 Q ${length - 7} 89 ${length - 26} 89 H 26 Q 7 89 7 68 V 32 Q 7 11 26 11 Z`}
           fill={`url(#toyDome-${uid})`}
           pointerEvents="none"
         />
 
-        {/* פס פגוש/טמבון קדמי עדין */}
-        <rect
-          x={length - 12}
-          y="24"
-          width="5"
-          height="52"
-          rx="2.5"
-          fill="#ffffff"
-          opacity="0.25"
-          pointerEvents="none"
-        />
-
         {isTruck ? (
           <>
-            {/* ארגז משאית עגלגל ורך */}
+            {/* ארגז משאית מעוגל */}
             <rect
-              x="16"
-              y="19"
-              width={cabX - 22}
-              height="62"
-              rx="18"
+              x="15"
+              y="18"
+              width={cabX - 21}
+              height="64"
+              rx="17"
               fill="currentColor"
               stroke="var(--vehicle-detail-edge)"
               strokeOpacity="0.32"
               strokeWidth="2"
             />
             <rect
-              x="16"
-              y="19"
-              width={cabX - 22}
-              height="62"
-              rx="18"
+              x="15"
+              y="18"
+              width={cabX - 21}
+              height="64"
+              rx="17"
               fill={`url(#toyDome-${uid})`}
               pointerEvents="none"
             />
-            {/* שמשה קדמית מעוגלת לקבינה */}
+            {/* הפרדה עדינה לקבינה */}
+            <line
+              className="vehicle-seam"
+              x1={cabX - 2}
+              y1="16"
+              x2={cabX - 2}
+              y2="84"
+            />
+            {/* שמשה קדמית עגלגלה בקבינה */}
             <rect
               x={cabX + 6}
-              y="26"
+              y="25"
               width="22"
-              height="48"
+              height="50"
               rx="10"
               fill="currentColor"
               stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.4"
+              strokeOpacity="0.42"
               strokeWidth="2"
             />
             <rect
               x={cabX + 6}
-              y="26"
+              y="25"
               width="22"
-              height="48"
+              height="50"
               rx="10"
-              fill={`url(#softGlass-${uid})`}
+              fill={`url(#glassTone-${uid})`}
               pointerEvents="none"
             />
           </>
         ) : (
           <>
-            {/* גג מכונית מעוגל */}
+            {/* גג מעוגל של מכונית */}
             <rect
-              x="28"
+              x="27"
               y="18"
-              width={length - 56}
+              width={length - 54}
               height="64"
               rx="22"
               fill="currentColor"
@@ -131,45 +130,66 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               strokeWidth="2"
             />
             <rect
-              x="28"
+              x="27"
               y="18"
-              width={length - 56}
+              width={length - 54}
               height="64"
               rx="22"
               fill={`url(#toyDome-${uid})`}
               pointerEvents="none"
             />
-            {/* שמשה קדמית מעוגלת ורכה */}
+            {/* שמשה אחורית עדינה */}
             <rect
-              x={length - 48}
-              y="27"
-              width="17"
-              height="46"
-              rx="8"
+              x="31"
+              y="29"
+              width="12"
+              height="42"
+              rx="6"
               fill="currentColor"
               stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.38"
+              strokeOpacity="0.35"
+              strokeWidth="1.6"
+            />
+            <rect
+              x="31"
+              y="29"
+              width="12"
+              height="42"
+              rx="6"
+              fill={`url(#glassTone-${uid})`}
+              pointerEvents="none"
+            />
+            {/* שמשה קדמית עגלגלה וברורה */}
+            <rect
+              x={length - 48}
+              y="26"
+              width="18"
+              height="48"
+              rx="8.5"
+              fill="currentColor"
+              stroke="var(--vehicle-detail-edge)"
+              strokeOpacity="0.42"
               strokeWidth="2"
             />
             <rect
               x={length - 48}
-              y="27"
-              width="17"
-              height="46"
-              rx="8"
-              fill={`url(#softGlass-${uid})`}
+              y="26"
+              width="18"
+              height="48"
+              rx="8.5"
+              fill={`url(#glassTone-${uid})`}
               pointerEvents="none"
             />
           </>
         )}
 
-        {/* פנסים קדמיים עגולים ורכים */}
-        <g stroke="var(--vehicle-detail-edge)" strokeOpacity="0.35" strokeWidth="1.5">
-          <ellipse cx={length - 16} cy="28" rx="6.5" ry="8" fill={`url(#lampGlow-${uid})`} />
-          <ellipse cx={length - 16} cy="72" rx="6.5" ry="8" fill={`url(#lampGlow-${uid})`} />
+        {/* פנסים קדמיים חמודים */}
+        <g stroke="var(--vehicle-detail-edge)" strokeOpacity="0.35" strokeWidth="1.4">
+          <ellipse cx={length - 16} cy="28" rx="6" ry="7.5" fill={`url(#headlightTone-${uid})`} />
+          <ellipse cx={length - 16} cy="72" rx="6" ry="7.5" fill={`url(#headlightTone-${uid})`} />
         </g>
 
-        {/* גריל/חיוך קדמי קטן ועדין */}
+        {/* גריל קדמי קטן */}
         <rect
           x={length - 13}
           y="42"
