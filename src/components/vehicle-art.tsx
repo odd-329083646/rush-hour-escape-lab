@@ -7,7 +7,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
   const length = car.len * 100;
   const vertical = car.dir === "v";
   const isTruck = car.len === 3;
-  const front = length - 56;
+  const cabX = length - 66;
 
   return (
     <svg
@@ -18,111 +18,125 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
       style={{ color: car.color }}
     >
       <defs>
-        <linearGradient id={`bodyGrad-${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.35" />
-          <stop offset="45%" stopColor="#ffffff" stopOpacity="0.06" />
-          <stop offset="100%" stopColor="#000000" stopOpacity="0.28" />
+        <linearGradient id={`toyVolume-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.34" />
+          <stop offset="50%" stopColor="#ffffff" stopOpacity="0.04" />
+          <stop offset="100%" stopColor="#000000" stopOpacity="0.32" />
         </linearGradient>
-        <linearGradient id={`glassGrad-${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.45" />
-          <stop offset="100%" stopColor="#000000" stopOpacity="0.25" />
+        <linearGradient id={`glassSheen-${uid}`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.38" />
+          <stop offset="100%" stopColor="#000000" stopOpacity="0.2" />
         </linearGradient>
       </defs>
 
       <g transform={vertical ? `translate(0 ${length}) rotate(-90)` : undefined}>
-        {/* צל תלת-ממדי רך מתחת לרכב */}
+        {/* צל רך על החניון */}
         <rect
           x="10"
-          y="18"
+          y="17"
           width={length - 20}
           height="74"
-          rx="26"
+          rx="22"
           fill="#000000"
-          opacity="0.32"
+          opacity="0.35"
         />
 
-        {/* גוף עיקרי עם נפח והצללה */}
-        <rect
+        {/* גלגלי צעצוע עגלגלים שמציצים מהצדדים */}
+        <g className="vehicle-tires">
+          <rect x="26" y="4" width="26" height="14" rx="6" />
+          <rect x="26" y="82" width="26" height="14" rx="6" />
+          <rect x={length - 54} y="4" width="26" height="14" rx="6" />
+          <rect x={length - 54} y="82" width="26" height="14" rx="6" />
+        </g>
+
+        {/* גוף הרכב העיקרי עם פגושים מעוגלים */}
+        <path
           className="vehicle-body"
-          x="10"
-          y="12"
-          width={length - 20}
-          height="72"
-          rx="25"
+          d={`M 24 13 H ${length - 24} Q ${length - 9} 13 ${length - 9} 28 V 72 Q ${length - 9} 87 ${length - 24} 87 H 24 Q 9 87 9 72 V 28 Q 9 13 24 13 Z`}
         />
-        <rect
-          x="10"
-          y="12"
-          width={length - 20}
-          height="72"
-          rx="25"
-          fill={`url(#bodyGrad-${uid})`}
+
+        {/* נפח והצללה תלת-ממדית */}
+        <path
+          d={`M 24 13 H ${length - 24} Q ${length - 9} 13 ${length - 9} 28 V 72 Q ${length - 9} 87 ${length - 24} 87 H 24 Q 9 87 9 72 V 28 Q 9 13 24 13 Z`}
+          fill={`url(#toyVolume-${uid})`}
           pointerEvents="none"
         />
 
         {isTruck ? (
           <>
-            {/* ארגז משאית תלת-ממדי נקי */}
+            {/* ארגז משאית מוגדר עם שוליים */}
             <rect
               className="vehicle-cargo"
-              x="20"
-              y="22"
-              width={length - 88}
-              height="52"
-              rx="14"
+              x="16"
+              y="20"
+              width={cabX - 24}
+              height="60"
+              rx="10"
             />
-            <rect
-              x="20"
-              y="22"
-              width={length - 88}
-              height="52"
-              rx="14"
-              fill={`url(#bodyGrad-${uid})`}
-              pointerEvents="none"
-            />
+            {/* קו הפרדה ברור בין הארגז לקבינה */}
             <line
               className="vehicle-seam"
-              x1={front - 14}
-              y1="16"
-              x2={front - 14}
-              y2="80"
+              x1={cabX - 4}
+              y1="15"
+              x2={cabX - 4}
+              y2="85"
+            />
+            {/* שמשה קדמית של קבינת המשאית */}
+            <path
+              className="vehicle-window"
+              d={`M ${cabX + 6} 25 H ${cabX + 26} Q ${cabX + 34} 50 ${cabX + 26} 75 H ${cabX + 6} Q ${cabX + 2} 50 ${cabX + 6} 25 Z`}
+            />
+            <path
+              d={`M ${cabX + 9} 29 H ${cabX + 22} L ${cabX + 14} 52 H ${cabX + 8} Z`}
+              fill={`url(#glassSheen-${uid})`}
+              pointerEvents="none"
             />
           </>
         ) : (
-          /* גג/תא נוסעים מעוגל עם עומק */
-          <rect
-            className="vehicle-window"
-            x="26"
-            y="25"
-            width="34"
-            height="46"
-            rx="14"
-          />
+          <>
+            {/* תא נוסעים / גג מכונית עם כתפיים ברורות */}
+            <path
+              className="vehicle-body"
+              d={`M 38 19 H ${length - 36} Q ${length - 26} 19 ${length - 26} 29 V 71 Q ${length - 26} 81 ${length - 36} 81 H 38 Q 28 81 28 71 V 29 Q 28 19 38 19 Z`}
+            />
+            {/* שמשה אחורית */}
+            <path
+              className="vehicle-window"
+              d={`M 33 27 H 45 V 73 H 33 Q 30 50 33 27 Z`}
+            />
+            {/* גג מרכזי */}
+            <rect
+              className="vehicle-body-shine"
+              x="49"
+              y="25"
+              width={length - 102}
+              height="50"
+              rx="10"
+              opacity="0.55"
+            />
+            {/* שמשה קדמית */}
+            <path
+              className="vehicle-window"
+              d={`M ${length - 47} 27 H ${length - 33} Q ${length - 30} 50 ${length - 33} 73 H ${length - 47} Z`}
+            />
+            <path
+              d={`M ${length - 44} 31 H ${length - 36} L ${length - 43} 52 H ${length - 45} Z`}
+              fill={`url(#glassSheen-${uid})`}
+              pointerEvents="none"
+            />
+          </>
         )}
 
-        {/* שמשה קדמית נקייה עם ברק תלת-ממדי */}
-        <rect
-          className="vehicle-window"
-          x={front}
-          y="25"
-          width="24"
-          height="46"
-          rx="11"
-        />
-        <rect
-          x={front}
-          y="25"
-          width="24"
-          height="46"
-          rx="11"
-          fill={`url(#glassGrad-${uid})`}
-          pointerEvents="none"
-        />
-
-        {/* פנסים קדמיים עדינים */}
+        {/* פנסים קדמיים */}
         <g className="vehicle-headlights">
-          <rect x={length - 16} y="28" width="5" height="12" rx="2.5" />
-          <rect x={length - 16} y="56" width="5" height="12" rx="2.5" />
+          <rect x={length - 15} y="23" width="5" height="14" rx="2.5" />
+          <rect x={length - 15} y="63" width="5" height="14" rx="2.5" />
+        </g>
+
+        {/* פנסים אחוריים */}
+        <g className="vehicle-taillights">
+          <rect x="11" y="24" width="4" height="12" rx="2" />
+          <rect x="11" y="64" width="4" height="12" rx="2" />
         </g>
       </g>
     </svg>
