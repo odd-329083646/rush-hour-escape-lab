@@ -1,4 +1,5 @@
 import type { PuzzleRepositoryPort } from "./contracts";
+import { soundEngine } from "../audio/soundEngine";
 export type Dir = "h" | "v";
 export type Level = "easy" | "medium" | "hard" | "murderer";
 export type Move = "up" | "down" | "left" | "right";
@@ -203,11 +204,20 @@ export function applyMove(
   move: Move,
   steps: number,
 ): { cars: Car[]; error?: string } {
-  if (!Number.isInteger(steps) || steps < 1 || steps > 4) return { cars, error: "Invalid move" };
+  if (!Number.isInteger(steps) || steps < 1 || steps > 4) {
+    soundEngine.playCollision();
+    return { cars, error: "Invalid move" };
+  }
   const car = cars.find((c) => c.id === id);
-  if (!car) return { cars, error: "Select a car first" };
+  if (!car) {
+    soundEngine.playCollision();
+    return { cars, error: "Select a car first" };
+  }
   const horiz = move === "left" || move === "right";
-  if ((car.dir === "h") !== horiz) return { cars, error: "This car can't move that way" };
+  if ((car.dir === "h") !== horiz) {
+    soundEngine.playCollision();
+    return { cars, error: "This car can't move that way" };
+  }
   const d = move === "right" || move === "down" ? 1 : -1;
   const occ = new Set(
     cars
@@ -222,7 +232,10 @@ export function applyMove(
     const nc = horiz ? (d > 0 ? col + car.len : col - 1) : col;
 
     if (id === "X" && row === 2 && move === "right") {
-      if (occ.has(`${row},${nc}`)) return { cars, error: "Blocked by another car" };
+      if (occ.has(`${row},${nc}`)) {
+        soundEngine.playCollision();
+        return { cars, error: "Blocked by another car" };
+      }
       col += 1;
       if (col + car.len - 1 >= 5) {
         col = 6 - car.len;
@@ -231,13 +244,30 @@ export function applyMove(
       continue;
     }
 
-    if (nr < 0 || nr > 5 || nc < 0 || nc > 5) return { cars, error: "Can't leave the parking lot" };
-    if (occ.has(`${nr},${nc}`)) return { cars, error: "Blocked by another car" };
+    if (nr < 0 || nr > 5 || nc < 0 || nc > 5) {
+      soundEngine.playCollision();
+      return { cars, error: "Can't leave the parking lot" };
+    }
+    if (occ.has(`${nr},${nc}`)) {
+      soundEngine.playCollision();
+      return { cars, error: "Blocked by another car" };
+    }
     if (horiz) col += d;
     else row += d;
   }
 
-  return { cars: cars.map((c) => (c.id === id ? { ...c, row, col } : c)) };
+  const nextCars = cars.map((c) => (c.id === id ? { ...c, row, col } : c));
+  const moved = row !== car.row || col !== car.col;
+
+  if (moved) {
+    if (isSolved(nextCars)) {
+      soundEngine.playWin();
+    } else {
+      soundEngine.playCarReleased();
+    }
+  }
+
+  return { cars: nextCars };
 }
 
 export function minSolution(start: Car[]): number {
