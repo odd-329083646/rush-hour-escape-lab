@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { getCoins } from "@/engine/rewards";
+import { blApi } from "@/engine/blApi";
 
 function subscribe(callback: () => void) {
   window.addEventListener("rush_hour_coins_updated", callback);
@@ -11,5 +11,10 @@ function subscribe(callback: () => void) {
 }
 
 export function useCoins(): number {
-  return useSyncExternalStore(subscribe, getCoins, () => 0);
+  const storage = blApi.ports.storage;
+  return useSyncExternalStore(
+    subscribe,
+    () => blApi.rewards.getCoins(storage),
+    () => 0,
+  );
 }

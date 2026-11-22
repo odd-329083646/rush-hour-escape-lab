@@ -154,6 +154,7 @@ export function useStandardGame(level: Level) {
       puzzle.par,
       timeInSeconds,
       invisibleBumps,
+      storage,
     );
 
     setWonStars(stars);

@@ -20,6 +20,7 @@ export function useDailyGame({
   const { dragEnabled, keyboardEnabled } = useSettings();
   const { t, te, lang } = useI18n();
   const storage = blApi.ports.storage;
+  const remoteScore = blApi.ports.remoteScore;
   const [start, setStart] = useState<Car[]>([]);
   const [par, setPar] = useState(0);
   const {
@@ -191,8 +192,8 @@ export function useDailyGame({
         const isFirstSolve = !blApi.dailyScores.isSolvedOn(date, storage);
 
         void blApi.dailyScores
-          .submitScore({ date, solve_time: time, player_name: name }, storage, blApi.ports.remoteScore)
-          .then((res) => {
+  .submitScore({ date, solve_time: time, player_name: name }, storage, remoteScore)
+  .then((res) => {
             let coinsEarned = 0;
             if (isFirstSolve) {
               coinsEarned += 30;
@@ -226,7 +227,7 @@ export function useDailyGame({
       hints.peek,
       wonAt,
       storage,
-      blApi.ports.remoteScore,
+remoteScore,
     ],
   );
 
