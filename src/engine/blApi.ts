@@ -198,6 +198,12 @@ export interface BlApi {
     ): { state: RaceState; error?: string };
     getGuestCredential(storage?: StoragePort): GuestCredential | null;
     saveGuestCredential(cred: GuestCredential, storage?: StoragePort): void;
+    ensureGuestCredential(
+      register: (args: {
+        data: { username: string; country: string; avatarId: string; coins: number };
+      }) => Promise<unknown>,
+      storage?: StoragePort,
+    ): Promise<GuestCredential>;
     applySnapshot(snapshot: RaceSnapshot, balanceBefore: number, storage?: StoragePort): void;
     walletDelta(storage?: StoragePort): number;
     stats(storage?: StoragePort): { wins: number; losses: number };
@@ -299,6 +305,22 @@ export function createBlApi(deps: {
       advanceRace,
       getGuestCredential: (s = storage) => getGuestCredential(s),
       saveGuestCredential: (cred, s = storage) => saveGuestCredential(cred, s),
+      ensureGuestCredential: async (register, s = storage) => {
+        const existing = getGuestCredential(s);
+        if (existing) return existing;
+        const currentProfile = getProfile(s);
+        const currentCoins = getCoins(s);
+        const created = (await register({
+          data: {
+            username: currentProfile.username,
+            country: currentProfile.country,
+            avatarId: currentProfile.avatarId ?? "car",
+            coins: currentCoins,
+          },
+        })) as GuestCredential;
+        saveGuestCredential(created, s);
+        return created;
+      },
       applySnapshot: (snapshot, balanceBefore, s = storage) =>
         applyTournamentSnapshot(snapshot, balanceBefore, s),
       walletDelta: (s = storage) => walletDelta(s),

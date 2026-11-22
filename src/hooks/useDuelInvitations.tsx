@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { duelInvitations, registerTournamentGuest } from "@/lib/tournament.functions";
-import { ensureGuestCredential, subscribeDuelInvitations } from "@/services/supabaseService";
+import { subscribeDuelInvitations } from "@/services/supabaseService";
+import { blApi } from "@/engine/blApi";
 import type { GuestCredential } from "@/engine/tournament";
 import { toast } from "sonner";
 import { getLang, translate } from "@/lib/i18n";
@@ -21,6 +22,7 @@ const Context = createContext<{
 export function DuelInvitationsProvider({ children }: { children: ReactNode }) {
   const invoke = useServerFn(duelInvitations);
   const register = useServerFn(registerTournamentGuest);
+  const storage = blApi.ports.storage;
   const [inbox, setInbox] = useState<DuelInbox>({ playerCode: "", invitations: [] });
   const credential = useRef<GuestCredential | null>(null);
   useEffect(() => {
@@ -46,7 +48,8 @@ export function DuelInvitationsProvider({ children }: { children: ReactNode }) {
         pending = false;
       }
     };
-    void ensureGuestCredential(register)
+    void blApi.tournament
+      .ensureGuestCredential(register, storage)
       .then((guest) => {
         if (!alive) return;
         credential.current = guest;
@@ -64,7 +67,7 @@ export function DuelInvitationsProvider({ children }: { children: ReactNode }) {
       unsubscribe();
       window.clearInterval(timer);
     };
-  }, [invoke, register]);
+  }, [invoke, register, storage]);
   const send = async (code: string) => {
     if (!credential.current) return { sent: false };
     try {

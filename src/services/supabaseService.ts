@@ -1,6 +1,32 @@
 // src/services/supabaseService.ts
 import { supabase } from "@/integrations/supabase/client";
 import type { DailyScoreDO } from "./types";
+import { getGuestCredential, saveGuestCredential } from "@/engine/tournament-device";
+import type { GuestCredential } from "@/engine/tournament";
+
+type RegisterFn = (args: {
+  data: {
+    username: string;
+    country: string;
+    avatarId: string;
+    coins: number;
+  };
+}) => Promise<unknown>;
+
+export async function ensureGuestCredential(register: RegisterFn): Promise<GuestCredential> {
+  const existing = getGuestCredential();
+  if (existing) return existing;
+  const created = (await register({
+    data: {
+      username: "Guest",
+      country: "",
+      avatarId: "car",
+      coins: 0,
+    },
+  })) as GuestCredential;
+  saveGuestCredential(created);
+  return created;
+}
 
 export async function readDailyBest(date: string): Promise<number | null> {
   const { data, error } = await supabase

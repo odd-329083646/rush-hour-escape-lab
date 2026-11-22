@@ -35,3 +35,14 @@ export const puzzleRepository = {
     return puzzle;
   },
 };
+
+export async function loadPuzzlesAsync(repo = puzzleRepository): Promise<RawPuzzleDO[]> {
+  return repo.fetchCatalogue();
+}
+
+export async function getDailyPuzzleAsync(
+  dateKey: string,
+  repo = puzzleRepository,
+): Promise<RawPuzzleDO> {
+  return repo.fetchDailyPuzzle(dateKey);
+}

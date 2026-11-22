@@ -2,23 +2,16 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { AVATARS, DEFAULT_AVATAR_ID } from "@/config/avatars";
-import {
-  getProfile,
-  getPlayerRecords,
-  saveProfile,
-  validateUsername,
-  levelBests,
-  COUNTRIES,
-  type Profile,
-} from "@/engine/profile";
+import { validateUsername, type Profile } from "@/engine/profile";
+import { blApi } from "@/engine/blApi";
 import { initializeStorage, storageService } from "@/services/storageService";
-import { ensureGuestCredential } from "@/services/supabaseService";
 import { registerTournamentGuest, syncTournamentProfile } from "@/lib/tournament.functions";
 import { LEVELS, type Level } from "@/engine/game";
 import { useI18n } from "@/lib/i18n";
 
 export function useProfile() {
   const { t, lang } = useI18n();
+  const storage = blApi.ports.storage;
   const [profile, setProfile] = useState<Profile>({
     username: "",
     country: "",
@@ -35,13 +28,13 @@ export function useProfile() {
   const [username, setUsername] = useState("");
   useEffect(() => {
     const refresh = () => {
-      setProfile(getProfile());
-      setRecords(getPlayerRecords());
+      setProfile(blApi.profile.getProfile(storage));
+      setRecords(blApi.profile.getPlayerRecords(storage));
     };
     refresh();
-    setUsername(getProfile().username);
+    setUsername(blApi.profile.getProfile(storage).username);
     return storageService.subscribe(refresh);
-  }, []);
+  }, [storage]);
   function updateUsername(value: string) {
     // Callers navigate home after a successful save.
     const valid = validateUsername(value);
@@ -49,20 +42,23 @@ export function useProfile() {
       toast.error(t("usernameInvalid"));
       return false;
     }
-    saveProfile({ ...getProfile(), username: valid });
+    blApi.profile.saveProfile({ ...blApi.profile.getProfile(storage), username: valid }, storage);
     setUsername(valid);
     toast.success(t("profileSaved"));
     return true;
   }
   function updateAvatar(avatarId: string) {
     if (!AVATARS.some((avatar) => avatar.id === avatarId)) return;
-    saveProfile({ ...getProfile(), avatarId });
+    blApi.profile.saveProfile({ ...blApi.profile.getProfile(storage), avatarId }, storage);
   }
   function updateCountry(country: string) {
-    if (country !== "" && !COUNTRIES.some((item) => item.code === country)) return;
-    saveProfile({ ...getProfile(), country });
+    if (country !== "" && !blApi.profile.countries.some((item) => item.code === country)) return;
+    blApi.profile.saveProfile({ ...blApi.profile.getProfile(storage), country }, storage);
   }
-  const bests = (Object.keys(LEVELS) as Level[]).map((level) => ({ level, ...levelBests(level) }));
+  const bests = (Object.keys(LEVELS) as Level[]).map((level) => ({
+    level,
+    ...blApi.profile.levelBests(level, storage),
+  }));
   return {
     t,
     lang,
@@ -81,6 +77,7 @@ export function useProfile() {
 export function useProfileSync() {
   const register = useServerFn(registerTournamentGuest);
   const sync = useServerFn(syncTournamentProfile);
+  const storage = blApi.ports.storage;
   useEffect(() => {
     initializeStorage();
     let timer: number | undefined;
@@ -88,8 +85,8 @@ export function useProfileSync() {
     let inFlight = false;
     let lastSynced = "";
     const payload = () => {
-      const { standardCompleted, dailySolved } = getPlayerRecords();
-      return { profile: getProfile(), records: { standardCompleted, dailySolved } };
+      const { standardCompleted, dailySolved } = blApi.profile.getPlayerRecords(storage);
+      return { profile: blApi.profile.getProfile(storage), records: { standardCompleted, dailySolved } };
     };
     const schedule = () => {
       if (!active || inFlight) return;
@@ -104,7 +101,7 @@ export function useProfileSync() {
       if (signature === lastSynced || inFlight || !navigator.onLine) return;
       inFlight = true;
       try {
-        const credential = await ensureGuestCredential(register);
+        const credential = await blApi.tournament.ensureGuestCredential(register, storage);
         await sync({ data: { credential, ...data } });
         lastSynced = signature;
       } catch {
@@ -125,5 +122,5 @@ export function useProfileSync() {
       window.removeEventListener("online", schedule);
       window.removeEventListener("focus", schedule);
     };
-  }, [register, sync]);
+  }, [register, sync, storage]);
 }

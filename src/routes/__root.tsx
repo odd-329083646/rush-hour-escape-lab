@@ -12,9 +12,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { loadPuzzlesAsync } from "../lib/puzzles";
+import { blApi } from "@/engine/blApi";
 import { applyDocumentLang, useI18n } from "../lib/i18n";
-import { getProfile } from "../lib/profile";
 import { Toaster } from "@/components/ui/sonner";
 import { useProfileSync } from "@/hooks/useProfile";
 import portraitCity from "@/assets/toy-city-portrait.jpg.asset.json";
@@ -149,9 +148,8 @@ function RootComponent() {
 
   useEffect(() => {
     applyDocumentLang();
-    getProfile(); // creates a random username on first load
-    // מריץ טעינה מוקדמת של קובץ הפאזלים
-    void loadPuzzlesAsync();
+    blApi.profile.getProfile(blApi.ports.storage); // creates a random username on first load
+    void blApi.game.loadPuzzles();
   }, []);
 
   return (
