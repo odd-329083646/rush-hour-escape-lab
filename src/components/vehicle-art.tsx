@@ -19,16 +19,16 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
     >
       <defs>
         <filter id={`cleanShadow-${uid}`} x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="4" stdDeviation="2.2" floodOpacity="0.38" />
+          <feDropShadow dx="0" dy="4" stdDeviation="2.2" floodOpacity="0.4" />
         </filter>
-        <radialGradient id={`toyDome-${uid}`} cx="50%" cy="35%" r="65%">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.36" />
-          <stop offset="58%" stopColor="#ffffff" stopOpacity="0.05" />
-          <stop offset="100%" stopColor="#000000" stopOpacity="0.28" />
+        <radialGradient id={`toyDome-${uid}`} cx="50%" cy="32%" r="68%">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.38" />
+          <stop offset="56%" stopColor="#ffffff" stopOpacity="0.05" />
+          <stop offset="100%" stopColor="#000000" stopOpacity="0.3" />
         </radialGradient>
         <linearGradient id={`glassTone-${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.45" />
-          <stop offset="100%" stopColor="#0f172a" stopOpacity="0.34" />
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.48" />
+          <stop offset="100%" stopColor="#0f172a" stopOpacity="0.36" />
         </linearGradient>
         <radialGradient id={`headlightTone-${uid}`} cx="35%" cy="35%" r="65%">
           <stop offset="0%" stopColor="#ffffff" stopOpacity="0.98" />
@@ -62,6 +62,19 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
           pointerEvents="none"
         />
 
+        {/* קו אור עדין לאורך הצד העליון */}
+        <line
+          x1="28"
+          y1="14.5"
+          x2={length - 28}
+          y2="14.5"
+          stroke="#ffffff"
+          strokeOpacity="0.28"
+          strokeWidth="2"
+          strokeLinecap="round"
+          pointerEvents="none"
+        />
+
         {isTruck ? (
           <>
             {/* ארגז משאית נקי ומחובר */}
@@ -73,8 +86,8 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               rx="15"
               fill="currentColor"
               stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.32"
-              strokeWidth="1.6"
+              strokeOpacity="0.34"
+              strokeWidth="1.7"
             />
             <rect
               x="14"
@@ -85,11 +98,24 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               fill={`url(#toyDome-${uid})`}
               pointerEvents="none"
             />
-            {/* פסי ארגז עדינים */}
+            {/* מסגרת פנימית ופסי ארגז */}
+            <rect
+              x="20"
+              y="22"
+              width={cabX - 26}
+              height="56"
+              rx="11"
+              fill="#000000"
+              fillOpacity="0.1"
+              stroke="var(--vehicle-detail-edge)"
+              strokeOpacity="0.24"
+              strokeWidth="1.4"
+              pointerEvents="none"
+            />
             <g
               stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.22"
-              strokeWidth="2.4"
+              strokeOpacity="0.26"
+              strokeWidth="2.6"
               pointerEvents="none"
             >
               <line x1="42" y1="24" x2="42" y2="76" />
@@ -104,7 +130,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               x2={cabX + 2}
               y2="86"
               stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.38"
+              strokeOpacity="0.4"
               strokeWidth="2"
             />
 
@@ -132,7 +158,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
           </>
         ) : (
           <>
-            {/* גג רך ומאוחד של מכונית */}
+            {/* קבינה / גג מעוגל של מכונית */}
             <rect
               x="26"
               y="18"
@@ -141,7 +167,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               rx="22"
               fill="currentColor"
               stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.24"
+              strokeOpacity="0.25"
               strokeWidth="1.6"
             />
             <rect
@@ -151,28 +177,6 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               height="64"
               rx="22"
               fill={`url(#toyDome-${uid})`}
-              pointerEvents="none"
-            />
-
-            {/* שמשה אחורית עדינה */}
-            <rect
-              x="30"
-              y="30"
-              width="12"
-              height="40"
-              rx="5.5"
-              fill="currentColor"
-              stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.32"
-              strokeWidth="1.5"
-            />
-            <rect
-              x="30"
-              y="30"
-              width="12"
-              height="40"
-              rx="5.5"
-              fill={`url(#glassTone-${uid})`}
               pointerEvents="none"
             />
 
