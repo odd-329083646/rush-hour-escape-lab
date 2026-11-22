@@ -2,14 +2,15 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { beforeEach as _be } from "vitest";
 import { DailyGame } from "./daily-game";
-import { pickHidden, getCoins } from "@/lib/puzzles";
+import { pickHidden } from "@/engine/game";
+import { getCoins } from "@/engine/rewards";
 
 vi.mock("@tanstack/react-router", () => ({
   Link: ({ children }: { children: React.ReactNode }) => <a>{children}</a>,
 }));
 vi.mock("./daily-calendar", () => ({ DailyCalendar: () => null }));
-vi.mock("@/lib/puzzles", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("@/lib/puzzles")>()),
+vi.mock("@/engine/rewards", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/engine/rewards")>()),
   getDailyPuzzleAsync: vi.fn().mockResolvedValue({
     par: 2,
     cars: [

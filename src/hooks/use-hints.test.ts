@@ -1,7 +1,7 @@
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { useHints } from "./use-hints";
-import { getCoins } from "@/lib/puzzles";
+import { getCoins } from "@/engine/rewards";
 
 afterEach(() => {
   cleanup();

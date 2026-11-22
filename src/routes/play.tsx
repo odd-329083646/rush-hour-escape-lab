@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { LEVELS, type Level } from "@/lib/puzzles";
+import { LEVELS, type Level } from "@/engine/game";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 import { SettingsButton } from "@/components/settings-dialog";

@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { Tutorial } from "./tutorial";
-import { getCoins } from "@/lib/puzzles";
+import { getCoins } from "@/engine/rewards";
 import { getLang, setLang } from "@/lib/i18n";
 import { StrictMode } from "react";
 import { storageService } from "@/services/storageService";

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { DailyGame } from "@/components/daily/daily-game";
-import { todayKey } from "@/lib/puzzles";
+import { todayKey } from "@/engine/game";
 
 export const Route = createFileRoute("/daily/")({
   head: () => ({

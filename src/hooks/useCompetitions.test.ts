@@ -22,7 +22,7 @@ vi.mock("@/hooks/useDuelInvitations", () => ({
     dismiss: vi.fn(),
   }),
 }));
-vi.mock("@/lib/puzzles", () => ({ getCoins: () => 100 }));
+vi.mock("@/engine/rewards", () => ({ getCoins: () => 100 }));
 import { useCompetitions } from "./useCompetitions";
 afterEach(() => {
   cleanup();

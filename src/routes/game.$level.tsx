@@ -20,7 +20,7 @@ import {
   WifiOff,
   X,
 } from "lucide-react";
-import { LEVELS, IS_OFFLINE_MODE, TIERS, type Level, type Move } from "@/lib/puzzles";
+import { LEVELS, IS_OFFLINE_MODE, TIERS, type Level, type Move } from "@/engine/game";
 import { Button } from "@/components/ui/button";
 import { SettingsButton } from "@/components/settings-dialog";
 import { HintSelection } from "@/components/hint-selection";

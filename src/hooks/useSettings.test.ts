@@ -3,7 +3,7 @@ import { afterEach, expect, it, vi } from "vitest";
 import { useSettings } from "./useSettings";
 import { useTournamentBoard } from "./useTournamentBoard";
 import { storageService } from "@/services/storageService";
-import type { Car } from "@/lib/puzzles";
+import type { Car } from "@/engine/game";
 import type { PointerEvent } from "react";
 
 const cars: Car[] = [
