@@ -7,7 +7,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
   const length = car.len * 100;
   const vertical = car.dir === "v";
   const isTruck = car.len === 3;
-  const cabX = length - 72;
+  const cabX = length - 76;
 
   return (
     <svg
@@ -18,118 +18,118 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
       style={{ color: car.color }}
     >
       <defs>
-        <filter id={`lowPolyDrop-${uid}`} x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="4" stdDeviation="1.4" floodOpacity="0.42" />
+        <filter id={`polyShadow-${uid}`} x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="4" stdDeviation="1.5" floodOpacity="0.45" />
         </filter>
-        <linearGradient id={`topFacet-${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.26" />
-          <stop offset="100%" stopColor="#ffffff" stopOpacity="0.02" />
+        <linearGradient id={`topLight-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.3" />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
         </linearGradient>
-        <linearGradient id={`bottomFacet-${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#000000" stopOpacity="0.08" />
-          <stop offset="100%" stopColor="#000000" stopOpacity="0.34" />
+        <linearGradient id={`bottomShade-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#000000" stopOpacity="0.05" />
+          <stop offset="100%" stopColor="#000000" stopOpacity="0.38" />
         </linearGradient>
       </defs>
 
       <g
         transform={vertical ? `translate(0 ${length}) rotate(-90)` : undefined}
-        filter={`url(#lowPolyDrop-${uid})`}
+        filter={`url(#polyShadow-${uid})`}
       >
-        {/* בסיס גוף Low Poly זוויתי */}
+        {/* שלד גוף Low Poly מחודד */}
         <polygon
           className="vehicle-body"
-          points={`12,12 ${length - 12},12 ${length},25 ${length},75 ${length - 12},88 12,88 0,75 0,25`}
+          points={`14,10 ${length - 14},10 ${length},24 ${length},76 ${length - 14},90 14,90 0,76 0,24`}
           stroke="var(--vehicle-detail-edge)"
-          strokeWidth="2"
+          strokeWidth="2.2"
         />
 
-        {/* פאה עליונה מוארת ופאה תחתונה מוצללת */}
+        {/* הצללה תחתונה ועליונה ליצירת זוויתיות */}
         <polygon
-          points={`12,12 ${length - 12},12 ${length - 18},22 18,22`}
-          fill={`url(#topFacet-${uid})`}
+          points={`14,10 ${length - 14},10 ${length - 20},20 20,20`}
+          fill={`url(#topLight-${uid})`}
           pointerEvents="none"
         />
         <polygon
-          points={`0,75 ${length},75 ${length - 12},88 12,88`}
-          fill={`url(#bottomFacet-${uid})`}
+          points={`0,76 ${length},76 ${length - 14},90 14,90`}
+          fill={`url(#bottomShade-${uid})`}
           pointerEvents="none"
         />
 
         {isTruck ? (
           <>
-            {/* ארגז מטען של משאית Low Poly */}
+            {/* ארגז משאית עמוק */}
             <polygon
-              points={`12,18 ${cabX - 6},18 ${cabX - 6},82 12,82 6,74 6,26`}
+              points={`10,16 ${cabX - 6},16 ${cabX - 6},84 10,84 4,76 4,24`}
               fill="currentColor"
               stroke="var(--vehicle-detail-edge)"
-              strokeWidth="2"
+              strokeWidth="2.2"
             />
-            {/* עומק פנימי של ארגז המטען */}
+            {/* עומק ארגז פנימי כהה */}
             <polygon
-              points={`18,24 ${cabX - 12},24 ${cabX - 12},76 18,76`}
+              points={`16,22 ${cabX - 12},22 ${cabX - 12},78 16,78`}
               fill="#000000"
-              fillOpacity="0.2"
+              fillOpacity="0.24"
               stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.4"
+              strokeOpacity="0.45"
               strokeWidth="1.5"
             />
-            {/* קבינה קדמית רחבה וזוויתית */}
+            {/* קבינה קדמית נפרדת ומובחנת */}
             <polygon
-              points={`${cabX},16 ${length - 14},16 ${length - 4},27 ${length - 4},73 ${length - 14},84 ${cabX},84`}
+              points={`${cabX},14 ${length - 12},14 ${length - 3},26 ${length - 3},74 ${length - 12},86 ${cabX},86`}
               fill="currentColor"
               stroke="var(--vehicle-detail-edge)"
-              strokeWidth="2"
+              strokeWidth="2.2"
             />
-            {/* שמשה קדמית מוגדרת */}
+            {/* שמשה קדמית בולטת */}
             <polygon
               className="vehicle-window"
-              points={`${cabX + 7},26 ${cabX + 27},26 ${cabX + 30},50 ${cabX + 27},74 ${cabX + 7},74`}
+              points={`${cabX + 7},24 ${cabX + 29},24 ${cabX + 33},50 ${cabX + 29},76 ${cabX + 7},76`}
               stroke="var(--vehicle-detail-edge)"
-              strokeWidth="1.5"
+              strokeWidth="1.8"
             />
           </>
         ) : (
           <>
-            {/* קבינה / גוף עליון של מכונית Low Poly */}
+            {/* קבינה מרכזית בולטת של מכונית */}
             <polygon
-              points={`24,17 ${length - 24},17 ${length - 17},26 ${length - 17},74 ${length - 24},83 24,83 17,74 17,26`}
+              points={`22,15 ${length - 22},15 ${length - 14},25 ${length - 14},75 ${length - 22},85 22,85 14,75 14,25`}
               fill="currentColor"
               stroke="var(--vehicle-detail-edge)"
-              strokeWidth="2"
+              strokeWidth="2.2"
             />
-            {/* שמשה אחורית זוויתית */}
+            {/* שמשה אחורית רחבה */}
             <polygon
               className="vehicle-window"
-              points="23,26 42,26 39,74 23,74"
+              points="21,25 46,25 42,75 21,75"
               stroke="var(--vehicle-detail-edge)"
-              strokeWidth="1.5"
+              strokeWidth="1.8"
             />
-            {/* פאת גג מרכזית */}
+            {/* גג מרכזי זוויתי */}
             <polygon
-              points={`42,24 ${length - 42},24 ${length - 39},76 39,76`}
-              fill={`url(#topFacet-${uid})`}
+              points={`46,22 ${length - 46},22 ${length - 42},78 42,78`}
+              fill={`url(#topLight-${uid})`}
               pointerEvents="none"
             />
-            {/* שמשה קדמית זוויתית */}
+            {/* שמשה קדמית רחבה */}
             <polygon
               className="vehicle-window"
-              points={`${length - 42},26 ${length - 23},26 ${length - 23},74 ${length - 39},74`}
+              points={`${length - 46},25 ${length - 21},25 ${length - 21},75 ${length - 42},75`}
               stroke="var(--vehicle-detail-edge)"
-              strokeWidth="1.5"
+              strokeWidth="1.8"
             />
           </>
         )}
 
-        {/* פנסים קדמיים צהובים בולטים */}
-        <g fill="#facc15" stroke="#854d0e" strokeWidth="1">
-          <polygon points={`${length - 15},21 ${length - 6},21 ${length - 6},35 ${length - 15},35`} />
-          <polygon points={`${length - 15},65 ${length - 6},65 ${length - 6},79 ${length - 15},79`} />
+        {/* פנסים קדמיים צהובים */}
+        <g fill="#facc15" stroke="#854d0e" strokeWidth="1.2">
+          <polygon points={`${length - 14},20 ${length - 5},20 ${length - 5},35 ${length - 14},35`} />
+          <polygon points={`${length - 14},65 ${length - 5},65 ${length - 5},80 ${length - 14},80`} />
         </g>
 
         {/* פנסים אחוריים */}
-        <g className="vehicle-taillights" fill="#ef4444" stroke="#7f1d1d" strokeWidth="1">
-          <polygon points="6,23 13,23 13,35 6,35" />
-          <polygon points="6,65 13,65 13,77 6,77" />
+        <g className="vehicle-taillights" fill="#ef4444" stroke="#7f1d1d" strokeWidth="1.2">
+          <polygon points="5,22 13,22 13,35 5,35" />
+          <polygon points="5,65 13,65 13,78 5,78" />
         </g>
       </g>
     </svg>
