@@ -5,7 +5,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
   const length = car.len * 100;
   const vertical = car.dir === "v";
   const isTruck = car.len === 3;
-  const front = length - 58;
+  const front = length - 54;
 
   return (
     <svg
@@ -16,96 +16,79 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
       style={{ color: car.color }}
     >
       <g transform={vertical ? `translate(0 ${length}) rotate(-90)` : undefined}>
-        {/* גלגלי צעצוע עגלגלים ורכים */}
-        <g className="vehicle-tires">
-          <rect x="26" y="4" width="28" height="16" rx="8" />
-          <rect x="26" y="80" width="28" height="16" rx="8" />
-          <rect x={length - 56} y="4" width="28" height="16" rx="8" />
-          <rect x={length - 56} y="80" width="28" height="16" rx="8" />
-        </g>
-
-        {/* גוף צעצוע עגלגל ושמנמן */}
-        <path
+        {/* גוף צעצוע עגלגל ונקי */}
+        <rect
           className="vehicle-body"
-          d={`M 28 12 H ${length - 30} Q ${length - 8} 12 ${length - 8} 36 V 64 Q ${length - 8} 88 ${length - 30} 88 H 28 Q 8 88 8 66 V 34 Q 8 12 28 12 Z`}
+          x="8"
+          y="12"
+          width={length - 16}
+          height="76"
+          rx="28"
         />
 
-        {/* ברק עליון רך של פלסטיק צעצוע */}
-        <path
+        {/* פס ברק עדין בחלק העליון */}
+        <rect
           className="vehicle-body-shine"
-          d={`M 30 16 H ${length - 34} Q ${length - 16} 16 ${length - 15} 29 H 16 Q 16 16 30 16 Z`}
+          x="22"
+          y="18"
+          width={length - 44}
+          height="10"
+          rx="5"
         />
 
         {isTruck ? (
           <>
-            {/* ארגז משאית עגלגל וידידותי */}
+            {/* ארגז משאית עגלגל */}
             <rect
               className="vehicle-cargo"
               x="18"
               y="22"
-              width={length - 96}
+              width={length - 86}
               height="56"
-              rx="14"
+              rx="18"
             />
-            <circle
-              className="vehicle-cargo-ribs"
-              cx="48"
-              cy="50"
-              r="7"
-            />
-            <circle
-              className="vehicle-cargo-ribs"
-              cx="84"
-              cy="50"
-              r="7"
-            />
-            <circle
-              className="vehicle-cargo-ribs"
-              cx="120"
-              cy="50"
-              r="7"
-            />
-            <path className="vehicle-seam" d={`M ${front - 16} 18 V 82`} />
+            <circle className="vehicle-cargo-ribs" cx="46" cy="50" r="6" />
+            <circle className="vehicle-cargo-ribs" cx="80" cy="50" r="6" />
+            <circle className="vehicle-cargo-ribs" cx="114" cy="50" r="6" />
           </>
         ) : (
-          /* גג/חלון עגלגל למכונית צעצוע */
+          /* חלון צד/גג עגלגל למכונית */
           <rect
             className="vehicle-window"
-            x="28"
-            y="24"
-            width="34"
-            height="52"
+            x="24"
+            y="26"
+            width="32"
+            height="48"
             rx="16"
           />
         )}
 
-        {/* שמשה קדמית מעוגלת עם ברק חמוד */}
+        {/* חלון קדמי עגלגל */}
         <rect
           className="vehicle-window"
           x={front}
-          y="24"
-          width="22"
-          height="52"
-          rx="11"
+          y="26"
+          width="24"
+          height="48"
+          rx="12"
         />
-        <ellipse
+        <circle
           className="vehicle-window-shine"
-          cx={front + 7}
-          cy="37"
-          rx="4"
-          ry="9"
+          cx={front + 8}
+          cy="38"
+          r="4"
         />
 
-        {/* פנסים קדמיים עגולים וחמודים */}
+        {/* פנסים קדמיים קטנים ועגולים */}
         <g className="vehicle-headlights">
-          <circle cx={length - 15} cy="30" r="6" />
-          <circle cx={length - 15} cy="70" r="6" />
+          <circle cx={length - 16} cy="32" r="5" />
+          <circle cx={length - 16} cy="68" r="5" />
         </g>
 
-        {/* פנסים אחוריים רכים */}
+        {/* פנסים אחוריים קטנים */}
         <g className="vehicle-taillights">
-          <rect x="11" y="27" width="6" height="12" rx="3" />
-          <rect x="11" y="61" width="6" height="12" rx="3" />
+          <rect x="13" y="28" width="5" height="11" rx="2.5" />
+          <rect x="13" y="61" width="5" height="11" rx="2.5" />
         </g>
       </g>
     </svg>
