@@ -28,9 +28,9 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
           <stop offset="100%" stopColor="#000000" stopOpacity="0.42" />
         </linearGradient>
         <linearGradient id={`sportGlass-${uid}`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#e0f2fe" stopOpacity="0.95" />
-          <stop offset="48%" stopColor="#38bdf8" stopOpacity="0.72" />
-          <stop offset="100%" stopColor="#0f172a" stopOpacity="0.94" />
+          <stop offset="0%" stopColor="#e0f2fe" stopOpacity="1" />
+          <stop offset="48%" stopColor="#38bdf8" stopOpacity="1" />
+          <stop offset="100%" stopColor="#0f172a" stopOpacity="1" />
         </linearGradient>
         <linearGradient id={`roofShine-${uid}`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#ffffff" stopOpacity="0.28" />
@@ -61,10 +61,10 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               pointerEvents="none"
             />
 
-            {/* פסי מרוץ בקדמת הקבינה בלבד (בלי לעבור על השמשה) */}
-            <g fill="#ffffff" opacity="0.72" pointerEvents="none">
-              <rect x={cabX + 36} y="39" width={length - cabX - 43} height="4.5" rx="2" />
-              <rect x={cabX + 36} y="56.5" width={length - cabX - 43} height="4.5" rx="2" />
+            {/* פסי מרוץ בקדמת הקבינה בלבד (מסתיימים אחרי השמשה) */}
+            <g fill="#ffffff" opacity="0.78" pointerEvents="none">
+              <rect x={cabX + 41} y="39" width={length - cabX - 48} height="4.5" rx="2" />
+              <rect x={cabX + 41} y="56.5" width={length - cabX - 48} height="4.5" rx="2" />
             </g>
 
             {/* ארגז מטען מוגדר ומסודר */}
@@ -104,7 +104,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               strokeWidth="2.2"
             />
 
-            {/* שמשה קדמית מעוגלת ונקייה בקבינה */}
+            {/* שמשה קדמית אטומה ונקייה בקבינה */}
             <path
               d={`M ${cabX + 12} 23 Q ${cabX + 35} 24 ${cabX + 38} 50 Q ${cabX + 35} 76 ${cabX + 12} 77 Q ${cabX + 16} 50 ${cabX + 12} 23 Z`}
               fill={`url(#sportGlass-${uid})`}
@@ -148,25 +148,23 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               pointerEvents="none"
             />
 
-            {/* פסי מרוץ כפולים רק על החלק האחורי ומכסה המנוע (לא על השמשות) */}
-            <g fill="#ffffff" opacity="0.78" pointerEvents="none">
-              {/* מקטע אחורי */}
-              <rect x="11" y="39" width="18" height="5" rx="2" />
-              <rect x="11" y="56" width="18" height="5" rx="2" />
-              {/* מקטע קדמי */}
-              <rect x={length - 38} y="39" width="31" height="5" rx="2" />
-              <rect x={length - 38} y="56" width="31" height="5" rx="2" />
+            {/* פסי מרוץ כפולים רק על הזנב ועל מכסה המנוע (מחוץ לשמשות) */}
+            <g fill="#ffffff" opacity="0.82" pointerEvents="none">
+              <rect x="9" y="39" width="15" height="5" rx="2" />
+              <rect x="9" y="56" width="15" height="5" rx="2" />
+              <rect x={length - 33} y="39" width="26" height="5" rx="2" />
+              <rect x={length - 33} y="56" width="26" height="5" rx="2" />
             </g>
 
             {/* פתחי אוורור עדינים על מכסה המנוע */}
             <g stroke="#0f172a" strokeOpacity="0.32" strokeWidth="1.35" strokeLinecap="round" pointerEvents="none">
-              <line x1={length - 35} y1="30" x2={length - 27} y2="32" />
-              <line x1={length - 31} y1="33" x2={length - 23} y2="35" />
-              <line x1={length - 35} y1="70" x2={length - 27} y2="68" />
-              <line x1={length - 31} y1="67" x2={length - 23} y2="65" />
+              <line x1={length - 33} y1="30" x2={length - 25} y2="32" />
+              <line x1={length - 29} y1="33" x2={length - 21} y2="35" />
+              <line x1={length - 33} y1="70" x2={length - 25} y2="68" />
+              <line x1={length - 29} y1="67" x2={length - 21} y2="65" />
             </g>
 
-            {/* שמשה אחורית נקייה ומעוגלת */}
+            {/* שמשה אחורית אטומה ונקייה */}
             <path
               d="M 27 25 Q 46 23 50 50 Q 46 77 27 75 Q 32 50 27 25 Z"
               fill={`url(#sportGlass-${uid})`}
@@ -198,7 +196,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               pointerEvents="none"
             />
 
-            {/* שמשה קדמית רחבה ונקייה */}
+            {/* שמשה קדמית אטומה ונקייה */}
             <path
               d={`M ${length - 66} 23 Q ${length - 41} 23 ${length - 36} 50 Q ${length - 41} 77 ${length - 66} 77 Q ${length - 61} 50 ${length - 66} 23 Z`}
               fill={`url(#sportGlass-${uid})`}
