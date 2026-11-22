@@ -7,7 +7,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
   const length = car.len * 100;
   const vertical = car.dir === "v";
   const isTruck = car.len === 3;
-  const cabX = length - 66;
+  const cabX = length - 64;
 
   return (
     <svg
@@ -18,135 +18,159 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
       style={{ color: car.color }}
     >
       <defs>
-        <linearGradient id={`clayBody-${uid}`} x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={`shellGrad-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.28" />
+          <stop offset="55%" stopColor="#ffffff" stopOpacity="0.02" />
+          <stop offset="100%" stopColor="#000000" stopOpacity="0.34" />
+        </linearGradient>
+        <linearGradient id={`cabinGrad-${uid}`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#ffffff" stopOpacity="0.32" />
-          <stop offset="55%" stopColor="#ffffff" stopOpacity="0.04" />
-          <stop offset="100%" stopColor="#000000" stopOpacity="0.28" />
+          <stop offset="100%" stopColor="#000000" stopOpacity="0.22" />
         </linearGradient>
-        <linearGradient id={`clayRoof-${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.26" />
-          <stop offset="100%" stopColor="#000000" stopOpacity="0.16" />
-        </linearGradient>
-        <linearGradient id={`clayGlass-${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#94a3b8" stopOpacity="0.65" />
-          <stop offset="100%" stopColor="#334155" stopOpacity="0.85" />
+        <linearGradient id={`winGrad-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#475569" stopOpacity="0.92" />
+          <stop offset="100%" stopColor="#1e293b" stopOpacity="0.96" />
         </linearGradient>
       </defs>
 
       <g transform={vertical ? `translate(0 ${length}) rotate(-90)` : undefined}>
         {/* צל רך מתחת לרכב */}
         <rect
-          x="11"
+          x="10"
           y="18"
-          width={length - 22}
+          width={length - 20}
           height="74"
-          rx="26"
+          rx="20"
           fill="#000000"
-          opacity="0.32"
+          opacity="0.36"
         />
 
-        {/* גלגלים עגולים קטנים שמציצים מהצד */}
-        <g className="vehicle-tires">
-          <rect x="26" y="5" width="24" height="12" rx="6" />
-          <rect x="26" y="83" width="24" height="12" rx="6" />
-          <rect x={length - 52} y="5" width="24" height="12" rx="6" />
-          <rect x={length - 52} y="83" width="24" height="12" rx="6" />
+        {/* גלגלים כהים שמבצבצים מהצדדים */}
+        <g fill="#1e293b" stroke="#0f172a" strokeWidth="2">
+          <rect x="24" y="4" width="24" height="12" rx="5" />
+          <rect x="24" y="84" width="24" height="12" rx="5" />
+          <rect x={length - 48} y="4" width="24" height="12" rx="5" />
+          <rect x={length - 48} y="84" width="24" height="12" rx="5" />
         </g>
 
-        {/* גוף צעצוע מט/רך */}
+        {/* גוף עיקרי קובייתי-מעוגל */}
         <rect
-          className="vehicle-body"
           x="10"
-          y="13"
+          y="12"
           width={length - 20}
           height="74"
-          rx="26"
+          rx="18"
+          fill="currentColor"
+          stroke="var(--vehicle-detail-edge)"
+          strokeOpacity="0.4"
+          strokeWidth="2"
         />
         <rect
           x="10"
-          y="13"
+          y="12"
           width={length - 20}
           height="74"
-          rx="26"
-          fill={`url(#clayBody-${uid})`}
+          rx="18"
+          fill={`url(#shellGrad-${uid})`}
           pointerEvents="none"
         />
 
         {isTruck ? (
           <>
-            {/* ארגז משאית עגלגל ורך */}
+            {/* ארגז מטען גבוה ומובחן של משאית */}
             <rect
-              x="18"
-              y="22"
-              width={cabX - 24}
-              height="56"
-              rx="15"
-              fill={`url(#clayRoof-${uid})`}
+              x="16"
+              y="18"
+              width={cabX - 22}
+              height="62"
+              rx="11"
+              fill="currentColor"
               stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.25"
+              strokeOpacity="0.35"
               strokeWidth="2"
             />
-            <line
-              className="vehicle-seam"
-              x1={cabX - 2}
-              y1="17"
-              x2={cabX - 2}
-              y2="83"
-            />
-            {/* שמשה קדמית רכה לקבינה */}
             <rect
-              x={cabX + 7}
-              y="27"
+              x="16"
+              y="18"
+              width={cabX - 22}
+              height="62"
+              rx="11"
+              fill={`url(#cabinGrad-${uid})`}
+              pointerEvents="none"
+            />
+            {/* הפרדה לקבינה הקדמית */}
+            <line
+              x1={cabX - 2}
+              y1="14"
+              x2={cabX - 2}
+              y2="84"
+              stroke="var(--vehicle-detail-edge)"
+              strokeOpacity="0.4"
+              strokeWidth="2.5"
+            />
+            {/* שמשה קדמית כהה לקבינה */}
+            <rect
+              x={cabX + 6}
+              y="26"
               width="20"
               height="46"
-              rx="9"
-              fill={`url(#clayGlass-${uid})`}
+              rx="7"
+              fill={`url(#winGrad-${uid})`}
             />
           </>
         ) : (
           <>
-            {/* תא נוסעים מעוגל */}
+            {/* גג / תא נוסעים מובחן במכונית */}
             <rect
               x="28"
-              y="20"
+              y="18"
               width={length - 56}
-              height="60"
-              rx="18"
-              fill={`url(#clayRoof-${uid})`}
+              height="62"
+              rx="14"
+              fill="currentColor"
               stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.22"
+              strokeOpacity="0.32"
               strokeWidth="2"
             />
-            {/* שמשה אחורית ושמשה קדמית רכות */}
             <rect
-              x="34"
-              y="28"
+              x="28"
+              y="18"
+              width={length - 56}
+              height="62"
+              rx="14"
+              fill={`url(#cabinGrad-${uid})`}
+              pointerEvents="none"
+            />
+            {/* שמשה אחורית ושמשה קדמית */}
+            <rect
+              x="33"
+              y="26"
               width="12"
-              height="44"
-              rx="6"
-              fill={`url(#clayGlass-${uid})`}
+              height="46"
+              rx="5"
+              fill={`url(#winGrad-${uid})`}
             />
             <rect
-              x={length - 46}
-              y="28"
+              x={length - 45}
+              y="26"
               width="13"
-              height="44"
-              rx="6.5"
-              fill={`url(#clayGlass-${uid})`}
+              height="46"
+              rx="5.5"
+              fill={`url(#winGrad-${uid})`}
             />
           </>
         )}
 
-        {/* פנסים קדמיים צהובים חמודים כמו ברקע */}
-        <g fill="#facc15" opacity="0.92">
-          <rect x={length - 16} y="25" width="5" height="12" rx="2.5" />
-          <rect x={length - 16} y="63" width="5" height="12" rx="2.5" />
+        {/* פנסים קדמיים צהובים בולטים */}
+        <g fill="#facc15" stroke="#ca8a04" strokeWidth="1.2">
+          <rect x={length - 16} y="22" width="6" height="13" rx="2.5" />
+          <rect x={length - 16} y="63" width="6" height="13" rx="2.5" />
         </g>
 
         {/* פנסים אחוריים עדינים */}
         <g className="vehicle-taillights">
-          <rect x="12" y="27" width="4" height="10" rx="2" />
-          <rect x="12" y="63" width="4" height="10" rx="2" />
+          <rect x="12" y="25" width="4" height="11" rx="2" />
+          <rect x="12" y="62" width="4" height="11" rx="2" />
         </g>
       </g>
     </svg>
