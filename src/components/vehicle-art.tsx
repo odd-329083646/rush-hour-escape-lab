@@ -22,21 +22,23 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
           <feDropShadow dx="0" dy="5" stdDeviation="2.6" floodOpacity="0.44" />
         </filter>
         <linearGradient id={`bodyGrad-${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.38" />
-          <stop offset="50%" stopColor="#ffffff" stopOpacity="0.04" />
-          <stop offset="100%" stopColor="#000000" stopOpacity="0.36" />
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.42" />
+          <stop offset="48%" stopColor="#ffffff" stopOpacity="0.05" />
+          <stop offset="100%" stopColor="#000000" stopOpacity="0.38" />
         </linearGradient>
         <linearGradient id={`cabinGrad-${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.34" />
-          <stop offset="100%" stopColor="#000000" stopOpacity="0.18" />
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.38" />
+          <stop offset="65%" stopColor="#ffffff" stopOpacity="0.04" />
+          <stop offset="100%" stopColor="#000000" stopOpacity="0.22" />
         </linearGradient>
         <linearGradient id={`glassGrad-${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.52" />
-          <stop offset="100%" stopColor="#0f172a" stopOpacity="0.42" />
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.58" />
+          <stop offset="50%" stopColor="#e2e8f0" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="#0f172a" stopOpacity="0.45" />
         </linearGradient>
         <radialGradient id={`lightGrad-${uid}`} cx="35%" cy="35%" r="65%">
           <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
-          <stop offset="100%" stopColor="#facc15" stopOpacity="0.9" />
+          <stop offset="100%" stopColor="#facc15" stopOpacity="0.92" />
         </radialGradient>
       </defs>
 
@@ -44,6 +46,14 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
         transform={vertical ? `translate(0 ${length}) rotate(-90)` : undefined}
         filter={`url(#toyShadow-${uid})`}
       >
+        {/* דופן תחתונה עדינה לחידוד עובי הרכב */}
+        <path
+          d={`M 24 15 H ${length - 24} Q ${length - 6} 15 ${length - 6} 35 V 71 Q ${length - 6} 91 ${length - 24} 91 H 24 Q 6 91 6 71 V 35 Q 6 15 24 15 Z`}
+          fill="#000000"
+          opacity="0.22"
+          pointerEvents="none"
+        />
+
         {/* מראות צד */}
         <g
           fill="currentColor"
@@ -77,7 +87,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               rx="14"
               fill="currentColor"
               stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.4"
+              strokeOpacity="0.42"
               strokeWidth="2"
             />
             <rect
@@ -97,9 +107,9 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               height="54"
               rx="9"
               fill="#000000"
-              fillOpacity="0.14"
+              fillOpacity="0.16"
               stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.32"
+              strokeOpacity="0.34"
               strokeWidth="2.2"
               pointerEvents="none"
             />
@@ -111,7 +121,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               x2={cabX + 2}
               y2="86"
               stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.45"
+              strokeOpacity="0.48"
               strokeWidth="2.4"
             />
 
@@ -124,7 +134,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               rx="9"
               fill="currentColor"
               stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.45"
+              strokeOpacity="0.46"
               strokeWidth="1.8"
             />
             <rect
@@ -144,7 +154,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               d={`M 36 19 H ${length - 28} Q ${length - 16} 19 ${length - 16} 34 V 66 Q ${length - 16} 81 ${length - 28} 81 H 36 Q 22 81 22 66 V 34 Q 22 19 36 19 Z`}
               fill="currentColor"
               stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.32"
+              strokeOpacity="0.34"
               strokeWidth="1.8"
             />
             <path
@@ -162,7 +172,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               rx="9"
               fill="currentColor"
               stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.45"
+              strokeOpacity="0.46"
               strokeWidth="1.8"
             />
             <rect
