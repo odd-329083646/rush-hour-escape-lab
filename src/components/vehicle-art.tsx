@@ -28,9 +28,9 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
           <stop offset="100%" stopColor="#000000" stopOpacity="0.42" />
         </linearGradient>
         <linearGradient id={`sportGlass-${uid}`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#e0f2fe" stopOpacity="0.9" />
-          <stop offset="48%" stopColor="#38bdf8" stopOpacity="0.52" />
-          <stop offset="100%" stopColor="#0f172a" stopOpacity="0.88" />
+          <stop offset="0%" stopColor="#e0f2fe" stopOpacity="0.95" />
+          <stop offset="48%" stopColor="#38bdf8" stopOpacity="0.72" />
+          <stop offset="100%" stopColor="#0f172a" stopOpacity="0.94" />
         </linearGradient>
         <linearGradient id={`roofShine-${uid}`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#ffffff" stopOpacity="0.28" />
@@ -61,10 +61,10 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               pointerEvents="none"
             />
 
-            {/* פסי מרוץ עדינים על הקבינה בלבד */}
-            <g fill="#ffffff" opacity="0.65" pointerEvents="none">
-              <rect x={cabX + 4} y="39" width={length - cabX - 10} height="4.5" rx="2" />
-              <rect x={cabX + 4} y="56.5" width={length - cabX - 10} height="4.5" rx="2" />
+            {/* פסי מרוץ בקדמת הקבינה בלבד (בלי לעבור על השמשה) */}
+            <g fill="#ffffff" opacity="0.72" pointerEvents="none">
+              <rect x={cabX + 36} y="39" width={length - cabX - 43} height="4.5" rx="2" />
+              <rect x={cabX + 36} y="56.5" width={length - cabX - 43} height="4.5" rx="2" />
             </g>
 
             {/* ארגז מטען מוגדר ומסודר */}
@@ -148,10 +148,14 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               pointerEvents="none"
             />
 
-            {/* פסי מרוץ כפולים לאורך המרכב */}
-            <g fill="#ffffff" opacity="0.72" pointerEvents="none">
-              <rect x="11" y="39" width={length - 18} height="5" rx="2.5" />
-              <rect x="11" y="56" width={length - 18} height="5" rx="2.5" />
+            {/* פסי מרוץ כפולים רק על החלק האחורי ומכסה המנוע (לא על השמשות) */}
+            <g fill="#ffffff" opacity="0.78" pointerEvents="none">
+              {/* מקטע אחורי */}
+              <rect x="11" y="39" width="18" height="5" rx="2" />
+              <rect x="11" y="56" width="18" height="5" rx="2" />
+              {/* מקטע קדמי */}
+              <rect x={length - 38} y="39" width="31" height="5" rx="2" />
+              <rect x={length - 38} y="56" width="31" height="5" rx="2" />
             </g>
 
             {/* פתחי אוורור עדינים על מכסה המנוע */}
