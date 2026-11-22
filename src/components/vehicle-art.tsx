@@ -7,7 +7,7 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
   const length = car.len * 100;
   const vertical = car.dir === "v";
   const isTruck = car.len === 3;
-  const cabX = length - 76;
+  const cabX = length - 74;
 
   return (
     <svg
@@ -22,12 +22,12 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
           <feDropShadow dx="0" dy="4" stdDeviation="1.5" floodOpacity="0.45" />
         </filter>
         <linearGradient id={`topLight-${uid}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.3" />
+          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.28" />
           <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
         </linearGradient>
         <linearGradient id={`bottomShade-${uid}`} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#000000" stopOpacity="0.05" />
-          <stop offset="100%" stopColor="#000000" stopOpacity="0.38" />
+          <stop offset="100%" stopColor="#000000" stopOpacity="0.36" />
         </linearGradient>
       </defs>
 
@@ -68,9 +68,9 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
             <polygon
               points={`16,22 ${cabX - 12},22 ${cabX - 12},78 16,78`}
               fill="#000000"
-              fillOpacity="0.24"
+              fillOpacity="0.22"
               stroke="var(--vehicle-detail-edge)"
-              strokeOpacity="0.45"
+              strokeOpacity="0.42"
               strokeWidth="1.5"
             />
             {/* קבינה קדמית נפרדת ומובחנת */}
@@ -80,10 +80,10 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               stroke="var(--vehicle-detail-edge)"
               strokeWidth="2.2"
             />
-            {/* שמשה קדמית בולטת */}
+            {/* שמשה קדמית מאוזנת ונקייה */}
             <polygon
               className="vehicle-window"
-              points={`${cabX + 7},24 ${cabX + 29},24 ${cabX + 33},50 ${cabX + 29},76 ${cabX + 7},76`}
+              points={`${cabX + 8},27 ${cabX + 26},27 ${cabX + 28},73 ${cabX + 8},73`}
               stroke="var(--vehicle-detail-edge)"
               strokeWidth="1.8"
             />
@@ -97,23 +97,23 @@ export function VehicleArt({ car }: { car: Pick<Car, "color" | "len" | "dir"> })
               stroke="var(--vehicle-detail-edge)"
               strokeWidth="2.2"
             />
-            {/* שמשה אחורית רחבה */}
+            {/* שמשה אחורית סימטרית */}
             <polygon
               className="vehicle-window"
-              points="21,25 46,25 42,75 21,75"
+              points="22,27 38,27 36,73 22,73"
               stroke="var(--vehicle-detail-edge)"
               strokeWidth="1.8"
             />
             {/* גג מרכזי זוויתי */}
             <polygon
-              points={`46,22 ${length - 46},22 ${length - 42},78 42,78`}
+              points={`38,22 ${length - 38},22 ${length - 36},78 36,78`}
               fill={`url(#topLight-${uid})`}
               pointerEvents="none"
             />
-            {/* שמשה קדמית רחבה */}
+            {/* שמשה קדמית סימטרית */}
             <polygon
               className="vehicle-window"
-              points={`${length - 46},25 ${length - 21},25 ${length - 21},75 ${length - 42},75`}
+              points={`${length - 38},27 ${length - 22},27 ${length - 22},73 ${length - 36},73`}
               stroke="var(--vehicle-detail-edge)"
               strokeWidth="1.8"
             />
