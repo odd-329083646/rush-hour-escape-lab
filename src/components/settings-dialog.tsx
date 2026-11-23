@@ -11,6 +11,7 @@ import {
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { SoundSwitch } from "@/components/sound-toggle";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { useProfile } from "@/hooks/useProfile";
 import { useSettings } from "@/hooks/useSettings";
@@ -96,6 +97,7 @@ function SettingsDialog({ onClose }: { onClose: () => void }) {
         </section>
         <section className="flex flex-col gap-3 border-t border-border pt-4">
           <h3 className="panel-title mb-0">{t("controls")}</h3>
+          <SoundSwitch />
           <label
             className="flex items-center justify-between gap-3 text-sm"
             htmlFor="panels-visible"

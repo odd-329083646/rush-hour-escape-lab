@@ -6,6 +6,7 @@ import { useMainMenu } from "@/hooks/useMainMenu";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { type TKey } from "@/lib/i18n";
 import { SettingsButton } from "@/components/settings-dialog";
+import { SoundToggle } from "@/components/sound-toggle";
 import { CoinsBadge } from "@/components/coins-badge";
 import { CalendarDays, ChevronRight, Gamepad2, Trophy, type LucideIcon } from "lucide-react";
 
@@ -82,6 +83,7 @@ function Index() {
             <PlayerAvatar avatarId={profile.avatarId} className="h-9 w-9" />
           </Link>
         </Button>
+        <SoundToggle />
         <SettingsButton />
       </div>
 

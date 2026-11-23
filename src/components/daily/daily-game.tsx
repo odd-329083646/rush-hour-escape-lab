@@ -9,7 +9,6 @@ import { HintSelection } from "@/components/hint-selection";
 import { VictoryOverlay, FailureOverlay } from "@/components/victory-overlay";
 import { CoinsBadge } from "@/components/coins-badge";
 import { GameArena } from "@/components/game-board";
-import { SoundToggle } from "@/components/sound-toggle";
 import { DailyCalendar } from "./daily-calendar";
 import { blApi } from "@/engine/blApi";
 
@@ -101,7 +100,6 @@ export function DailyGame({
             <RotateCcw className="h-4 w-4" />
             <span className="hidden sm:inline">{t("reset")}</span>
           </Button>
-          <SoundToggle />
           <SettingsButton />
         </div>
       </header>

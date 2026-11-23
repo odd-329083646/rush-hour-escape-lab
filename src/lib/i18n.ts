@@ -116,6 +116,10 @@ const en = {
   "level.medium": "Medium",
   "level.hard": "Hard",
   "level.murderer": "Murderer",
+  "modeDesc.easy": "Every car stays visible",
+  "modeDesc.medium": "Some cars vanish after Start",
+  "modeDesc.hard": "All cars vanish after Start",
+  "modeDesc.murderer": "Blind board, plan every move",
   playRegular: "Play regular games",
   compBlurb:
     "Timed rounds where everyone gets the same lot and the clock. Fewest moves and fastest time take the spot on the board.",
@@ -367,6 +371,10 @@ const he: Record<TKey, string> = {
   "level.medium": "בינוני",
   "level.hard": "קשה",
   "level.murderer": "רוצח",
+  "modeDesc.easy": "כל המכוניות גלויות",
+  "modeDesc.medium": "חלק מהמכוניות נעלמות אחרי התחלה",
+  "modeDesc.hard": "כל המכוניות נעלמות אחרי התחלה",
+  "modeDesc.murderer": "לוח עיוור, מתכננים כל מהלך מראש",
   playRegular: "שחק במשחקים רגילים",
   compBlurb:
     "סבבים מתוזמנים שבהם כולם מקבלים אותו חניון ואותו שעון. הכי מעט מהלכים והזמן המהיר ביותר זוכים במקום בטבלה.",

@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 import { soundEngine } from "@/audio/soundEngine";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { useI18n } from "@/lib/i18n";
 
-export function SoundToggle() {
-  const { t } = useI18n();
+function useSoundState() {
   const [muted, setMuted] = useState(() => soundEngine.isMuted());
-  const buttonRef = useRef<HTMLButtonElement>(null);
+  const buttonRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (muted) {
@@ -35,10 +35,36 @@ export function SoundToggle() {
     setMuted(nextMuted);
     if (!nextMuted) soundEngine.startMusic();
   };
+  return { muted, toggleSound, buttonRef };
+}
+
+export function SoundSwitch() {
+  const { t } = useI18n();
+  const { muted, toggleSound, buttonRef } = useSoundState();
+  return (
+    <label className="flex items-center justify-between gap-3 text-sm" htmlFor="sound-enabled">
+      <span className="flex items-center gap-2">
+        {muted ? <VolumeX className="h-4 w-4 shrink-0 text-muted-foreground" /> : <Volume2 className="h-4 w-4 shrink-0 text-muted-foreground" />}
+        {t("soundAndMusic")}
+      </span>
+      <Switch
+        ref={(el) => { buttonRef.current = el; }}
+        aria-label={t("soundAndMusic")}
+        id="sound-enabled"
+        checked={!muted}
+        onCheckedChange={() => toggleSound()}
+      />
+    </label>
+  );
+}
+
+export function SoundToggle() {
+  const { t } = useI18n();
+  const { muted, toggleSound, buttonRef } = useSoundState();
 
   return (
     <Button
-      ref={buttonRef}
+      ref={(el) => { buttonRef.current = el; }}
       type="button"
       variant="ghost"
       className="sound-toggle chip shrink-0 px-2 sm:px-3"

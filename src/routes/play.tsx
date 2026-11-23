@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronRight, Eye, EyeOff, Ghost, Skull } from "lucide-react";
 import { LEVELS, type Level } from "@/engine/game";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
@@ -26,6 +26,8 @@ export const Route = createFileRoute("/play")({
   component: Play,
 });
 
+const MODE_ICONS = { easy: Eye, medium: Ghost, hard: EyeOff, murderer: Skull } as const;
+
 function Play() {
   const { t } = useI18n();
 
@@ -49,15 +51,26 @@ function Play() {
         <h1 className="mt-3 font-display text-4xl font-bold sm:text-5xl">{t("chooseMode")}</h1>
       </div>
 
-      <div className="flex w-full max-w-sm flex-col gap-3">
-        {(Object.keys(LEVELS) as Level[]).map((l) => (
-          <Button asChild key={l} className={`mode-entry mode-${l} h-14 text-lg`}>
-            <Link to="/game/$level" params={{ level: l }}>
-              <span>{t(`level.${l}`)}</span>
-            </Link>
-          </Button>
-        ))}
-      </div>
+      <nav className="mode-panel flex w-full max-w-sm flex-col gap-3" aria-label={t("chooseMode")}>
+        {(Object.keys(LEVELS) as Level[]).map((l, i) => {
+          const Icon = MODE_ICONS[l];
+          return (
+            <Button asChild key={l} className={`mode-entry mode-${l} h-auto min-h-16 justify-start gap-3 px-4 py-2`}>
+              <Link to="/game/$level" params={{ level: l }}>
+                <span className="mode-icon"><Icon className="h-5 w-5" aria-hidden="true" /></span>
+                <span className="flex min-w-0 flex-1 flex-col items-start text-start">
+                  <span className="font-display text-lg font-bold leading-tight">{t(`level.${l}`)}</span>
+                  <span className="mode-desc truncate text-xs font-semibold" dir="auto">{t(`modeDesc.${l}`)}</span>
+                </span>
+                <span className="mode-pips" aria-hidden="true">
+                  {[0, 1, 2, 3].map((p) => <span key={p} data-on={p <= i} />)}
+                </span>
+                <ChevronRight className="h-4 w-4 shrink-0 opacity-70" aria-hidden="true" />
+              </Link>
+            </Button>
+          );
+        })}
+      </nav>
     </main>
   );
 }

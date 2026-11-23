@@ -710,3 +710,12 @@ main > header:not(.home-title) h1, .mode-screen .home-title h1 { width: fit-cont
 .race-lobby-pill-prize { background: oklch(0.72 0.2 135 / .2); border-color: oklch(0.72 0.2 135 / .7); color: oklch(0.9 0.16 135); }
 .race-hud-card { display: flex; align-items: center; gap: .6rem; padding: .4rem .7rem; border-radius: 1rem;
   background: oklch(0.18 0.06 275 / .82); border: 2px solid oklch(1 0 0 / .14); backdrop-filter: blur(10px); color: oklch(0.98 0.01 90); }
+
+/* Difficulty selection panel */
+.mode-panel { padding: .9rem; border-radius: 1.75rem; background: color-mix(in oklab, var(--card) 82%, transparent); border: 1px solid var(--border); box-shadow: 0 12px 30px -12px var(--toy-shadow); backdrop-filter: blur(10px); }
+.mode-entry.toy-button, .mode-entry { border-radius: 1.25rem; white-space: normal; text-shadow: 0 1px 2px var(--toy-shadow); }
+.mode-icon { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: .9rem; background: var(--toy-highlight); flex-shrink: 0; }
+.mode-desc { opacity: .85; max-width: 100%; }
+.mode-pips { display: flex; gap: 3px; flex-shrink: 0; }
+.mode-pips span { width: 6px; height: 14px; border-radius: 3px; background: currentColor; opacity: .25; }
+.mode-pips span[data-on="true"] { opacity: .95; }

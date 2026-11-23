@@ -14,7 +14,6 @@ import { CoinsBadge } from "@/components/coins-badge";
 import { VictoryOverlay } from "@/components/victory-overlay";
 import { PlayerAvatar } from "@/components/player-avatar";
 import { RaceVersus } from "@/components/race-versus";
-import { SoundToggle } from "@/components/sound-toggle";
 
 export const Route = createFileRoute("/competitions")({
   validateSearch: (search: Record<string, unknown>): { room?: string } => {
@@ -194,7 +193,6 @@ function Competitions() {
 
         <div className="flex items-center gap-2">
           <CoinsBadge />
-          <SoundToggle />
           <SettingsButton />
         </div>
       </header>
