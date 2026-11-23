@@ -26,7 +26,8 @@ import { SettingsButton } from "@/components/settings-dialog";
 import { HintSelection } from "@/components/hint-selection";
 import { VictoryOverlay, FailureOverlay } from "@/components/victory-overlay";
 import { CoinsBadge } from "@/components/coins-badge";
-import { GameArena } from "@/components/game-board";
+import { BoardWarning, GameArena } from "@/components/game-board";
+import { SoundToggle } from "@/components/sound-toggle";
 import { useEffect, useRef } from "react";
 
 export const Route = createFileRoute("/game/$level")({
@@ -188,6 +189,7 @@ function Game() {
             <RotateCcw className="h-4 w-4" />
             <span className="hidden sm:inline">{t("reset")}</span>
           </Button>
+          <SoundToggle />
           <SettingsButton />
         </div>
       </header>
@@ -261,11 +263,7 @@ function Game() {
               className="panel relative flex w-full flex-col gap-2 self-start"
               style={{ width: "var(--board)", maxHeight: "var(--board)" }}
             >
-              {warn && (
-                <div key={warn.key} className="warn" role="alert">
-                  {warn.text}
-                </div>
-              )}
+              <BoardWarning warn={warn} />
               <h2 className="panel-title mb-0">{t("plannedMoves")}</h2>
               {plan.length === 0 ? (
                 <p className="py-10 text-center text-sm text-muted-foreground">{t("planEmpty")}</p>

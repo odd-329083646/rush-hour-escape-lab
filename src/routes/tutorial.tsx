@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { translate } from "@/lib/i18n";
 import { CoinsBadge } from "@/components/coins-badge";
 import { GameArena } from "@/components/game-board";
+import { SoundToggle } from "@/components/sound-toggle";
 
 export const Route = createFileRoute("/tutorial")({
   head: () => ({
@@ -45,6 +46,7 @@ export function Tutorial() {
         <h1 className="font-display text-xl font-bold">{t("tutorial")}</h1>
 
         <div className="flex items-center gap-2">
+          <SoundToggle />
           <CoinsBadge />
           <span className="chip px-3 py-1 text-xs">{t("tutLesson", { n: step + 1 })}</span>
         </div>

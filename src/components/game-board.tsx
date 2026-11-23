@@ -1,5 +1,14 @@
 import type { PointerEvent, ReactNode } from "react";
-import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Lightbulb, Play, Plus } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  Lightbulb,
+  Play,
+  Plus,
+  TriangleAlert,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Car, Move } from "@/engine/game";
 import type { TKey } from "@/lib/i18n";
@@ -32,6 +41,26 @@ export interface GameBoardProps {
   children?: ReactNode;
 }
 
+export function BoardWarning({ warn }: { warn: GameBoardProps["warn"] }) {
+  const warnText = typeof warn === "string" ? warn : warn?.text;
+  const warnKey = typeof warn === "object" && warn !== null ? warn.key : undefined;
+
+  if (!warnText) return null;
+
+  return (
+    <div
+      key={warnKey ?? warnText}
+      className="warn"
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+    >
+      <TriangleAlert className="h-5 w-5 shrink-0" aria-hidden="true" />
+      <span>{warnText}</span>
+    </div>
+  );
+}
+
 export function GameBoard({
   cars,
   selectedId,
@@ -50,15 +79,10 @@ export function GameBoard({
   children,
 }: GameBoardProps) {
   const warnText = typeof warn === "string" ? warn : warn?.text;
-  const warnKey = typeof warn === "object" && warn !== null ? warn.key : undefined;
 
   return (
     <div className="board">
-      {warnText && (
-        <div key={warnKey} className="warn" role="alert">
-          {warnText}
-        </div>
-      )}
+      <BoardWarning warn={warn} />
 
       {Array.from({ length: 36 }).map((_, i) => (
         <div
