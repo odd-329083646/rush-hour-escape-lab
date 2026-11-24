@@ -149,6 +149,7 @@ export function GameBoard({
 
 export interface ControlPanelProps {
   t: TranslateFn;
+  frameless?: boolean | undefined;
   started?: boolean | undefined;
   startLabel?: string | undefined;
   startDisabled?: boolean | undefined;
@@ -171,6 +172,7 @@ export interface ControlPanelProps {
 
 export function ControlPanel({
   t,
+  frameless = false,
   started = true,
   startLabel,
   startDisabled = false,
@@ -191,7 +193,7 @@ export function ControlPanel({
   onExecute,
 }: ControlPanelProps) {
   return (
-    <aside className="panel flex flex-col gap-2" style={{ gridArea: "ctrl" }}>
+    <aside className={`${frameless ? "game-quick-actions" : "panel"} flex flex-col gap-2`} style={{ gridArea: "ctrl" }}>
       {!started ? (
         <Button
           disabled={startDisabled}
@@ -201,7 +203,7 @@ export function ControlPanel({
           <Play className="h-4 w-4" />
           <span>{startLabel ?? t("startSolving")}</span>
         </Button>
-      ) : (
+      ) : !frameless ? (
         <div className="solving-controls flex flex-col gap-2">
           <div>
             <h2 className="panel-title">{t("direction")}</h2>
@@ -265,6 +267,18 @@ export function ControlPanel({
             </Button>
           )}
         </div>
+      ) : null}
+      {frameless && showHint && (
+        <Button
+          onClick={onHintClick}
+          disabled={hintDisabled}
+          variant="outline"
+          className="chip quick-hint"
+          aria-label={t("hintMenu")}
+          title={t("hintMenu")}
+        >
+          <Lightbulb className="h-5 w-5" aria-hidden="true" />
+        </Button>
       )}
     </aside>
   );
@@ -370,10 +384,12 @@ export function GameArena({
   paletteFooter,
 }: GameArenaProps) {
   return (
-    <div className="game-grid" dir={dir}>
-      {showControlsPanel && <ControlPanel t={t} {...controls} />}
+    <div className="game-grid" data-panels={showCarsPanel ? "full" : "minimal"} dir={dir}>
+      {(showControlsPanel || controls.showHint) && (
+        <ControlPanel t={t} {...controls} frameless={!showCarsPanel} />
+      )}
 
-      <section className="flex min-h-0 flex-col items-center gap-2" style={{ gridArea: "board" }}>
+      <section className="game-center flex min-h-0 min-w-0 flex-col items-center gap-2" style={{ gridArea: "board" }}>
         {boardHeader}
         {customCenter ?? <GameBoard {...board} />}
         {boardFooter}

@@ -1,3 +1,8 @@
+# Difficulty restoration and mobile board layout
+- [x] Restore simple difficulty buttons and tuck navigation against the top outer edges.
+- [x] Center and maximize mobile boards; show frameless Start/Hint actions with panels hidden and preserve framed panels when enabled.
+- [x] Verify phone/desktop layouts, daily boards, Murderer panels, hints and collision warnings in the browser; board, engine and settings tests pass. Existing daily mocks and hint coin tests fail outside the changed presentation files and were left untouched.
+
 # Lobby results and global level numbering
 - [x] Hide stale competition results on lobby entry without resetting achievements; verified with a real expired friend room and repeat polling tests.
 - [x] Number stages continuously across tiers; verified all 246 stage labels in the browser and 52 regression tests.

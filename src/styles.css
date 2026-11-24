@@ -285,7 +285,7 @@
     --board: max(12rem, min(calc(100dvh - 7.5rem), calc(100vw - 31rem)));
   }
 }
-.game-grid .board { width: var(--board); padding: 6px; gap: 4px; }
+.game-grid .board { width: var(--board); padding: 6px; gap: 4px; align-self: center; flex-shrink: 0; }
 .game-grid .panel { padding: .6rem; border-radius: .9rem; overflow: auto; min-height: 0; }
 .game-grid .panel-title { margin-bottom: .35rem; font-size: .65rem; }
 .game-grid .ctrl { height: 2rem; border-radius: .5rem; }
@@ -711,11 +711,42 @@ main > header:not(.home-title) h1, .mode-screen .home-title h1 { width: fit-cont
 .race-hud-card { display: flex; align-items: center; gap: .6rem; padding: .4rem .7rem; border-radius: 1rem;
   background: oklch(0.18 0.06 275 / .82); border: 2px solid oklch(1 0 0 / .14); backdrop-filter: blur(10px); color: oklch(0.98 0.01 90); }
 
-/* Difficulty selection panel */
-.mode-panel { padding: .9rem; border-radius: 1.75rem; background: color-mix(in oklab, var(--card) 82%, transparent); border: 1px solid var(--border); box-shadow: 0 12px 30px -12px var(--toy-shadow); backdrop-filter: blur(10px); }
+/* Floating navigation and restored simple difficulty buttons. */
+.mode-screen { position: relative; padding-top: 5rem; }
+.mode-screen > .mode-tools { position: absolute; inset: .75rem .75rem auto; width: auto; }
+.mode-tools > .toy-button { justify-self: start; }
 .mode-entry.toy-button, .mode-entry { border-radius: 1.25rem; white-space: normal; text-shadow: 0 1px 2px var(--toy-shadow); }
-.mode-icon { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: .9rem; background: var(--toy-highlight); flex-shrink: 0; }
-.mode-desc { opacity: .85; max-width: 100%; }
-.mode-pips { display: flex; gap: 3px; flex-shrink: 0; }
-.mode-pips span { width: 6px; height: 14px; border-radius: 3px; background: currentColor; opacity: .25; }
-.mode-pips span[data-on="true"] { opacity: .95; }
+
+/* Use the actual space below the header rather than a fixed viewport subtraction. */
+.game-grid[data-panels] { container-type: size; }
+.game-center { justify-content: center; }
+.game-grid .game-quick-actions { align-items: center; justify-content: center; min-width: 0; }
+.game-grid .game-quick-actions .start-control { width: auto; min-height: 3rem; margin: 0; padding: .65rem 1rem; }
+.quick-hint { color: var(--toy-yellow); }
+@media (orientation: portrait) {
+  .game-grid[data-panels] {
+    grid-template-rows: minmax(0, 1fr) auto;
+    align-items: center;
+    --board: min(calc(100cqw - 1rem), calc(100cqh - 17rem));
+  }
+  .game-grid[data-panels="full"] > aside { max-height: 14rem; }
+  .game-grid[data-panels="minimal"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "board" "ctrl";
+    --board: min(calc(100cqw - 1rem), calc(100cqh - 7rem));
+  }
+  .game-grid .game-quick-actions { flex-direction: row; padding: .5rem 0; }
+}
+@media (orientation: landscape) {
+  .game-grid[data-panels="full"] {
+    grid-template-columns: minmax(0, 15rem) auto minmax(0, 15rem);
+    --board: min(calc(100cqh - 3rem), calc(100cqw - 31rem));
+  }
+  .game-grid[data-panels="minimal"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas: "board" "ctrl";
+    --board: min(calc(100cqw - 1rem), calc(100cqh - 7rem));
+  }
+  .game-grid[data-panels="minimal"] .game-quick-actions { flex-direction: row; padding: .5rem 0; }
+}
