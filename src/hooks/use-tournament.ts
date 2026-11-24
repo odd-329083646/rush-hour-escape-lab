@@ -14,6 +14,8 @@ type TournamentActionResponse =
   | RaceSnapshot
   | { error?: string; guest?: undefined };
 
+const CLOUD_SYNC_INTERVAL_MS = 5 * 60 * 1000; // סנכרון יתרה לענן פעם ב-5 דקות לכל היותר
+
 export function useTournament({
   resetResultsOnEntry = false,
 }: { resetResultsOnEntry?: boolean } = {}) {
@@ -34,10 +36,10 @@ export function useTournament({
   const optimistic = useRef<RaceSnapshot | null>(null);
   const queued = useRef<{ id: string; direction: Move; steps: number }[]>([]);
   const recovering = useRef(false);
-  // Match id the player has finished locally; slower server snapshots may not revert it to playing.
   const localWin = useRef<string | null>(null);
   const entrySnapshotReceived = useRef(false);
   const dismissedResult = useRef<string | null>(null);
+  const lastCloudSync = useRef<number>(0);
 
   const publish = useCallback(
     (data: RaceSnapshot) => {
@@ -45,7 +47,6 @@ export function useTournament({
       let visible = data;
       const match = data.match;
 
-      // אם המשחק עדיין פעיל בשרת, נסנכרן מהלכים עומדים בתור
       if (match?.status === "playing") {
         const side = match.a === data.guest.id ? "a_state" : "b_state";
         let state = match[side];
@@ -63,7 +64,6 @@ export function useTournament({
           state = next.state;
         }
 
-        // בדיקה: אם בעקבות המהלכים המקומיים הגענו ל-3 שלבים - נעדכן אופטימית לניצחון!
         const isFinishedOptimistically = state && state.index >= 3;
         visible = {
           ...data,
@@ -88,11 +88,9 @@ export function useTournament({
           match: { ...visible.match, [side]: kept, status: "finished", winner: data.guest.id },
         };
       }
-      // Once the server settles the match (or it is gone), its result is authoritative again.
       if (won && data.match?.id !== won) localWin.current = null;
       else if (won && data.match?.status !== "playing") localWin.current = null;
-      // Only dismiss a result already present on entry, never one earned during this visit.
-      // Keep syncing the authoritative guest wallet/stats; polling must not reopen the old dialog.
+
       if (!entrySnapshotReceived.current) {
         entrySnapshotReceived.current = true;
         if (
@@ -124,14 +122,20 @@ export function useTournament({
       }
       locked.current = true;
       if (kind !== "status") setBusy(true);
-      const balance = blApi.rewards.getCoins(storage);
       try {
         const profile = blApi.profile.getProfile(storage);
+        const nowTs = Date.now();
+        const shouldSyncCloud =
+          kind !== "status" &&
+          kind !== "move" &&
+          nowTs - lastCloudSync.current >= CLOUD_SYNC_INTERVAL_MS;
+        const deltaToSend = shouldSyncCloud ? blApi.tournament.walletDelta(storage) : 0;
+
         const rawResult = await invoke({
           data: {
             credential: credential.current,
             action: kind,
-            delta: blApi.tournament.walletDelta(storage),
+            delta: deltaToSend,
             username: profile.username,
             country: profile.country,
             ...options,
@@ -140,7 +144,15 @@ export function useTournament({
         const result = (rawResult ?? {}) as TournamentActionResponse;
         if ("guest" in result && result.guest) {
           const data = result as RaceSnapshot;
-          blApi.tournament.applySnapshot(data, balance, storage);
+          if (shouldSyncCloud && deltaToSend !== 0) {
+            lastCloudSync.current = nowTs;
+          }
+          // שומרים סטטיסטיקות תחרות מקומית בלי לדרוס את יתרת המטבעות המקומית בכל קריאה
+          storage.setItem(
+            "rush_hour_tournament_stats",
+            JSON.stringify({ wins: data.guest.wins, losses: data.guest.losses }),
+          );
+
           if (alive.current) {
             setClockOffset(Date.parse(data.serverNow) - Date.now());
             if (kind === "move") queued.current.splice(0, options?.moves?.length ?? 0);
@@ -150,8 +162,14 @@ export function useTournament({
             }
             publish(data);
           }
-          if (data.error && !(kind === "join" && data.error === "unavailable"))
-            toast.error(data.error === "coins" ? t("raceNeedCoins") : t("raceUnavailable"));
+          // במצב מטבעות מקומיים-קודם לא חוסמים על שגיאת "coins" מהשרת
+          if (
+            data.error &&
+            data.error !== "coins" &&
+            !(kind === "join" && data.error === "unavailable")
+          ) {
+            toast.error(t("raceUnavailable"));
+          }
           return data;
         } else if (result.error) {
           if (kind === "move") {
@@ -159,13 +177,11 @@ export function useTournament({
             localWin.current = null;
             if (authoritative.current) publish(authoritative.current);
           }
-          toast.error(
-            result.error === "coins"
-              ? t("raceNeedCoins")
-              : result.error === "unavailable"
-                ? t("raceUnavailable")
-                : te(result.error),
-          );
+          if (result.error !== "coins") {
+            toast.error(
+              result.error === "unavailable" ? t("raceUnavailable") : te(result.error),
+            );
+          }
         }
       } catch {
         if (kind === "move") {
@@ -190,8 +206,6 @@ export function useTournament({
   const actionRef = useRef(action);
   actionRef.current = action;
   const sending = useRef(false);
-  // One request in flight at a time; every move queued meanwhile is sent together in the next batch,
-  // so the winning move never waits behind a chain of per-move round trips.
   const flushMoves = useCallback(async () => {
     if (sending.current) return;
     sending.current = true;
@@ -199,7 +213,7 @@ export function useTournament({
       while (alive.current && queued.current.length > 0) {
         const batch = queued.current.slice(0, 40);
         await actionRef.current("move", { moves: batch });
-        if (queued.current[0] === batch[0]) break; // failed batch was not consumed; stop retry spam
+        if (queued.current[0] === batch[0]) break;
       }
     } finally {
       sending.current = false;
@@ -234,7 +248,6 @@ export function useTournament({
       const move = { id, direction, steps };
       queued.current.push(move);
 
-      // זיהוי אופטימי מיידי: אם הגענו לשלב 3 - מקפיצים מנצח בלייב!
       const isWinningMove = next.state.index >= 3;
       if (isWinningMove) localWin.current = match.id;
       const visible: RaceSnapshot = {

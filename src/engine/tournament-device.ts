@@ -25,11 +25,12 @@ export function saveGuestCredential(
   storage: StoragePort = fallbackStorage,
 ) {
   storage.setItem(KEY, JSON.stringify(guest));
-  storage.setItem(BASELINE, String(getCoins()));
+  storage.setItem(BASELINE, String(getCoins(storage)));
 }
 
 export function walletDelta(storage: StoragePort = fallbackStorage): number {
-  return getCoins() - Number(storage.getItem(BASELINE) ?? getCoins());
+  const current = getCoins(storage);
+  return current - Number(storage.getItem(BASELINE) ?? current);
 }
 
 export function applyTournamentSnapshot(
@@ -38,8 +39,9 @@ export function applyTournamentSnapshot(
   storage: StoragePort = fallbackStorage,
 ) {
   if (!snapshot.guest) return;
-  const balance = snapshot.guest.coins + getCoins() - balanceAtRequest;
-  addCoins(balance - getCoins());
+  const current = getCoins(storage);
+  const balance = snapshot.guest.coins + current - balanceAtRequest;
+  addCoins(balance - current, storage);
   storage.setItem(BASELINE, String(snapshot.guest.coins));
   storage.setItem(
     "rush_hour_tournament_stats",

@@ -1,10 +1,12 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useI18n } from "@/lib/i18n";
 import { useTournament } from "@/hooks/use-tournament";
 import { blApi } from "@/engine/blApi";
 import { toast } from "sonner";
 import { useProfile } from "@/hooks/useProfile";
 import { useDuelInvitations } from "@/hooks/useDuelInvitations";
+
+const RACE_WIN_COINS = 90;
 
 export function useCompetitions() {
   const { t } = useI18n();
@@ -22,17 +24,25 @@ export function useCompetitions() {
   const [forfeitOpen, setForfeitOpen] = useState(false);
   const [code, setCode] = useState("");
   const [now, setNow] = useState(() => Date.now());
-  const [coins, setCoins] = useState(0);
+  const [coins, setCoins] = useState(() => blApi.rewards.getCoins(storage));
 
-  // טעינה ראשונית וסנכרון מטבעות רק כשיש שינוי
-  useEffect(() => {
+  const paidMatchId = useRef<string | null>(null);
+  const rewardedMatchId = useRef<string | null>(null);
+
+  const refreshCoins = useCallback(() => {
     setCoins(blApi.rewards.getCoins(storage));
   }, [storage]);
+
+  useEffect(() => {
+    refreshCoins();
+    const onCoinsUpdated = () => refreshCoins();
+    window.addEventListener("rush_hour_coins_updated", onCoinsUpdated);
+    return () => window.removeEventListener("rush_hour_coins_updated", onCoinsUpdated);
+  }, [refreshCoins]);
 
   const match = snapshot?.match;
   const isMatchActive = match?.status === "playing" || match?.status === "waiting";
 
-  // הפעלת טיימר סנכרון זמנים **אך ורק** כשיש משחק פעיל
   useEffect(() => {
     if (!isMatchActive) return;
     setNow(Date.now());
@@ -44,6 +54,21 @@ export function useCompetitions() {
 
   const guestId = snapshot?.guest.id;
   const isHost = match?.a === guestId;
+
+  // זיכוי פרס ניצחון מקומי פעם אחת לכל match.id
+  useEffect(() => {
+    if (
+      match?.id &&
+      match.status === "finished" &&
+      guestId &&
+      match.winner === guestId &&
+      rewardedMatchId.current !== match.id
+    ) {
+      rewardedMatchId.current = match.id;
+      blApi.rewards.addCoins(RACE_WIN_COINS, storage);
+      refreshCoins();
+    }
+  }, [match?.id, match?.status, match?.winner, guestId, storage, refreshCoins]);
 
   const mine = useMemo(
     () => (match ? (isHost ? match.a_state : match.b_state) : null),
@@ -81,24 +106,38 @@ export function useCompetitions() {
 
   const begin = useCallback(
     async (kind: "random" | "create" | "join", room?: string) => {
-      const currentCoins = blApi.rewards.getCoins(storage);
-      if (currentCoins < blApi.constants.entryFee) {
+      const fee = blApi.constants.entryFee;
+      const spent = blApi.rewards.spendCoins(fee, storage);
+      refreshCoins();
+      if (!spent) {
         toast.error(t("raceNeedCoins"));
         return;
       }
       setUnavailable(false);
       setFriendOpen(false);
       const result = await action(kind, room ? { code: room } : undefined);
-      if (kind === "join" && result?.error === "unavailable") setUnavailable(true);
+      if (!result?.match || (kind === "join" && result?.error === "unavailable")) {
+        blApi.rewards.addCoins(fee, storage);
+        refreshCoins();
+        if (kind === "join" && result?.error === "unavailable") setUnavailable(true);
+      } else {
+        paidMatchId.current = result.match.id;
+      }
     },
-    [action, t, storage],
+    [action, t, storage, refreshCoins],
   );
 
   const dismiss = useCallback(async () => {
+    const wasCancelled = match?.status === "cancelled";
+    const currentMatchId = match?.id ?? null;
     setUnavailable(false);
     await action("leave");
-    setCoins(blApi.rewards.getCoins(storage)); // עדכון המטבעות לאחר סיום המשחק
-  }, [action, storage]);
+    if (wasCancelled && currentMatchId && paidMatchId.current === currentMatchId) {
+      blApi.rewards.addCoins(blApi.constants.entryFee, storage);
+      paidMatchId.current = null;
+    }
+    refreshCoins();
+  }, [action, match?.id, match?.status, storage, refreshCoins]);
 
   const sendInvite = async () => {
     setSendingInvite(true);
