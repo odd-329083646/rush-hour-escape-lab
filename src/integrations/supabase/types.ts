@@ -239,6 +239,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      daily_best_time: { Args: { p_date: string }; Returns: number }
       send_duel_invitation: {
         Args: { p_guest: string; p_hash: string; p_recipient_code: string }
         Returns: Json

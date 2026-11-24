@@ -29,14 +29,9 @@ export async function ensureGuestCredential(register: RegisterFn): Promise<Guest
 }
 
 export async function readDailyBest(date: string): Promise<number | null> {
-  const { data, error } = await supabase
-    .from("daily_scores")
-    .select("solve_time")
-    .eq("date", date)
-    .order("solve_time", { ascending: true })
-    .limit(1);
+  const { data, error } = await supabase.rpc("daily_best_time", { p_date: date });
   if (error) throw error;
-  return data?.[0]?.solve_time ?? null;
+  return typeof data === "number" ? data : null;
 }
 
 export async function writeDailyScore(score: DailyScoreDO): Promise<void> {
