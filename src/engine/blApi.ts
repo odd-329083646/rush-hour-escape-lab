@@ -79,6 +79,7 @@ import {
   saveGuestCredential,
   tournamentStats,
   walletDelta,
+  commitWalletDelta,
 } from "./tournament-device";
 import { PUZZLES as TOURNAMENT_PUZZLES } from "./tournamentCatalogue";
 import { LESSONS, type Lesson } from "./tutorialLessons";
@@ -206,6 +207,7 @@ export interface BlApi {
     ): Promise<GuestCredential>;
     applySnapshot(snapshot: RaceSnapshot, balanceBefore: number, storage?: StoragePort): void;
     walletDelta(storage?: StoragePort): number;
+    commitWalletDelta(sent: number, storage?: StoragePort): void;
     stats(storage?: StoragePort): { wins: number; losses: number };
   };
   dailyScores: {
@@ -324,6 +326,7 @@ export function createBlApi(deps: {
       applySnapshot: (snapshot, balanceBefore, s = storage) =>
         applyTournamentSnapshot(snapshot, balanceBefore, s),
       walletDelta: (s = storage) => walletDelta(s),
+      commitWalletDelta: (sent: number, s = storage) => commitWalletDelta(sent, s),
       stats: (s = storage) => tournamentStats(s),
     },
     dailyScores: {

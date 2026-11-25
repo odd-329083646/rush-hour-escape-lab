@@ -339,7 +339,8 @@ export async function performTournamentAction(
     ...(expected !== undefined ? { p_expected: expected } : {}),
     p_delta: data.delta,
   });
-  if (result.error) throw new Error("Tournament unavailable");
+  if (result.error) { console.error("tournament_action failed", data.action, result.error.message);
+    throw new Error("Tournament unavailable"); }
 
   let snapshot = result.data as unknown as RaceSnapshotDO;
   if (data.action === "cancel" && snapshot.match?.status === "cancelled") {
