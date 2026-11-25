@@ -332,7 +332,7 @@ export function CarPalette({
   );
 
   return (
-    <aside className="panel flex flex-col gap-2" style={{ gridArea: "cars" }}>
+    <aside className="vehicle-palette panel flex flex-col gap-2" style={{ gridArea: "cars" }}>
       <div>
         <h2 className="panel-title">{t("cars")}</h2>
         <div className="grid grid-cols-4 gap-2">{standardCars.map(renderCarButton)}</div>

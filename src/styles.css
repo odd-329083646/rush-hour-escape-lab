@@ -746,7 +746,7 @@ main > header:not(.home-title) h1, .mode-screen .home-title h1 { width: fit-cont
 }
 @media (max-width: 639px) and (orientation: portrait) {
   .game-grid[data-planned-layout="true"] {
-    grid-template-rows: minmax(0, 1fr) max-content;
+    grid-template-rows: minmax(15rem, 1fr) max-content;
     align-items: stretch;
   }
   .game-grid[data-planned-layout="true"] > aside.panel {
@@ -754,12 +754,52 @@ main > header:not(.home-title) h1, .mode-screen .home-title h1 { width: fit-cont
     min-height: max-content;
     overflow: visible;
   }
+  .game-grid[data-planned-layout="true"] .vehicle-palette {
+    gap: .3rem;
+    padding: .4rem;
+  }
+  .game-grid[data-planned-layout="true"] .vehicle-palette .panel-title {
+    margin-bottom: .15rem;
+  }
+  .game-grid[data-planned-layout="true"] .vehicle-palette .panel-title.mt-1 {
+    margin-top: .15rem;
+  }
+  .game-grid[data-planned-layout="true"] .vehicle-palette .grid {
+    gap: .25rem;
+  }
+  .game-grid[data-planned-layout="true"] .vehicle-palette .palette-cell {
+    min-height: 2.2rem;
+    gap: .05rem;
+    padding: .1rem;
+  }
+  .game-grid[data-planned-layout="true"] .vehicle-palette .vehicle-preview {
+    width: 2.5rem;
+    height: .9rem;
+  }
+  .game-grid[data-planned-layout="true"] .vehicle-palette .vehicle-preview[data-length="3"] {
+    width: 3.5rem;
+  }
+  .game-grid[data-planned-layout="true"] .vehicle-palette .vehicle-preview[data-orientation="v"] {
+    width: .65rem;
+  }
+  .game-grid[data-planned-layout="true"] .vehicle-palette .vehicle-preview[data-orientation="v"][data-length="3"] {
+    width: .5rem;
+  }
+  .game-grid[data-planned-layout="true"] .vehicle-palette .text-xs {
+    font-size: .625rem;
+    line-height: .75rem;
+    white-space: nowrap;
+  }
   .game-grid[data-planned-layout="true"] .planned-moves-panel {
     width: 100%;
     max-height: none;
     overflow: hidden;
   }
-  .game-grid[data-planned-layout="true"] .planned-moves-list { max-height: none; }
+  .game-grid[data-planned-layout="true"] .planned-moves-list {
+    min-height: 3rem;
+    max-height: none;
+  }
+  .game-grid[data-planned-layout="true"] .planned-moves-list > li { min-height: 3rem; }
 }
 @media (orientation: landscape) {
   .game-grid[data-panels="full"] {
