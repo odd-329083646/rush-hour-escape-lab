@@ -289,35 +289,34 @@ function Game() {
           !showBoard ? (
             <div
               className="planned-moves-panel panel relative flex min-h-0 w-full flex-1 flex-col gap-2 self-start max-h-[var(--board)]"
-              style={{ width: "var(--board)" }}
             >
               <BoardWarning warn={warn} />
               <h2 className="panel-title mb-0">{t("plannedMoves")}</h2>
               {plan.length === 0 ? (
                 <p className="py-10 text-center text-sm text-muted-foreground">{t("planEmpty")}</p>
               ) : (
-                <ol className="planned-moves-list flex min-h-0 max-h-[35vh] flex-1 flex-col gap-2 overflow-y-auto pr-1 sm:max-h-[50vh]">
+                <ol className="planned-moves-list flex min-h-0 max-h-[35vh] flex-1 flex-col gap-2 overflow-x-hidden overflow-y-auto pr-1 sm:max-h-[50vh]">
                   {plan.map((p, i) => {
                     const c = cars.find((x) => x.id === p.id);
                     if (!c) return null;
                     return (
                       <li
                         key={i}
-                        className="flex items-center gap-3 rounded-lg border bg-background px-3 py-2 text-sm"
+                        className="flex min-w-0 items-center gap-3 rounded-lg border bg-background px-3 py-2 text-sm"
                       >
-                        <span className="w-6 font-display text-muted-foreground">{i + 1}.</span>
-                        <span className="h-3 w-5 rounded-sm" style={{ background: c.color }} />
-                        <span className="flex-1">
+                        <span className="w-6 shrink-0 font-display text-muted-foreground">{i + 1}.</span>
+                        <span className="h-3 w-5 shrink-0 rounded-sm" style={{ background: c.color }} />
+                        <span className="min-w-0 flex-1 truncate">
                           {c.id} · {c.name}
                         </span>
-                        <span className="font-display">
+                        <span className="shrink-0 font-display">
                           {ARROW[p.move]} {p.steps}
                         </span>
                         <Button
                           variant="ghost"
                           aria-label={t("removeMove")}
                           onClick={() => setPlan((q) => q.filter((_, j) => j !== i))}
-                          className="text-muted-foreground hover:text-foreground"
+                          className="shrink-0 text-muted-foreground hover:text-foreground"
                           disabled={simulating}
                         >
                           <Trash2 className="h-4 w-4" />

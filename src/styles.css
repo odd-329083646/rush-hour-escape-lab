@@ -720,6 +720,7 @@ main > header:not(.home-title) h1, .mode-screen .home-title h1 { width: fit-cont
 /* Use the actual space below the header rather than a fixed viewport subtraction. */
 .game-grid[data-panels] { container-type: size; }
 .game-center { justify-content: center; }
+.planned-moves-panel { width: var(--board); }
 .game-grid .game-quick-actions { align-items: center; justify-content: center; min-width: 0; }
 .game-grid .game-quick-actions .start-control { width: auto; min-height: 3rem; margin: 0; padding: .65rem 1rem; }
 .quick-hint { color: var(--toy-yellow); }
@@ -748,6 +749,7 @@ main > header:not(.home-title) h1, .mode-screen .home-title h1 { width: fit-cont
     overflow: visible;
   }
   .game-grid[data-planned-layout="true"] .planned-moves-panel {
+    width: 100%;
     max-height: none;
     overflow: hidden;
   }
