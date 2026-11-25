@@ -48,6 +48,11 @@ export function useDailyGame({
   const rewards = useRewardSystem();
   const [coins, setCoins] = useState(0);
   useEffect(() => setCoins(rewards.coins), [rewards.coins]);
+  const spendCoins = (amount: number) => {
+    const spent = rewards.spend(amount, storage);
+    setCoins(blApi.rewards.getCoins(storage));
+    return spent;
+  };
   const [result, setResult] = useState<{
     time: number;
     best: number | null;
@@ -412,6 +417,7 @@ remoteScore,
     setWarn,
     coins,
     setCoins,
+    spendCoins,
     result,
     setResult,
     hints,

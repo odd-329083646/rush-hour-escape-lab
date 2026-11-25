@@ -736,6 +736,12 @@ main > header:not(.home-title) h1, .mode-screen .home-title h1 { width: fit-cont
     grid-template-areas: "board" "ctrl";
     --board: min(calc(100cqw - 1rem), calc(100cqh - 7rem));
   }
+  .game-grid[data-panels="hidden"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-areas: "board";
+    --board: min(calc(100cqw - 1rem), calc(100cqh - 5rem));
+  }
   .game-grid .game-quick-actions { flex-direction: row; padding: .5rem 0; }
 }
 @media (max-width: 639px) and (orientation: portrait) {
@@ -765,6 +771,13 @@ main > header:not(.home-title) h1, .mode-screen .home-title h1 { width: fit-cont
     grid-template-rows: minmax(0, 1fr) auto;
     grid-template-areas: "board" "ctrl";
     --board: min(calc(100cqw - 1rem), calc(100cqh - 7rem));
+  }
+  .game-grid[data-panels="hidden"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    grid-template-areas: "board";
+    --board: min(calc(100cqw - 1rem), calc(100cqh - 5rem));
+    justify-items: center;
   }
   .game-grid[data-panels="minimal"] .game-quick-actions { flex-direction: row; padding: .5rem 0; }
 }

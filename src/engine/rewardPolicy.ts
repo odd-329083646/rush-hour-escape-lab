@@ -7,6 +7,8 @@ const fallbackStorage: StoragePort = {
   setItem: () => {},
 };
 
+export const BOARD_RESET_COST = 5;
+
 /** Device reward checks are not a security boundary; tournament settlement remains server-authoritative. */
 export function spendCoins(amount: number, storage: StoragePort = fallbackStorage): boolean {
   if (!Number.isSafeInteger(amount) || amount < 0 || getCoins(storage) < amount) return false;

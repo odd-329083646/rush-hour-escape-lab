@@ -37,6 +37,7 @@ import { HintSelection } from "@/components/hint-selection";
 import { VictoryOverlay, FailureOverlay } from "@/components/victory-overlay";
 import { CoinsBadge } from "@/components/coins-badge";
 import { BoardWarning, GameArena } from "@/components/game-board";
+import { BOARD_RESET_COST } from "@/engine/rewardPolicy";
 import { useEffect, useRef, useState } from "react";
 
 export const Route = createFileRoute("/game/$level")({
@@ -98,6 +99,7 @@ function Game() {
     wonStars,
     isRecord,
     coins,
+    spendCoins,
     hints,
     boardRevealed,
     boardCars,
@@ -129,6 +131,7 @@ function Game() {
   const victoryReady = useExitAnimation(wonAt);
   const planEndRef = useRef<HTMLDivElement | null>(null);
   const [resetConfirmationOpen, setResetConfirmationOpen] = useState(false);
+  const [resetInsufficient, setResetInsufficient] = useState(false);
   const requestReset = () => {
     const boardChanged =
       cars.length !== initialCars.length ||
@@ -143,7 +146,10 @@ function Game() {
         );
       });
 
-    if (moves > 0 || plan.length > 0 || boardChanged) setResetConfirmationOpen(true);
+    if (moves > 0 || plan.length > 0 || boardChanged) {
+      setResetInsufficient(false);
+      setResetConfirmationOpen(true);
+    }
     else loadPuzzle(idx);
   };
 
@@ -235,8 +241,9 @@ function Game() {
       <GameArena
         t={t}
         plannedMovesLayout={murderer && started && !showBoard}
-        showControlsPanel={!started || panelsVisible || murderer}
-        showCarsPanel={panelsVisible || murderer}
+        showQuickActions={started && !simulating}
+        showControlsPanel={!simulating && (!started || panelsVisible || murderer)}
+        showCarsPanel={started && !simulating && (panelsVisible || murderer)}
         controls={{
           started,
           onStart: start,
@@ -245,7 +252,7 @@ function Game() {
           steps,
           onStepsChange: setSteps,
           controlsDisabled: simulating,
-          showHint: true,
+          showHint: started && !simulating,
           hintDisabled: simulating || won || failed || hints.peek,
           onHintClick: openHints,
           executeLabel: murderer ? t("addMove") : t("execute"),
@@ -254,7 +261,13 @@ function Game() {
           onExecute: execute,
         }}
         boardHeader={
-          murderer && started && !won && !failed && !hints.peek && hidden.size < cars.length ? (
+          murderer &&
+          started &&
+          !simulating &&
+          !won &&
+          !failed &&
+          !hints.peek &&
+          hidden.size < cars.length ? (
             <Button
               variant="ghost"
               className="chip"
@@ -515,15 +528,42 @@ function Game() {
           </div>
         </div>
       )}
-      <AlertDialog open={resetConfirmationOpen} onOpenChange={setResetConfirmationOpen}>
+      <AlertDialog
+        open={resetConfirmationOpen}
+        onOpenChange={(open) => {
+          setResetConfirmationOpen(open);
+          if (!open) setResetInsufficient(false);
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("resetConfirmTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("resetConfirmDescription")}</AlertDialogDescription>
+            <AlertDialogDescription>
+              {t("resetConfirmDescription")}
+              <span className="mt-1 block font-semibold">
+                {t("resetCost", { cost: BOARD_RESET_COST })}
+              </span>
+              {resetInsufficient && (
+                <span className="mt-1 block text-destructive" role="alert">
+                  {t("resetInsufficient", { cost: BOARD_RESET_COST, have: coins })}
+                </span>
+              )}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={() => loadPuzzle(idx)}>{t("reset")}</AlertDialogAction>
+            <AlertDialogAction
+              onClick={(event) => {
+                if (!spendCoins(BOARD_RESET_COST)) {
+                  event.preventDefault();
+                  setResetInsufficient(true);
+                  return;
+                }
+                loadPuzzle(idx);
+              }}
+            >
+              {t("reset")}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

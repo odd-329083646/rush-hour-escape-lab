@@ -354,6 +354,7 @@ export interface GameArenaProps {
   t: TranslateFn;
   dir?: "ltr" | "rtl" | undefined;
   plannedMovesLayout?: boolean | undefined;
+  showQuickActions?: boolean | undefined;
   showControlsPanel?: boolean | undefined;
   showCarsPanel?: boolean | undefined;
   controls: Omit<ControlPanelProps, "t">;
@@ -372,6 +373,7 @@ export function GameArena({
   t,
   dir,
   plannedMovesLayout = false,
+  showQuickActions = true,
   showControlsPanel = true,
   showCarsPanel = true,
   controls,
@@ -388,12 +390,17 @@ export function GameArena({
   return (
     <div
       className="game-grid"
-      data-panels={showCarsPanel ? "full" : "minimal"}
+      data-panels={showCarsPanel ? "full" : showControlsPanel || showQuickActions ? "minimal" : "hidden"}
       data-planned-layout={plannedMovesLayout ? "true" : undefined}
       dir={dir}
     >
-      {(showControlsPanel || controls.showHint) && (
-        <ControlPanel t={t} {...controls} frameless={!showCarsPanel} />
+      {(showControlsPanel || (showQuickActions && controls.showHint)) && (
+        <ControlPanel
+          t={t}
+          {...controls}
+          showHint={showQuickActions && controls.showHint}
+          frameless={!showCarsPanel}
+        />
       )}
 
       <section className="game-center flex min-h-0 min-w-0 flex-col items-center gap-2" style={{ gridArea: "board" }}>

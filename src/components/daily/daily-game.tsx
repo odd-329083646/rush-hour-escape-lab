@@ -22,6 +22,7 @@ import { CoinsBadge } from "@/components/coins-badge";
 import { GameArena } from "@/components/game-board";
 import { DailyCalendar } from "./daily-calendar";
 import { blApi } from "@/engine/blApi";
+import { BOARD_RESET_COST } from "@/engine/rewardPolicy";
 
 export function DailyGame({
   date,
@@ -53,6 +54,7 @@ export function DailyGame({
     warn,
     coins,
     setCoins,
+    spendCoins,
     result,
     hints,
     boardCars,
@@ -75,6 +77,7 @@ export function DailyGame({
   } = useDailyGame({ date, openCalendar });
 
   const [resetConfirmationOpen, setResetConfirmationOpen] = useState(false);
+  const [resetInsufficient, setResetInsufficient] = useState(false);
   const victoryReady = useExitAnimation(wonAt);
   const { panelsVisible } = useSettings();
   const requestReset = () => {
@@ -91,7 +94,10 @@ export function DailyGame({
         );
       });
 
-    if (moves > 0 || bumps > 0 || boardChanged) setResetConfirmationOpen(true);
+    if (moves > 0 || bumps > 0 || boardChanged) {
+      setResetInsufficient(false);
+      setResetConfirmationOpen(true);
+    }
     else reset(start);
   };
 
@@ -270,15 +276,42 @@ export function DailyGame({
         </VictoryOverlay>
       )}
       <DailyCalendar open={calOpen} onClose={() => setCalOpen(false)} current={date} />
-      <AlertDialog open={resetConfirmationOpen} onOpenChange={setResetConfirmationOpen}>
+      <AlertDialog
+        open={resetConfirmationOpen}
+        onOpenChange={(open) => {
+          setResetConfirmationOpen(open);
+          if (!open) setResetInsufficient(false);
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{t("resetConfirmTitle")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("resetConfirmDescription")}</AlertDialogDescription>
+            <AlertDialogDescription>
+              {t("resetConfirmDescription")}
+              <span className="mt-1 block font-semibold">
+                {t("resetCost", { cost: BOARD_RESET_COST })}
+              </span>
+              {resetInsufficient && (
+                <span className="mt-1 block text-destructive" role="alert">
+                  {t("resetInsufficient", { cost: BOARD_RESET_COST, have: coins })}
+                </span>
+              )}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={() => reset(start)}>{t("reset")}</AlertDialogAction>
+            <AlertDialogAction
+              onClick={(event) => {
+                if (!spendCoins(BOARD_RESET_COST)) {
+                  event.preventDefault();
+                  setResetInsufficient(true);
+                  return;
+                }
+                reset(start);
+              }}
+            >
+              {t("reset")}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

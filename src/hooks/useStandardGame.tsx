@@ -60,6 +60,11 @@ export function useStandardGame(level: Level) {
   const [isRecord, setIsRecord] = useState(false);
   const [coins, setCoinsState] = useState(0);
   const hints = useHints(setCoinsState);
+  const spendCoins = (amount: number) => {
+    const spent = rewards.spend(amount, storage);
+    setCoinsState(blApi.rewards.getCoins(storage));
+    return spent;
+  };
   const boardRevealed = hints.peek;
   const boardCars = blApi.hints.peekBoardCars(initialCars, cars, hints.peek);
   const [murdererBoard, setMurdererBoard] = useState(false);
@@ -653,6 +658,7 @@ export function useStandardGame(level: Level) {
     isRecord,
     coins,
     setCoinsState,
+    spendCoins,
     hints,
     boardRevealed,
     boardCars,
