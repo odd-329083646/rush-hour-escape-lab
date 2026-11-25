@@ -9,6 +9,16 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
+## Architecture and Conventions
+
+Keep game behavior in the state and rules layer. `src/hooks` and `src/engine` own game state, rules, validation, costs and rewards, simulation flow, and actions. Hooks coordinate stateful workflows; engine modules own domain calculations. Do not put game logic or rule calculations in routes or UI components. Services remain responsible for persistence and external I/O.
+
+Keep rendering in the UI and mode layer. `src/routes` and `src/components` consume state and actions from hooks and the engine, then render views, modes, and dialogs. They may coordinate presentation but must not embed business or game-rule logic.
+
+Keep geometry in the layout and styling layer. `src/styles.css` and dedicated layout props or data attributes own layout geometry, mobile responsiveness, scroll containers, and board centering. Avoid ad-hoc inline style overrides and do not have UI components calculate layout rules directly.
+
+Put every user-facing string, label, and error message in `src/lib/i18n.ts`, with both English and Hebrew translations. Preserve mobile board centering and desktop layout, and maintain compatibility with the Vite, SSR, and Nitro Cloudflare build. Keep changes scoped to the request; do not run terminal commands or tests unless explicitly asked.
+
 - Guest duel invitations use private player invitation codes and capability-verified inbox reads; app-wide data-free broadcasts plus polling deliver notifications without exposing profiles or tokens.
 - Matchmaking deadlines and the VS/countdown schedule are enforced by the atomic tournament action; client phase helpers only render server timestamps to avoid timing and refund races.
 - Lobby entry dismisses only the initial terminal match by ID in the tournament hook; authoritative guest statistics still sync, and results earned during the visit remain visible.
