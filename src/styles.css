@@ -754,6 +754,18 @@ main > header:not(.home-title) h1, .mode-screen .home-title h1 { width: fit-cont
     min-height: max-content;
     overflow: visible;
   }
+  .game-grid[data-planned-layout="true"] .planned-moves-panel {
+    width: 100%;
+    max-height: none;
+    overflow: hidden;
+  }
+  .game-grid[data-planned-layout="true"] .planned-moves-list {
+    min-height: 3rem;
+    max-height: none;
+  }
+  .game-grid[data-planned-layout="true"] .planned-moves-list > li { min-height: 3rem; }
+}
+@media (max-width: 639px) and (orientation: portrait) and (max-height: 760px) {
   .game-grid[data-planned-layout="true"] .vehicle-palette {
     gap: .3rem;
     padding: .4rem;
@@ -790,16 +802,6 @@ main > header:not(.home-title) h1, .mode-screen .home-title h1 { width: fit-cont
     line-height: .75rem;
     white-space: nowrap;
   }
-  .game-grid[data-planned-layout="true"] .planned-moves-panel {
-    width: 100%;
-    max-height: none;
-    overflow: hidden;
-  }
-  .game-grid[data-planned-layout="true"] .planned-moves-list {
-    min-height: 3rem;
-    max-height: none;
-  }
-  .game-grid[data-planned-layout="true"] .planned-moves-list > li { min-height: 3rem; }
 }
 @media (orientation: landscape) {
   .game-grid[data-panels="full"] {
