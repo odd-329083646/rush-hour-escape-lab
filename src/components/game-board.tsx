@@ -353,6 +353,7 @@ export function CarPalette({
 export interface GameArenaProps {
   t: TranslateFn;
   dir?: "ltr" | "rtl" | undefined;
+  plannedMovesLayout?: boolean | undefined;
   showControlsPanel?: boolean | undefined;
   showCarsPanel?: boolean | undefined;
   controls: Omit<ControlPanelProps, "t">;
@@ -370,6 +371,7 @@ export interface GameArenaProps {
 export function GameArena({
   t,
   dir,
+  plannedMovesLayout = false,
   showControlsPanel = true,
   showCarsPanel = true,
   controls,
@@ -384,7 +386,12 @@ export function GameArena({
   paletteFooter,
 }: GameArenaProps) {
   return (
-    <div className="game-grid" data-panels={showCarsPanel ? "full" : "minimal"} dir={dir}>
+    <div
+      className="game-grid"
+      data-panels={showCarsPanel ? "full" : "minimal"}
+      data-planned-layout={plannedMovesLayout ? "true" : undefined}
+      dir={dir}
+    >
       {(showControlsPanel || controls.showHint) && (
         <ControlPanel t={t} {...controls} frameless={!showCarsPanel} />
       )}

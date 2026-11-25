@@ -1,9 +1,20 @@
+import { useState } from "react";
 import { useSettings } from "@/hooks/useSettings";
 import { useDailyGame } from "@/hooks/useDailyGame";
 import { useExitAnimation } from "@/hooks/useExitAnimation";
 import { Link } from "@tanstack/react-router";
 import { CalendarDays, Coins, Home, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { SettingsButton } from "@/components/settings-dialog";
 import { HintSelection } from "@/components/hint-selection";
 import { VictoryOverlay, FailureOverlay } from "@/components/victory-overlay";
@@ -63,8 +74,26 @@ export function DailyGame({
     label,
   } = useDailyGame({ date, openCalendar });
 
+  const [resetConfirmationOpen, setResetConfirmationOpen] = useState(false);
   const victoryReady = useExitAnimation(wonAt);
   const { panelsVisible } = useSettings();
+  const requestReset = () => {
+    const boardChanged =
+      cars.length !== start.length ||
+      cars.some((car, index) => {
+        const initialCar = start[index];
+        return (
+          !initialCar ||
+          car.id !== initialCar.id ||
+          car.row !== initialCar.row ||
+          car.col !== initialCar.col ||
+          car.dir !== initialCar.dir
+        );
+      });
+
+    if (moves > 0 || bumps > 0 || boardChanged) setResetConfirmationOpen(true);
+    else reset(start);
+  };
 
   return (
     <main className="lot-bg flex h-dvh flex-col gap-2 overflow-hidden px-2 py-2 sm:px-4">
@@ -94,7 +123,7 @@ export function DailyGame({
           <Button
             variant="ghost"
             className="chip px-2 sm:px-3.5"
-            onClick={() => reset(start)}
+            onClick={requestReset}
             aria-label={t("reset")}
           >
             <RotateCcw className="h-4 w-4" />
@@ -241,6 +270,18 @@ export function DailyGame({
         </VictoryOverlay>
       )}
       <DailyCalendar open={calOpen} onClose={() => setCalOpen(false)} current={date} />
+      <AlertDialog open={resetConfirmationOpen} onOpenChange={setResetConfirmationOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("resetConfirmTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("resetConfirmDescription")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => reset(start)}>{t("reset")}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 }

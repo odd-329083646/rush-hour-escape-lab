@@ -22,12 +22,22 @@ import {
 } from "lucide-react";
 import { LEVELS, IS_OFFLINE_MODE, TIERS, type Level, type Move } from "@/engine/game";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { SettingsButton } from "@/components/settings-dialog";
 import { HintSelection } from "@/components/hint-selection";
 import { VictoryOverlay, FailureOverlay } from "@/components/victory-overlay";
 import { CoinsBadge } from "@/components/coins-badge";
 import { BoardWarning, GameArena } from "@/components/game-board";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export const Route = createFileRoute("/game/$level")({
   beforeLoad: ({ params }) => {
@@ -66,6 +76,7 @@ function Game() {
     idx,
     puzzle,
     cars,
+    initialCars,
     moves,
     sel,
     setSel,
@@ -117,6 +128,24 @@ function Game() {
 
   const victoryReady = useExitAnimation(wonAt);
   const planEndRef = useRef<HTMLDivElement | null>(null);
+  const [resetConfirmationOpen, setResetConfirmationOpen] = useState(false);
+  const requestReset = () => {
+    const boardChanged =
+      cars.length !== initialCars.length ||
+      cars.some((car, index) => {
+        const initialCar = initialCars[index];
+        return (
+          !initialCar ||
+          car.id !== initialCar.id ||
+          car.row !== initialCar.row ||
+          car.col !== initialCar.col ||
+          car.dir !== initialCar.dir
+        );
+      });
+
+    if (moves > 0 || plan.length > 0 || boardChanged) setResetConfirmationOpen(true);
+    else loadPuzzle(idx);
+  };
 
   useEffect(() => {
     if (murderer && plan.length > 0) {
@@ -179,7 +208,7 @@ function Game() {
           </Button>
           <Button
             variant="ghost"
-            onClick={() => loadPuzzle(idx)}
+            onClick={requestReset}
             aria-label={t("reset")}
             title={t("reset")}
             className="chip px-2 sm:px-3.5"
@@ -205,6 +234,7 @@ function Game() {
 
       <GameArena
         t={t}
+        plannedMovesLayout={murderer && started && !showBoard}
         showControlsPanel={!started || panelsVisible || murderer}
         showCarsPanel={panelsVisible || murderer}
         controls={{
@@ -258,15 +288,15 @@ function Game() {
         customCenter={
           !showBoard ? (
             <div
-              className="panel relative flex w-full flex-col gap-2 self-start"
-              style={{ width: "var(--board)", maxHeight: "var(--board)" }}
+              className="planned-moves-panel panel relative flex min-h-0 w-full flex-1 flex-col gap-2 self-start max-h-[var(--board)]"
+              style={{ width: "var(--board)" }}
             >
               <BoardWarning warn={warn} />
               <h2 className="panel-title mb-0">{t("plannedMoves")}</h2>
               {plan.length === 0 ? (
                 <p className="py-10 text-center text-sm text-muted-foreground">{t("planEmpty")}</p>
               ) : (
-                <ol className="flex min-h-0 max-h-[35vh] flex-1 flex-col gap-2 overflow-y-auto pr-1 sm:max-h-[50vh]">
+                <ol className="planned-moves-list flex min-h-0 max-h-[35vh] flex-1 flex-col gap-2 overflow-y-auto pr-1 sm:max-h-[50vh]">
                   {plan.map((p, i) => {
                     const c = cars.find((x) => x.id === p.id);
                     if (!c) return null;
@@ -486,6 +516,18 @@ function Game() {
           </div>
         </div>
       )}
+      <AlertDialog open={resetConfirmationOpen} onOpenChange={setResetConfirmationOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("resetConfirmTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("resetConfirmDescription")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={() => loadPuzzle(idx)}>{t("reset")}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </main>
   );
 }

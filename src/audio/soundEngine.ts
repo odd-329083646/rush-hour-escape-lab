@@ -1,7 +1,18 @@
+const AUDIO_ASSETS = {
+  bgm: "/audio/bgm.mp3",
+  engineMove: "/audio/engine-move.mp3",
+  collision: "/audio/collision.mp3",
+  carReleased: "/audio/car-released.mp3",
+  win: "/audio/win.mp3",
+} as const;
+
 class SoundEngine {
   private ctx: AudioContext | null = null;
   private muted = false;
+  private musicActive = false;
+  private musicAudio: HTMLAudioElement | null = null;
   private musicTimer: number | null = null;
+  private musicNodes = new Set<OscillatorNode>();
   private chordIndex = 0;
   private lastMoveSoundAt = 0;
 
@@ -13,10 +24,14 @@ class SoundEngine {
         (window as unknown as { webkitAudioContext: typeof AudioContext })
           .webkitAudioContext;
       if (!AudioCtx) return null;
-      this.ctx = new AudioCtx();
+      try {
+        this.ctx = new AudioCtx();
+      } catch {
+        return null;
+      }
     }
     if (this.ctx.state === "suspended") {
-      void this.ctx.resume();
+      void this.ctx.resume().catch(() => undefined);
     }
     return this.ctx;
   }
@@ -216,7 +231,41 @@ class SoundEngine {
 
   /** מוזיקת רקע רגועה ונעימה (אקורדים רכים ומסוננים) */
   public startMusic(): void {
-    if (this.muted || this.musicTimer !== null) return;
+    if (this.muted || this.musicActive || typeof window === "undefined") return;
+    this.musicActive = true;
+
+    if (typeof Audio !== "undefined") {
+      try {
+        const audio = new Audio(AUDIO_ASSETS.bgm);
+        this.musicAudio = audio;
+        audio.loop = true;
+        audio.volume = 0.18;
+        audio.onerror = () => this.startFallbackMusic(audio);
+
+        const playback = audio.play();
+        if (playback && typeof playback.catch === "function") {
+          void playback.catch(() => this.startFallbackMusic(audio));
+        }
+        return;
+      } catch {
+        this.startFallbackMusic();
+        return;
+      }
+    }
+
+    this.startFallbackMusic();
+  }
+
+  private startFallbackMusic(failedAudio?: HTMLAudioElement): void {
+    if (!this.musicActive || this.muted) return;
+    if (failedAudio && this.musicAudio !== failedAudio) return;
+
+    if (this.musicAudio) {
+      this.musicAudio.onerror = null;
+      this.musicAudio.pause();
+      this.musicAudio = null;
+    }
+
     const ctx = this.ensureContext();
     if (!ctx) return;
 
@@ -230,7 +279,7 @@ class SoundEngine {
     const playChord = () => {
       if (this.muted || !this.ctx) return;
       if (this.ctx.state === "suspended") {
-        void this.ctx.resume();
+        void this.ctx.resume().catch(() => undefined);
       }
 
       const now = this.ctx.currentTime;
@@ -258,20 +307,46 @@ class SoundEngine {
         filter.connect(gain);
         gain.connect(this.ctx.destination);
 
+        this.musicNodes.add(osc);
+        osc.addEventListener("ended", () => this.musicNodes.delete(osc), { once: true });
         osc.start(now);
         osc.stop(now + 2.2);
       });
     };
 
-    playChord();
-    this.musicTimer = window.setInterval(playChord, 2100);
+    try {
+      playChord();
+      this.musicTimer = window.setInterval(playChord, 2100);
+    } catch {
+      this.stopMusic();
+    }
   }
 
   public stopMusic(): void {
+    this.musicActive = false;
     if (this.musicTimer !== null) {
       window.clearInterval(this.musicTimer);
       this.musicTimer = null;
     }
+
+    if (this.musicAudio) {
+      this.musicAudio.onerror = null;
+      try {
+        this.musicAudio.pause();
+      } catch {
+        // Ignore browser/media teardown errors.
+      }
+      this.musicAudio = null;
+    }
+
+    for (const node of this.musicNodes) {
+      try {
+        node.stop();
+      } catch {
+        // Nodes that already ended cannot be stopped again.
+      }
+    }
+    this.musicNodes.clear();
   }
 }
 

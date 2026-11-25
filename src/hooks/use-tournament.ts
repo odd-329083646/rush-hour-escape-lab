@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
+import { soundEngine } from "@/audio/soundEngine";
 import { subscribeRace } from "@/services/supabaseService";
 import { registerTournamentGuest, tournamentAction } from "@/lib/tournament.functions";
 import { blApi } from "@/engine/blApi";
@@ -241,9 +242,13 @@ export function useTournament({
         ),
       );
       if (next.error) {
+        soundEngine.playCollision();
         toast.error(te(next.error));
         return;
       }
+
+      if (next.state.index > current.index) soundEngine.playWin();
+      else soundEngine.playCarReleased();
 
       const move = { id, direction, steps };
       queued.current.push(move);

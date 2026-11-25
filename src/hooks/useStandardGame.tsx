@@ -1,4 +1,5 @@
 import { useSettings } from "@/hooks/useSettings";
+import { soundEngine } from "@/audio/soundEngine";
 import { useRewardSystem } from "./useRewardSystem";
 import { blApi } from "@/engine/blApi";
 import { useEffect, useState, useRef } from "react";
@@ -299,6 +300,7 @@ export function useStandardGame(level: Level) {
       const r = blApi.game.applyMove(currentStepCars, p.id, p.move, p.steps);
 
       if (r.error) {
+        soundEngine.playCollision();
         setCars(currentStepCars.map((c) => ({ ...c })));
         await new Promise((res) => setTimeout(res, 500));
         setSimulating(false);
@@ -306,6 +308,16 @@ export function useStandardGame(level: Level) {
         return;
       }
 
+      const previousCar = currentStepCars.find((car) => car.id === p.id);
+      const nextCar = r.cars.find((car) => car.id === p.id);
+      if (
+        previousCar &&
+        nextCar &&
+        (previousCar.row !== nextCar.row || previousCar.col !== nextCar.col)
+      ) {
+        if (blApi.game.isSolved(r.cars)) soundEngine.playWin();
+        else soundEngine.playCarReleased();
+      }
       currentStepCars = r.cars;
       setCars(currentStepCars.map((c) => ({ ...c })));
       setMoves(i + 1);

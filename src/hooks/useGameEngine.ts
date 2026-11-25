@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { applyMove, isSolved, cells, type Car, type Move } from "@/engine/game";
+import { soundEngine } from "@/audio/soundEngine";
 
 export function movementRange(cars: Car[], car: Car, plan = false) {
   const position = car.dir === "h" ? car.col : car.row;
@@ -48,7 +49,17 @@ export function useGameEngine(initialCars: Car[] = []) {
   };
   const commitMove = (id: string, move: Move, steps: number) => {
     const result = applyMove(current.current, id, move, steps);
-    if (!result.error) {
+    if (result.error) {
+      soundEngine.playCollision();
+    } else {
+      const previousCar = current.current.find((car) => car.id === id);
+      const nextCar = result.cars.find((car) => car.id === id);
+      const moved =
+        previousCar && nextCar && (previousCar.row !== nextCar.row || previousCar.col !== nextCar.col);
+      if (moved) {
+        if (isSolved(result.cars)) soundEngine.playWin();
+        else soundEngine.playCarReleased();
+      }
       setCars(result.cars);
       setMoves((count) => count + 1);
     }
