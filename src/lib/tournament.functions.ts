@@ -93,5 +93,24 @@ export const tournamentAction = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const { performTournamentAction } = await import("@/services/supabaseService.server");
-    return performTournamentAction(data);
+    const { advanceRace, pickRacePuzzleIndices, resolveRacePuzzles } = await import(
+      "@/engine/tournament"
+    );
+    // The engine owns puzzle selection and move rules; the DAL only persists results.
+    return performTournamentAction(data, {
+      pickPuzzleIndices: (random) => pickRacePuzzleIndices(random),
+      getInitialCars: (indices) =>
+        (resolveRacePuzzles({ puzzle_indices: indices })[0]?.cars ?? []) as never,
+      advanceMoves: (match, current, moves, elapsed) => {
+        const puzzles = resolveRacePuzzles(match as never);
+        let advanced = current as never;
+        for (const move of moves) {
+          if ((advanced as { index: number }).index >= 3) break;
+          const next = advanceRace(puzzles, advanced, move.id, move.direction, move.steps, elapsed);
+          if (next.error) return { error: next.error };
+          advanced = next.state as never;
+        }
+        return { state: advanced };
+      },
+    });
   });

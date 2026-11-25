@@ -147,6 +147,7 @@ export function useTournament({
           const data = result as RaceSnapshot;
           if (shouldSyncCloud && deltaToSend !== 0) {
             lastCloudSync.current = nowTs;
+            blApi.tournament.commitWalletDelta(deltaToSend, storage);
           }
           // שומרים סטטיסטיקות תחרות מקומית בלי לדרוס את יתרת המטבעות המקומית בכל קריאה
           storage.setItem(

@@ -33,6 +33,13 @@ export function walletDelta(storage: StoragePort = fallbackStorage): number {
   return current - Number(storage.getItem(BASELINE) ?? current);
 }
 
+/** Advance the baseline by a delta the cloud accepted, so it is never resent. */
+export function commitWalletDelta(sent: number, storage: StoragePort = fallbackStorage) {
+  if (!sent) return;
+  const base = Number(storage.getItem(BASELINE) ?? getCoins(storage) - sent);
+  storage.setItem(BASELINE, String(base + sent));
+}
+
 export function applyTournamentSnapshot(
   snapshot: RaceSnapshot,
   balanceAtRequest: number,
