@@ -30,8 +30,10 @@ export function saveLevelProgress(
   timeInSeconds: number,
   bumps: number = 0,
   storage: StoragePort = fallbackStorage,
+  collisionRecovered: boolean = false,
 ): { stars: number; coinsEarned: number; isRecord: boolean } {
-  const stars = calculateStars(moves, par, bumps);
+  const rawStars = calculateStars(moves, par, bumps);
+  const stars = collisionRecovered ? Math.min(1, rawStars) : rawStars;
   const current = getSavedProgress(levelKey, storage);
   const prev = current[puzzleIdx];
 
@@ -60,7 +62,7 @@ export function saveLevelProgress(
 
   const isRecord =
     !!prev && (prev.stars ?? 0) > 0 && (moves < prev.bestMoves || timeInSeconds < prev.bestTime);
-  return { stars: newStars, coinsEarned, isRecord };
+  return { stars: collisionRecovered ? Math.min(1, newStars) : newStars, coinsEarned, isRecord };
 }
 
 /**

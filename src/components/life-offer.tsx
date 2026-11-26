@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Coins, Heart, ShieldOff, Undo2, X } from "lucide-react";
+import { Coins, Play, ShieldOff, Undo2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { LifeOption } from "@/engine/life";
@@ -48,7 +48,7 @@ export function LifeOfferDialog({
       >
         <div className="flex items-center justify-between gap-2">
           <DialogTitle className="flex items-center gap-2">
-            <Heart className="h-5 w-5 fill-current text-destructive" /> {t("lifeTitle")}
+            <Play className="h-5 w-5 text-primary" /> {t("lifeTitle")}
           </DialogTitle>
           <DialogClose asChild>
             <Button variant="ghost" size="icon" aria-label={t("close")}>
@@ -96,7 +96,7 @@ export function LifeOfferDialog({
               else setError(true);
             }}
           >
-            <Heart className="h-4 w-4 fill-current" /> {t("lifeBuy", { n: offer.cost })}
+            <Play className="h-4 w-4" /> {t("lifeBuy", { n: offer.cost })}
           </Button>
         </div>
       </DialogContent>

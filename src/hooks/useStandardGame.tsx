@@ -57,6 +57,7 @@ export function useStandardGame(level: Level) {
   const failed = failReason !== null;
   const [simulating, setSimulating] = useState(false);
   const [invisibleBumps, setInvisibleBumps] = useState(0);
+  const [bumpRecoveryUsed, setBumpRecoveryUsed] = useState(false);
   const [wonStars, setWonStars] = useState(3);
   const [isRecord, setIsRecord] = useState(false);
   const [coins, setCoinsState] = useState(0);
@@ -114,6 +115,7 @@ export function useStandardGame(level: Level) {
     setFailReason(null);
     setSimulating(false);
     setInvisibleBumps(0);
+    setBumpRecoveryUsed(false);
     setWonStars(3);
     setCoinsState(blApi.rewards.getCoins(storage));
   };

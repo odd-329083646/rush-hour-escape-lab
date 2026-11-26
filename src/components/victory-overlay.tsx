@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { Heart, RotateCcw, Star, X } from "lucide-react";
+import { RotateCcw, Star, X } from "lucide-react";
 import { LifeOfferDialog, type LifeOffer } from "@/components/life-offer";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
@@ -94,9 +94,16 @@ export function FailureOverlay({
   life?: LifeOffer;
 }) {
   const { t } = useI18n();
-  const [lifeOpen, setLifeOpen] = useState(false);
+  const [dismissedReason, setDismissedReason] = useState<FailReason>(null);
+
+  useEffect(() => {
+    if (!reason) setDismissedReason(null);
+  }, [reason]);
 
   if (!reason) return null;
+
+  const hasRecovery = !!(life && (life.options.moves || life.options.bump));
+  const recoveryOpen = hasRecovery && dismissedReason !== reason;
 
   const message =
     reason === "bumps"
@@ -106,28 +113,29 @@ export function FailureOverlay({
         : t("planWrong");
 
   return (
-    <div className="win flex-col gap-2 text-center">
-      <X className="h-12 w-12 text-destructive" />
-      <span className="text-3xl text-destructive">{t("oops")}</span>
-      <span className="text-base text-muted-foreground">{message}</span>
-      <div className="mt-3 flex gap-2">
-        <Button variant="ghost" onClick={onRetry} className="chip">
-          <RotateCcw className="h-4 w-4" /> {t("tryAgain")}
-        </Button>
-        {life && (life.options.moves || life.options.bump) && (
-          <Button onClick={() => setLifeOpen(true)}>
-            <Heart className="h-4 w-4 fill-current" /> {t("lifeOpen")}
-          </Button>
-        )}
-      </div>
+    <>
+      {!recoveryOpen && (
+        <div className="win flex-col gap-2 text-center">
+          <X className="h-12 w-12 text-destructive" />
+          <span className="text-3xl text-destructive">{t("oops")}</span>
+          <span className="text-base text-muted-foreground">{message}</span>
+          <div className="mt-3 flex gap-2">
+            <Button variant="ghost" onClick={onRetry} className="chip">
+              <RotateCcw className="h-4 w-4" /> {t("tryAgain")}
+            </Button>
+          </div>
+        </div>
+      )}
       {life && (
         <LifeOfferDialog
-          open={lifeOpen}
-          onOpenChange={setLifeOpen}
+          open={recoveryOpen}
+          onOpenChange={(open) => {
+            if (!open) setDismissedReason(reason);
+          }}
           offer={life}
           preferred={reason === "bumps" ? "bump" : "moves"}
         />
       )}
-    </div>
+    </>
   );
 }
