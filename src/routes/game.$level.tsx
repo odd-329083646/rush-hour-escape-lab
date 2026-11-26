@@ -99,6 +99,7 @@ function Game() {
     wonStars,
     isRecord,
     coins,
+    life,
     spendCoins,
     hints,
     boardRevealed,
@@ -295,7 +296,11 @@ function Game() {
             setDrag(null);
           },
           children: failed ? (
-            <FailureOverlay reason={failReason} onRetry={() => loadPuzzle(idx)} />
+            <FailureOverlay
+              reason={failReason}
+              onRetry={() => loadPuzzle(idx)}
+              life={{ ...life, coins }}
+            />
           ) : null,
         }}
         customCenter={

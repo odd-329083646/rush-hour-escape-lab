@@ -2,6 +2,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { soundEngine } from "@/audio/soundEngine";
 import { useRewardSystem } from "./useRewardSystem";
 import { blApi } from "@/engine/blApi";
+import { LIFE_COST, applyLife, lifeOptions, type LifeOption } from "@/engine/life";
 import { useEffect, useState, useRef } from "react";
 import type { Car, Level, Move } from "@/engine/game";
 import { useI18n } from "@/lib/i18n";
@@ -598,7 +599,24 @@ export function useStandardGame(level: Level) {
       .catch(() => flash(t("noHint")));
   };
 
+  const life = {
+    cost: LIFE_COST,
+    options: lifeOptions(failReason, { moves, bumps: invisibleBumps }),
+    /** Spend coins for 1 Life and adjust one failure counter, keeping the board as it is. */
+    buy: (option: LifeOption): boolean => {
+      if (!lifeOptions(failReason, { moves, bumps: invisibleBumps })[option]) return false;
+      if (!spendCoins(LIFE_COST)) return false;
+      const next = applyLife(option, { moves, bumps: invisibleBumps });
+      setMoves(next.moves);
+      setInvisibleBumps(next.bumps);
+      setFailReason(null);
+      setWarn(null);
+      return true;
+    },
+  };
+
   return {
+    life,
     openHints,
     tiers,
     drawRandom,

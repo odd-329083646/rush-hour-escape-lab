@@ -53,6 +53,7 @@ export function DailyGame({
     bumps,
     warn,
     coins,
+    life,
     setCoins,
     spendCoins,
     result,
@@ -193,7 +194,14 @@ export function DailyGame({
             dragStart.current = null;
             setDrag(null);
           },
-          children: <FailureOverlay reason={failReason} onRetry={() => reset(start)} isDaily />,
+          children: (
+            <FailureOverlay
+              reason={failReason}
+              onRetry={() => reset(start)}
+              isDaily
+              life={{ ...life, coins }}
+            />
+          ),
         }}
         boardFooter={
           <div

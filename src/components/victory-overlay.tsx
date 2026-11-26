@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { RotateCcw, Star, X } from "lucide-react";
+import { Heart, RotateCcw, Star, X } from "lucide-react";
+import { LifeOfferDialog, type LifeOffer } from "@/components/life-offer";
 import { Button } from "@/components/ui/button";
 import { useI18n } from "@/lib/i18n";
 
@@ -85,12 +86,15 @@ export function FailureOverlay({
   reason,
   onRetry,
   isDaily = false,
+  life,
 }: {
   reason: FailReason;
   onRetry: () => void;
   isDaily?: boolean;
+  life?: LifeOffer;
 }) {
   const { t } = useI18n();
+  const [lifeOpen, setLifeOpen] = useState(false);
 
   if (!reason) return null;
 
@@ -110,7 +114,20 @@ export function FailureOverlay({
         <Button variant="ghost" onClick={onRetry} className="chip">
           <RotateCcw className="h-4 w-4" /> {t("tryAgain")}
         </Button>
+        {life && (life.options.moves || life.options.bump) && (
+          <Button onClick={() => setLifeOpen(true)}>
+            <Heart className="h-4 w-4 fill-current" /> {t("lifeOpen")}
+          </Button>
+        )}
       </div>
+      {life && (
+        <LifeOfferDialog
+          open={lifeOpen}
+          onOpenChange={setLifeOpen}
+          offer={life}
+          preferred={reason === "bumps" ? "bump" : "moves"}
+        />
+      )}
     </div>
   );
 }

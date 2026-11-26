@@ -1,6 +1,7 @@
 import { useSettings } from "@/hooks/useSettings";
 import { useRewardSystem } from "./useRewardSystem";
 import { blApi } from "@/engine/blApi";
+import { LIFE_COST, applyLife, lifeOptions, type LifeOption } from "@/engine/life";
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import { useI18n } from "@/lib/i18n";
 import { useHints } from "@/hooks/use-hints";
@@ -382,7 +383,23 @@ remoteScore,
     year: "numeric",
   });
 
+  const life = {
+    cost: LIFE_COST,
+    options: lifeOptions(failReason, { moves, bumps }),
+    /** Failure is derived from the counters, so adjusting one clears it without touching the board. */
+    buy: (option: LifeOption): boolean => {
+      if (!lifeOptions(failReason, { moves, bumps })[option]) return false;
+      if (!spendCoins(LIFE_COST)) return false;
+      const next = applyLife(option, { moves, bumps });
+      setMoves(next.moves);
+      setBumps(next.bumps);
+      setWarn(null);
+      return true;
+    },
+  };
+
   return {
+    life,
     t,
     te,
     lang,
