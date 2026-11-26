@@ -104,9 +104,7 @@ export function getControlSetting(key: ControlSetting): boolean {
 export function getPanelsVisible(): boolean {
   const saved = storageService.getItem("panelsVisible");
   if (saved === "true" || saved === "false") return saved === "true";
-  return (
-    typeof window === "undefined" || window.matchMedia?.("(min-width: 768px)").matches !== false
-  );
+  return false;
 }
 
 export function setPanelsVisible(visible: boolean) {

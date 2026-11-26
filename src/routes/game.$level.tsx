@@ -242,8 +242,8 @@ function Game() {
         t={t}
         plannedMovesLayout={murderer && started && !showBoard}
         showQuickActions={started && !simulating}
-        showControlsPanel={!simulating && (!started || panelsVisible || murderer)}
-        showCarsPanel={started && !simulating && (panelsVisible || murderer)}
+        showControlsPanel={!simulating && (!started || panelsVisible || (murderer && started))}
+        showCarsPanel={!simulating && (panelsVisible || (murderer && started))}
         controls={{
           started,
           onStart: start,
